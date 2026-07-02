@@ -1,0 +1,7 @@
+@media (max-width:480px){
+  .app{ padding:12px 12px 48px; }
+  .tab{ font-size:.82rem; padding:9px 6px; }
+  .brand h1{ font-size:1.05rem; }
+  .dlg-row{ flex-wrap:wrap; }
+  .time-field{ max-width:none; }
+}

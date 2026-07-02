@@ -1,0 +1,15 @@
+{
+  "name": "Slayqueens",
+  "short_name": "Slayqueens",
+  "description": "Familjens kalender och jobb",
+  "lang": "sv",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f0d18",
+  "theme_color": "#0f0d18",
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

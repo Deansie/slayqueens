@@ -1,0 +1,55 @@
+/* Login screen */
+.login-screen{
+  min-height:100dvh;
+  display:grid; place-items:center;
+  padding:24px;
+}
+.login-card{
+  width:100%; max-width:360px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:26px 22px;
+  display:flex; flex-direction:column; gap:14px;
+}
+
+/* App shell */
+.app{
+  max-width:640px;
+  margin:0 auto;
+  padding:14px 16px 48px;
+  min-height:100dvh;
+}
+.app-header{
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px; padding:6px 2px 14px;
+}
+.header-right{ display:flex; align-items:center; gap:10px; }
+
+/* Tab bar */
+.tabs{
+  display:flex; gap:6px;
+  background:var(--card-2);
+  border:1px solid var(--border);
+  border-radius:999px;
+  padding:5px;
+  position:sticky; top:8px; z-index:5;
+  box-shadow:var(--shadow-sm);
+}
+.tab{
+  flex:1; border:0; background:transparent; cursor:pointer;
+  padding:9px 8px; border-radius:999px;
+  color:var(--muted); font-weight:600; font-size:.9rem; white-space:nowrap;
+  transition:background .12s, color .12s;
+}
+.tab.active{ background:var(--card); color:var(--text); box-shadow:var(--shadow-sm); }
+
+/* Views */
+.view-wrap{ margin-top:16px; }
+.view{ animation:viewfade .18s ease; }
+@keyframes viewfade{ from{opacity:0; transform:translateY(4px)} to{opacity:1; transform:none} }
+.view-head{
+  display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;
+}
+.view-head h2{ font-size:1.15rem; }

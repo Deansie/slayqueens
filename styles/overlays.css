@@ -1,0 +1,37 @@
+/* Toasts */
+.toasts{
+  position:fixed; left:0; right:0; bottom:16px;
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  z-index:50; pointer-events:none; padding:0 16px;
+}
+.toast{
+  pointer-events:auto; cursor:pointer;
+  background:var(--text); color:var(--bg);
+  padding:10px 16px; border-radius:999px;
+  font-size:.88rem; font-weight:600; max-width:90vw;
+  box-shadow:var(--shadow);
+  opacity:0; transform:translateY(10px);
+  transition:opacity .2s, transform .2s;
+}
+.toast.show{ opacity:1; transform:none; }
+.toast.ok{ background:var(--success); color:#fff; }
+.toast.warn{ background:var(--danger); color:#fff; }
+
+/* Dialogs */
+dialog{
+  position:fixed; inset:0; margin:auto;               /* centre (the * reset zeroed margin:auto) */
+  width:min(420px, 92vw); max-height:90dvh; overflow:auto;
+  border:none; padding:0; border-radius:var(--radius);
+  background:var(--card); color:var(--text);
+  box-shadow:var(--shadow);
+}
+dialog::backdrop{ background:rgba(15,10,25,.45); }
+.dlg-body{ padding:20px; display:flex; flex-direction:column; gap:13px; }
+.dlg-body h3{ font-size:1.1rem; }
+.dlg-body p{ color:var(--muted); font-size:.92rem; }
+.dlg-row{ display:flex; gap:10px; }
+.dlg-row .dlg-field{ flex:1; }
+.time-field{ max-width:120px; }
+.dlg-check{ display:flex; align-items:center; gap:8px; font-size:.9rem; color:var(--muted); }
+.dlg-check input{ width:auto; }
+.dlg-actions{ display:flex; justify-content:flex-end; gap:9px; margin-top:4px; }

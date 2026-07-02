@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" id="themeColor" content="#eae7f1" />
+<script>
+  // set the theme before first paint (stored choice, else system) to avoid a flash
+  (function(){
+    try{
+      var t = localStorage.getItem('slayqueens_theme')
+            || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-theme', t);
+    }catch(e){}
+  })();
+</script>
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Slayqueens" />
+<title>Slayqueens</title>
+
+<link rel="icon" href="icons/icon.svg" />
+<link rel="apple-touch-icon" href="icons/icon.svg" />
+<link rel="manifest" href="manifest.json" />
+
+<link rel="stylesheet" href="styles/base.css" />
+<link rel="stylesheet" href="styles/layout.css" />
+<link rel="stylesheet" href="styles/components.css" />
+<link rel="stylesheet" href="styles/overlays.css" />
+<link rel="stylesheet" href="styles/responsive.css" />
+</head>
+
+<body>
+
+<!-- Shown only while config.js still has placeholder values -->
+<div id="configBanner" class="config-banner" hidden>
+  ⚙️ Supabase är inte konfigurerat ännu — fyll i <code>scripts/config.js</code>.
+</div>
+
+<!-- LOGIN ------------------------------------------------------------ -->
+<main id="loginScreen" class="login-screen" hidden>
+  <form class="login-card" id="loginForm">
+    <div class="brand brand-lg">
+      <div class="logo" aria-hidden="true">👑</div>
+      <h1>Slayqueens</h1>
+    </div>
+    <p class="login-sub">Logga in för att se familjens kalender och jobb.</p>
+    <div class="field">
+      <label for="loginEmail">E-post</label>
+      <input id="loginEmail" type="email" autocomplete="username" required />
+    </div>
+    <div class="field">
+      <label for="loginPassword">Lösenord</label>
+      <input id="loginPassword" type="password" autocomplete="current-password" required />
+    </div>
+    <div class="login-error" id="loginError" role="alert"></div>
+    <button class="btn block" id="loginBtn" type="submit">Logga in</button>
+  </form>
+</main>
+
+<!-- APP -------------------------------------------------------------- -->
+<div id="appScreen" class="app" hidden>
+  <header class="app-header">
+    <div class="brand">
+      <div class="logo sm" aria-hidden="true">👑</div>
+      <h1>Slayqueens</h1>
+    </div>
+    <div class="header-right">
+      <button class="icon-btn theme-toggle" id="themeToggle" type="button" aria-label="Byt tema">🌙</button>
+      <button class="me-chip" id="meChip" type="button"><span class="me-dot" id="meDot"></span><span id="meName">—</span></button>
+      <button class="btn ghost sm" id="logoutBtn" type="button">Logga ut</button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Vyer">
+    <button class="tab active" data-view="calendar" type="button" role="tab">📅 Kalender</button>
+    <button class="tab" data-view="tasks" type="button" role="tab">✅ Jobb</button>
+    <button class="tab" data-view="credits" type="button" role="tab">⭐ Mitt konto</button>
+  </nav>
+
+  <main class="view-wrap">
+    <!-- Calendar -->
+    <section class="view active" id="view-calendar">
+      <div class="view-head">
+        <h2>Kommande</h2>
+        <button class="btn sm" id="addEventBtn" type="button">+ Ny händelse</button>
+      </div>
+      <div class="event-list" id="eventList"></div>
+    </section>
+
+    <!-- Tasks -->
+    <section class="view" id="view-tasks" hidden>
+      <div class="view-head">
+        <h2>Jobb</h2>
+        <button class="btn sm parent-only" id="addTaskBtn" type="button">+ Nytt jobb</button>
+      </div>
+      <div id="taskBoard"></div>
+    </section>
+
+    <!-- Credits -->
+    <section class="view" id="view-credits" hidden>
+      <div id="creditsBody"></div>
+    </section>
+  </main>
+</div>
+
+<!-- Event dialog ----------------------------------------------------- -->
+<dialog id="eventDialog">
+  <form method="dialog" class="dlg-body" id="eventForm">
+    <h3 id="eventDlgTitle">Ny händelse</h3>
+    <div class="dlg-field">
+      <label for="evTitle">Vad</label>
+      <input id="evTitle" type="text" required maxlength="80" placeholder="T.ex. Fotbollsträning" />
+    </div>
+    <div class="dlg-field">
+      <label for="evDate">Datum</label>
+      <input id="evDate" type="date" required />
+    </div>
+    <label class="dlg-check"><input type="checkbox" id="evAllDay" /> Heldag (ingen tid)</label>
+    <div class="dlg-row" id="timeRow">
+      <div class="dlg-field">
+        <label for="evStart">Från</label>
+        <input id="evStart" type="time" />
+      </div>
+      <div class="dlg-field">
+        <label for="evEnd">Till (valfritt)</label>
+        <input id="evEnd" type="time" />
+      </div>
+    </div>
+    <div class="dlg-field">
+      <label for="evOwner">För vem</label>
+      <select id="evOwner"></select>
+    </div>
+    <div class="dlg-field">
+      <label for="evNotes">Anteckning (valfritt)</label>
+      <textarea id="evNotes" rows="2" maxlength="300"></textarea>
+    </div>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="evCancel" type="button">Avbryt</button>
+      <button class="btn" value="ok" id="evSave" type="submit">Spara</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Confirm dialog --------------------------------------------------- -->
+<dialog id="confirmDialog">
+  <form method="dialog" class="dlg-body">
+    <h3 id="confirmTitle">Ta bort</h3>
+    <p id="confirmText"></p>
+    <div class="dlg-actions">
+      <button class="btn ghost" value="cancel" type="submit">Avbryt</button>
+      <button class="btn danger" value="ok" id="confirmOk" type="submit">Ta bort</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Job dialog ------------------------------------------------------- -->
+<dialog id="jobDialog">
+  <form method="dialog" class="dlg-body" id="jobForm">
+    <h3 id="jobDlgTitle">Nytt jobb</h3>
+    <div class="dlg-field">
+      <label for="jobTitle">Vad ska göras</label>
+      <input id="jobTitle" type="text" required maxlength="80" placeholder="T.ex. Diska" />
+    </div>
+    <div class="dlg-field">
+      <label for="jobDesc">Beskrivning (valfritt)</label>
+      <textarea id="jobDesc" rows="2" maxlength="300"></textarea>
+    </div>
+    <div class="dlg-field">
+      <label for="jobReward">Belöning (kr)</label>
+      <input id="jobReward" type="number" min="0" step="1" value="10" required />
+    </div>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="jobCancel" type="button">Avbryt</button>
+      <button class="btn" value="ok" id="jobSave" type="submit">Spara</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Reject dialog ---------------------------------------------------- -->
+<dialog id="rejectDialog">
+  <form method="dialog" class="dlg-body" id="rejectForm">
+    <h3>Neka jobb</h3>
+    <div class="dlg-field">
+      <label for="rejectReason">Anledning (valfritt)</label>
+      <textarea id="rejectReason" rows="2" maxlength="200" placeholder="T.ex. inte klart än"></textarea>
+    </div>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="rejectCancel" type="button">Avbryt</button>
+      <button class="btn danger" value="ok" id="rejectConfirm" type="submit">Neka</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Adjust dialog ---------------------------------------------------- -->
+<dialog id="adjustDialog">
+  <form method="dialog" class="dlg-body" id="adjustForm">
+    <h3 id="adjustTitle">Justera saldo</h3>
+    <div class="dlg-field">
+      <label for="adjustAmount">Belopp (kr, minus för utbetalning)</label>
+      <input id="adjustAmount" type="number" step="1" required placeholder="-50" />
+    </div>
+    <div class="dlg-field">
+      <label for="adjustReason">Anledning</label>
+      <input id="adjustReason" type="text" required maxlength="80" placeholder="T.ex. Utbetalt" />
+    </div>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="adjustCancel" type="button">Avbryt</button>
+      <button class="btn" value="ok" id="adjustSave" type="submit">Spara</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Profile dialog --------------------------------------------------- -->
+<dialog id="profileDialog">
+  <form method="dialog" class="dlg-body" id="profileForm">
+    <h3>Välj din färg</h3>
+    <div class="swatches" id="profileSwatches"></div>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="profileCancel" type="button">Avbryt</button>
+      <button class="btn" value="ok" id="profileSave" type="submit">Spara</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="scripts/config.js"></script>
+<script src="scripts/helpers.js"></script>
+<script src="scripts/supa.js"></script>
+<script src="scripts/toast.js"></script>
+<script src="scripts/state.js"></script>
+<script src="scripts/auth.js"></script>
+<script src="scripts/calendar.js"></script>
+<script src="scripts/tasks.js"></script>
+<script src="scripts/credits.js"></script>
+<script src="scripts/profile.js"></script>
+<script src="scripts/theme.js"></script>
+<script src="scripts/main.js"></script>
+</body>
+</html>

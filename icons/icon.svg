@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Slayqueens">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c5cc4"/>
+      <stop offset="1" stop-color="#6a49b6"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <path d="M96 360 L96 200 L176 262 L256 150 L336 262 L416 200 L416 360 Z" fill="#ffd76a"/>
+  <rect x="96" y="356" width="320" height="44" rx="14" fill="#ffcf4d"/>
+  <circle cx="96"  cy="196" r="17" fill="#fff0c2"/>
+  <circle cx="256" cy="146" r="19" fill="#fff0c2"/>
+  <circle cx="416" cy="196" r="17" fill="#fff0c2"/>
+</svg>
