@@ -1,5 +1,6 @@
 @media (max-width:480px){
-  .app{ padding:12px 12px 48px; }
+  .app{ padding:calc(12px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right))
+                calc(48px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left)); }
   .tab{ font-size:.82rem; padding:9px 6px; }
   .brand h1{ font-size:1.05rem; }
   .dlg-row{ flex-wrap:wrap; }
