@@ -38,6 +38,8 @@ async function loadLedger(){
 let realtimeChannel = null;
 function subscribeRealtime(onChange){
   unsubscribeRealtime();
+  // authenticate the realtime socket as the logged-in user so RLS lets row changes through
+  try{ if(session && sb.realtime) sb.realtime.setAuth(session.access_token); }catch(e){ console.warn('realtime setAuth', e); }
   realtimeChannel = sb.channel('slayqueens-db')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'calendar_events' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, onChange)

@@ -44,6 +44,15 @@ document.addEventListener('DOMContentLoaded', () => {
   $('themeToggle').addEventListener('click', toggleTheme);
   reflectTheme();
 
+  // Re-sync when returning to the foreground or regaining network — mobile drops the
+  // realtime socket while the app is backgrounded, which otherwise needs a restart.
+  document.addEventListener('visibilitychange', () => {
+    if(!document.hidden && session){ resync(); subscribeRealtime(onRealtime); }
+  });
+  window.addEventListener('online', () => {
+    if(session){ resync(); subscribeRealtime(onRealtime); }
+  });
+
   startApp();
 });
 
@@ -95,6 +104,15 @@ async function onRealtime(payload){
   else if(t === 'calendar_events') await loadEvents();
   else if(t === 'tasks') await loadTasks();
   else if(t === 'credit_ledger'){ await loadLedger(); await loadBalances(); }
+  renderCalendar();
+  renderTasks();
+  renderCredits();
+}
+
+// Full reload + repaint, used when the app resumes and may have missed live updates.
+async function resync(){
+  if(!sb || !session) return;
+  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger()]);
   renderCalendar();
   renderTasks();
   renderCredits();

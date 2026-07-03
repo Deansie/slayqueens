@@ -217,7 +217,7 @@ grant select on public.balances to authenticated;
 -- Let the front end receive live updates for these tables (drives instant
 -- refresh across everyone's phones). RLS still applies to what each user gets.
 alter publication supabase_realtime add table
-  public.calendar_events, public.tasks, public.credit_ledger;
+  public.calendar_events, public.tasks, public.credit_ledger, public.profiles;
 
 -- ============================================================ ONE-TIME SETUP
 -- After you create your own account, promote it to parent:
