@@ -309,3 +309,14 @@ do $$ begin
     alter publication supabase_realtime add table public.task_templates;
   end if;
 end $$;
+
+-- ============================================================ ADDITIONS 2026-07-03c
+-- Private events + event categories.
+alter table public.calendar_events add column if not exists private  boolean not null default false;
+alter table public.calendar_events add column if not exists category text;
+
+drop policy if exists "family reads events" on public.calendar_events;
+create policy "family reads events" on public.calendar_events
+  for select using (
+    not private or created_by = auth.uid() or owner_id = auth.uid() or public.is_parent()
+  );

@@ -1,6 +1,7 @@
 'use strict';
 // Family calendar: render upcoming events grouped by day, and add/edit/delete.
 let editingEvent = null;
+let categoryFilter = null;
 
 function ownerLabel(ev){
   if(!ev.owner_id) return { name: 'Familjen', color: 'var(--faint)' };
@@ -9,18 +10,35 @@ function ownerLabel(ev){
   return { name: capital(p.name), color: profileColor(p) };
 }
 
+function renderCategoryFilter(){
+  const box = $('catFilter');
+  if(!box) return;
+  const chip = (key, label) => `<button class="fchip${categoryFilter === key ? ' active' : ''}" data-cat="${key || ''}" type="button">${label}</button>`;
+  box.innerHTML = chip(null, 'Alla') + CATEGORIES.map(c => chip(c.key, `${c.emoji} ${escapeHtml(c.label)}`)).join('');
+}
+
+function onCatFilterClick(e){
+  const b = e.target.closest('[data-cat]');
+  if(!b) return;
+  categoryFilter = b.dataset.cat || null;
+  renderCalendar();
+}
+
 function renderCalendar(){
+  renderCategoryFilter();
   const list = $('eventList');
   list.innerHTML = '';
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const upcoming = state.events
     .filter(ev => new Date(ev.starts_at) >= today)
+    .filter(ev => !categoryFilter || (ev.category || 'annat') === categoryFilter)
     .sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));
 
   if(!upcoming.length){
     list.innerHTML =
       '<div class="placeholder"><div class="ph-emoji">📅</div>' +
-      '<h3>Inga kommande händelser</h3><p>Lägg till familjens viktiga datum.</p></div>';
+      `<h3>${categoryFilter ? 'Inget i den kategorin' : 'Inga kommande händelser'}</h3>` +
+      `<p>${categoryFilter ? 'Prova en annan kategori.' : 'Lägg till familjens viktiga datum.'}</p></div>`;
     return;
   }
 
@@ -42,6 +60,7 @@ function eventRow(ev){
   const row = document.createElement('div');
   row.className = 'event';
   const owner = ownerLabel(ev);
+  const cat = categoryOf(ev.category);
   const canEdit = (me && ev.created_by === me.id) || isParent();
   const when = ev.all_day
     ? 'Heldag'
@@ -49,9 +68,12 @@ function eventRow(ev){
   row.innerHTML = `
     <div class="ev-body">
       <div class="ev-when">${when}</div>
-      <div class="ev-title">${escapeHtml(ev.title)}</div>
+      <div class="ev-title">${ev.private ? '🔒 ' : ''}${escapeHtml(ev.title)}</div>
       ${ev.notes ? `<div class="ev-notes">${escapeHtml(ev.notes)}</div>` : ''}
-      <span class="owner-chip"><span class="dot" style="background:${owner.color}"></span>${escapeHtml(owner.name)}</span>
+      <div class="ev-tags">
+        <span class="cat-chip"><span class="dot" style="background:${cat.color}"></span>${cat.emoji} ${escapeHtml(cat.label)}</span>
+        <span class="owner-chip"><span class="dot" style="background:${owner.color}"></span>${escapeHtml(owner.name)}</span>
+      </div>
     </div>
     ${canEdit ? `<div class="ev-actions">
       <button class="icon-btn" data-edit type="button" aria-label="Redigera">✎</button>
@@ -75,6 +97,7 @@ function openEventDialog(ev){
   const sel = $('evOwner');
   sel.innerHTML = '<option value="">Hela familjen</option>' +
     state.profiles.map(p => `<option value="${p.id}">${escapeHtml(capital(p.name))}</option>`).join('');
+  $('evCategory').innerHTML = CATEGORIES.map(c => `<option value="${c.key}">${c.emoji} ${escapeHtml(c.label)}</option>`).join('');
 
   if(ev){
     const d = new Date(ev.starts_at);
@@ -84,6 +107,8 @@ function openEventDialog(ev){
     $('evEnd').value   = (!ev.all_day && ev.ends_at) ? fmtTime(ev.ends_at) : '';
     $('evAllDay').checked = !!ev.all_day;
     sel.value = ev.owner_id || '';
+    $('evCategory').value = ev.category || 'annat';
+    $('evPrivate').checked = !!ev.private;
     $('evNotes').value = ev.notes || '';
   } else {
     $('evTitle').value = '';
@@ -92,6 +117,8 @@ function openEventDialog(ev){
     $('evEnd').value   = '';
     $('evAllDay').checked = false;
     sel.value = me ? me.id : '';
+    $('evCategory').value = 'annat';
+    $('evPrivate').checked = false;
     $('evNotes').value = '';
   }
   toggleTime();
@@ -121,6 +148,8 @@ async function saveEventFromDialog(){
     ends_at,
     all_day: allDay,
     owner_id: $('evOwner').value || null,
+    category: $('evCategory').value || null,
+    private: $('evPrivate').checked,
     notes: $('evNotes').value.trim() || null
   };
 

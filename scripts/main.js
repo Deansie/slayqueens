@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Calendar
   $('addEventBtn').addEventListener('click', () => openEventDialog(null));
+  $('catFilter').addEventListener('click', onCatFilterClick);
   $('eventForm').addEventListener('submit', (e) => {
     if(e.submitter && e.submitter.value === 'ok') saveEventFromDialog();
   });

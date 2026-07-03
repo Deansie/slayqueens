@@ -86,6 +86,7 @@
         <h2>Kommande</h2>
         <button class="btn sm" id="addEventBtn" type="button">+ Ny händelse</button>
       </div>
+      <div class="cat-filter" id="catFilter"></div>
       <div class="event-list" id="eventList"></div>
     </section>
 
@@ -132,6 +133,11 @@
       <label for="evOwner">För vem</label>
       <select id="evOwner"></select>
     </div>
+    <div class="dlg-field">
+      <label for="evCategory">Kategori</label>
+      <select id="evCategory"></select>
+    </div>
+    <label class="dlg-check"><input type="checkbox" id="evPrivate" /> 🔒 Privat — dölj för andra barn</label>
     <div class="dlg-field">
       <label for="evNotes">Anteckning (valfritt)</label>
       <textarea id="evNotes" rows="2" maxlength="300"></textarea>

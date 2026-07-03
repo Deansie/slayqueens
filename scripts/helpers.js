@@ -53,6 +53,17 @@ function profileColor(p){
   for(let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
   return PALETTE[h % PALETTE.length];
 }
+// calendar event categories (client-side list; add/rename freely)
+const CATEGORIES = [
+  { key:'aktivitet', label:'Aktiviteter', emoji:'🏅', color:'#3d8f6a' },
+  { key:'skola',     label:'Skola',       emoji:'📚', color:'#4f8fd6' },
+  { key:'familj',    label:'Familj',      emoji:'👨‍👩‍👧', color:'#7c5cc4' },
+  { key:'halsa',     label:'Hälsa',       emoji:'🏥', color:'#cf5f72' },
+  { key:'kalas',     label:'Kalas',       emoji:'🎂', color:'#d98a2b' },
+  { key:'annat',     label:'Annat',       emoji:'📌', color:'#6b6577' }
+];
+function categoryOf(key){ return CATEGORIES.find(c => c.key === key) || CATEGORIES[CATEGORIES.length - 1]; }
+
 // true once real Supabase values have replaced the placeholders in config.js
 function isConfigured(){
   return !!(CONFIG && CONFIG.SUPABASE_URL && !CONFIG.SUPABASE_URL.includes('YOUR-PROJECT')
