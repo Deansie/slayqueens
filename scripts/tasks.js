@@ -70,10 +70,12 @@ function taskActions(task){
         : `<button class="btn sm" data-act="claim" data-id="${task.id}">Plocka</button>`;
     case 'claimed':
       return (!isParent() && mine)
-        ? `<button class="btn sm" data-act="submit" data-id="${task.id}">Markera klar</button>` : '';
+        ? `<button class="btn sm" data-act="submit" data-id="${task.id}">Markera klar</button>
+           <button class="btn ghost sm" data-act="abort" data-id="${task.id}">Släpp</button>` : '';
     case 'rejected':
       return (!isParent() && mine)
-        ? `<button class="btn sm" data-act="submit" data-id="${task.id}">Skicka in igen</button>` : '';
+        ? `<button class="btn sm" data-act="submit" data-id="${task.id}">Skicka in igen</button>
+           <button class="btn ghost sm" data-act="abort" data-id="${task.id}">Släpp</button>` : '';
     case 'submitted':
       return isParent()
         ? `<button class="btn sm" data-act="approve" data-id="${task.id}">Godkänn</button>
@@ -93,6 +95,7 @@ function onTaskBoardClick(e){
     case 'claim':   taskRpc('claim_task',   { p_task: id }, 'Plockat!'); break;
     case 'submit':  taskRpc('submit_task',  { p_task: id }, 'Inskickat för godkännande'); break;
     case 'approve': taskRpc('approve_task', { p_task: id }, 'Godkänt ⭐'); break;
+    case 'abort':   taskRpc('abort_task',   { p_task: id }, 'Jobbet släpptes'); break;
     case 'reject':  openRejectDialog(id); break;
     case 'editjob': openJobDialog(found()); break;
     case 'deljob':  deleteJob(found()); break;

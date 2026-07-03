@@ -1,6 +1,6 @@
 'use strict';
 // In-memory copy of the shared data, plus realtime subscriptions.
-const state = { profiles: [], profilesById: {}, events: [], tasks: [], balances: [], ledger: [] };
+const state = { profiles: [], profilesById: {}, events: [], tasks: [], balances: [], ledger: [], payouts: [] };
 
 async function loadProfiles(){
   const { data, error } = await sb.from('profiles').select('*').order('name');
@@ -34,6 +34,12 @@ async function loadLedger(){
   state.ledger = data || [];
 }
 
+async function loadPayouts(){
+  const { data, error } = await sb.from('payout_requests').select('*').order('created_at', { ascending: false });
+  if(error){ console.warn('loadPayouts', error); return; }
+  state.payouts = data || [];
+}
+
 // Live updates: re-fetch + re-render whenever the shared tables change on any device.
 let realtimeChannel = null;
 function subscribeRealtime(onChange){
@@ -45,6 +51,7 @@ function subscribeRealtime(onChange){
     .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'credit_ledger' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'payout_requests' }, onChange)
     .subscribe();
 }
 function unsubscribeRealtime(){

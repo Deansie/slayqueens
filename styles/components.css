@@ -142,7 +142,11 @@ body.is-kid .parent-only{ display:none !important; }
 .balance-card{
   background:linear-gradient(135deg,var(--accent),var(--accent-strong));
   color:var(--on-accent); border-radius:var(--radius);
-  padding:22px; text-align:center; box-shadow:var(--shadow-sm);
+  padding:22px; text-align:center; box-shadow:var(--shadow-sm); margin-bottom:12px;
+}
+.payout-pending{
+  background:var(--gold-soft); color:var(--gold); font-weight:600; font-size:.9rem;
+  padding:11px 13px; border-radius:var(--radius-sm); text-align:center;
 }
 .balance-label{ font-size:.85rem; opacity:.85; }
 .balance-value{ font-size:2.1rem; font-weight:800; letter-spacing:-.02em; }

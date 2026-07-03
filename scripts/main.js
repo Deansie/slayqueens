@@ -90,7 +90,7 @@ function switchView(view){
 function confirmDialog(text, okLabel){
   return new Promise(resolve => {
     $('confirmText').textContent = text;
-    if(okLabel) $('confirmOk').textContent = okLabel;
+    $('confirmOk').textContent = okLabel || 'Ta bort';
     const dlg = $('confirmDialog');
     dlg.showModal();
     dlg.addEventListener('close', () => resolve(dlg.returnValue === 'ok'), { once: true });
@@ -104,6 +104,7 @@ async function onRealtime(payload){
   else if(t === 'calendar_events') await loadEvents();
   else if(t === 'tasks') await loadTasks();
   else if(t === 'credit_ledger'){ await loadLedger(); await loadBalances(); }
+  else if(t === 'payout_requests') await loadPayouts();
   renderCalendar();
   renderTasks();
   renderCredits();
@@ -112,7 +113,7 @@ async function onRealtime(payload){
 // Full reload + repaint, used when the app resumes and may have missed live updates.
 async function resync(){
   if(!sb || !session) return;
-  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger()]);
+  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts()]);
   renderCalendar();
   renderTasks();
   renderCredits();

@@ -18,12 +18,17 @@ function renderCreditsKid(box){
   const bal = balanceOf(me.id);
   const entries = (state.ledger || []).filter(l => l.profile_id === me.id);
   const earned = entries.filter(l => l.amount > 0).reduce((s, l) => s + l.amount, 0);
+  const pending = (state.payouts || []).find(p => p.profile_id === me.id && p.status === 'pending');
+  const action = pending
+    ? `<div class="payout-pending">⏳ Väntar på utbetalning: ${escapeHtml(fmtMoney(pending.amount))}</div>`
+    : (bal > 0 ? `<button class="btn block" data-request="1" type="button">Begär utbetalning</button>` : '');
   box.innerHTML = `
     <div class="balance-card">
       <div class="balance-label">Ditt saldo</div>
       <div class="balance-value">${escapeHtml(fmtMoney(bal))}</div>
       <div class="balance-sub">Intjänat totalt: ${escapeHtml(fmtMoney(earned))}</div>
     </div>
+    ${action}
     <div class="section-title">Historik</div>
     <div class="ledger-list">
       ${entries.length ? entries.map(l => ledgerItem(l)).join('')
@@ -45,8 +50,23 @@ function renderCreditsParent(box){
       </span>
     </div>`;
   }).join('');
+  const pending = (state.payouts || []).filter(p => p.status === 'pending');
+  const reqRows = pending.map(p => {
+    const kid = state.profilesById[p.profile_id];
+    return `
+    <div class="balance-row">
+      <span class="br-name"><span class="dot" style="background:${profileColor(kid)}"></span>${escapeHtml(kid ? capital(kid.name) : '—')} vill ta ut</span>
+      <span class="br-bal">${escapeHtml(fmtMoney(p.amount))}</span>
+      <span class="br-actions">
+        <button class="btn sm" data-resolve="${p.id}" data-approve="1" type="button">Betala</button>
+        <button class="btn ghost sm" data-resolve="${p.id}" data-approve="0" type="button">Neka</button>
+      </span>
+    </div>`;
+  }).join('');
   const recent = (state.ledger || []).slice(0, 12);
   box.innerHTML = `
+    ${pending.length ? `<div class="section-title">Begäran om utbetalning</div>
+    <div class="balance-rows">${reqRows}</div>` : ''}
     <div class="section-title">Familjens konton</div>
     <div class="balance-rows">
       ${kids.length ? rows : '<div class="placeholder mini"><p>Inga barn-konton än.</p></div>'}
@@ -78,10 +98,34 @@ function onCreditsClick(e){
   const adjustBtn = e.target.closest('[data-adjust]');
   if(adjustBtn){ openAdjustDialog(adjustBtn.dataset.adjust); return; }
   const payBtn = e.target.closest('[data-payout]');
-  if(payBtn){
-    const id = payBtn.dataset.payout;
-    openAdjustDialog(id, -balanceOf(id), 'Utbetalt');
-  }
+  if(payBtn){ const id = payBtn.dataset.payout; openAdjustDialog(id, -balanceOf(id), 'Utbetalt'); return; }
+  const reqBtn = e.target.closest('[data-request]');
+  if(reqBtn){ requestPayout(); return; }
+  const resBtn = e.target.closest('[data-resolve]');
+  if(resBtn){ resolvePayout(resBtn.dataset.resolve, resBtn.dataset.approve === '1'); }
+}
+
+async function requestPayout(){
+  const bal = balanceOf(me.id);
+  if(bal <= 0) return;
+  if(!(await confirmDialog(`Begär utbetalning av ${fmtMoney(bal)}?`, 'Begär'))) return;
+  try{
+    const { error } = await sb.rpc('request_payout', { p_amount: bal });
+    if(error) throw error;
+    toast('ok', 'Begäran skickad');
+    await loadPayouts();
+    renderCredits();
+  }catch(err){ console.warn('requestPayout', err); toast('warn', 'Kunde inte begära'); }
+}
+
+async function resolvePayout(id, approve){
+  try{
+    const { error } = await sb.rpc('resolve_payout', { p_request: id, p_approve: approve });
+    if(error) throw error;
+    toast('ok', approve ? 'Utbetalt' : 'Nekad');
+    await Promise.all([loadPayouts(), loadBalances(), loadLedger()]);
+    renderCredits();
+  }catch(err){ console.warn('resolvePayout', err); toast('warn', 'Kunde inte hantera'); }
 }
 
 function openAdjustDialog(profileId, amount, reason){
