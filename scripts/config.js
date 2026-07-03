@@ -13,5 +13,5 @@
 const CONFIG = {
   SUPABASE_URL:      'https://asryokpahnoklydsgiyl.supabase.co',
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzcnlva3BhaG5va2x5ZHNnaXlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwMDc5MjQsImV4cCI6MjA5ODU4MzkyNH0.mvzAm2ZW4Cf7ee-x_ZiN5gq2LJPWatvtLCpuPHwz-GQ',
-  VAPID_PUBLIC_KEY:  ''   // filled in during the push phase
+  VAPID_PUBLIC_KEY:  'BHZEVi1GdRiJxh1qbhLZCx2TopWTYmzzZDUOT7OyWQ_eRP9yb0W9fQlxGXkPx4zmfkRfT2ppghLeBesvHGx0qQY'  // public — safe to commit
 };

@@ -231,8 +231,15 @@
 <!-- Profile dialog --------------------------------------------------- -->
 <dialog id="profileDialog">
   <form method="dialog" class="dlg-body" id="profileForm">
-    <h3>Välj din färg</h3>
-    <div class="swatches" id="profileSwatches"></div>
+    <h3>Din profil</h3>
+    <div class="dlg-field">
+      <label>Färg</label>
+      <div class="swatches" id="profileSwatches"></div>
+    </div>
+    <div class="dlg-field">
+      <label>Notiser på den här enheten</label>
+      <button class="btn ghost block" id="pushBtn" type="button">🔕 Av</button>
+    </div>
     <div class="dlg-actions">
       <button class="btn ghost" id="profileCancel" type="button">Avbryt</button>
       <button class="btn" value="ok" id="profileSave" type="submit">Spara</button>
@@ -274,6 +281,7 @@
 <script src="scripts/suggestions.js"></script>
 <script src="scripts/profile.js"></script>
 <script src="scripts/theme.js"></script>
+<script src="scripts/push.js"></script>
 <script src="scripts/main.js"></script>
 </body>
 </html>

@@ -7,6 +7,7 @@ function openProfileDialog(){
   if(!me) return;
   pickedColor = profileColor(me);
   renderSwatches();
+  reflectPushState();
   $('profileDialog').showModal();
 }
 

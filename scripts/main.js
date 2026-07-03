@@ -40,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('profileSwatches').addEventListener('click', onSwatchClick);
   $('profileForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveProfile(); });
   $('profileCancel').addEventListener('click', () => $('profileDialog').close());
+  $('pushBtn').addEventListener('click', togglePush);
 
   // Suggestions
   $('addSuggestionBtn').addEventListener('click', openSuggestionDialog);

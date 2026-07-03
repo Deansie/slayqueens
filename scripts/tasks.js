@@ -133,8 +133,8 @@ function onTaskBoardClick(e){
   const tpl = () => (state.templates || []).find(t => t.id === id);
   switch(btn.dataset.act){
     case 'claim':   taskRpc('claim_task',   { p_task: id }, 'Plockat!'); break;
-    case 'submit':  taskRpc('submit_task',  { p_task: id }, 'Inskickat för godkännande'); break;
-    case 'approve': taskRpc('approve_task', { p_task: id }, 'Godkänt ⭐'); break;
+    case 'submit':  taskRpc('submit_task',  { p_task: id }, 'Inskickat för godkännande', 'submitted'); break;
+    case 'approve': taskRpc('approve_task', { p_task: id }, 'Godkänt ⭐', 'approved'); break;
     case 'abort':   taskRpc('abort_task',   { p_task: id }, 'Jobbet släpptes'); break;
     case 'reject':  openRejectDialog(id); break;
     case 'editjob': openJobDialog(found()); break;
@@ -146,11 +146,12 @@ function onTaskBoardClick(e){
   }
 }
 
-async function taskRpc(fn, args, okMsg){
+async function taskRpc(fn, args, okMsg, notifyType){
   try{
     const { error } = await sb.rpc(fn, args);
     if(error) throw error;
     toast('ok', okMsg);
+    if(notifyType) notify(notifyType, args.p_task);
     await Promise.all([loadTasks(), loadBalances(), loadLedger()]);
     renderTasks();
     renderCredits();
@@ -184,9 +185,10 @@ function openTemplateDialog(tpl){
 async function activateTemplate(tpl){
   if(!tpl) return;
   try{
-    const { error } = await sb.from('tasks').insert({ title: tpl.title, description: tpl.description, reward: tpl.reward, created_by: me.id });
+    const { data, error } = await sb.from('tasks').insert({ title: tpl.title, description: tpl.description, reward: tpl.reward, created_by: me.id }).select('id').single();
     if(error) throw error;
     toast('ok', 'Jobb upplagt');
+    if(data) notify('new_job', data.id);
     await loadTasks();
     renderTasks();
   }catch(err){ console.warn('activateTemplate', err); toast('warn', 'Kunde inte aktivera'); }
@@ -223,11 +225,14 @@ async function saveJobFromDialog(){
     } else {
       if(editingJob){
         ({ error } = await sb.from('tasks').update({ title, description, reward }).eq('id', editingJob.id));
+        if(error) throw error;
+        toast('ok', 'Uppdaterat');
       } else {
-        ({ error } = await sb.from('tasks').insert({ title, description, reward, created_by: me.id }));
+        const res = await sb.from('tasks').insert({ title, description, reward, created_by: me.id }).select('id').single();
+        if(res.error) throw res.error;
+        toast('ok', 'Jobb tillagt');
+        if(res.data) notify('new_job', res.data.id);
       }
-      if(error) throw error;
-      toast('ok', editingJob ? 'Uppdaterat' : 'Jobb tillagt');
       await loadTasks();
     }
     renderTasks();

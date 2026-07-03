@@ -41,6 +41,7 @@ async function enterApp(){
     renderCredits();
     renderSuggestions();
     subscribeRealtime(onRealtime);
+    initPush();
     showApp();
     switchView('calendar');
   }catch(err){
