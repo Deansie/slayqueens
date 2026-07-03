@@ -1,0 +1,7 @@
+project_id = "asryokpahnoklydsgiyl"
+
+# The notify function verifies the caller's JWT itself (against the auth server, which
+# understands the project's ES256 tokens), so the platform's legacy HS256 JWT check is
+# turned off — otherwise it rejects valid ES256 user tokens with a 401.
+[functions.notify]
+verify_jwt = false

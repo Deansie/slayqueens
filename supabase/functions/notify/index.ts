@@ -4,6 +4,7 @@
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are injected automatically.
 import webpush from 'npm:web-push@3.6.7';
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { createRemoteJWKSet, jwtVerify } from 'npm:jose@5';
 
 const cors = {
   'Access-Control-Allow-Origin': '*',
@@ -15,19 +16,40 @@ const admin = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 );
 
+// Project's public signing keys, used to verify the ES256 access tokens.
+const JWKS = createRemoteJWKSet(
+  new URL(`${Deno.env.get('SUPABASE_URL')}/auth/v1/.well-known/jwks.json`)
+);
+
 webpush.setVapidDetails(
   Deno.env.get('VAPID_SUBJECT') || 'mailto:slayqueens@example.com',
   Deno.env.get('VAPID_PUBLIC_KEY')!,
   Deno.env.get('VAPID_PRIVATE_KEY')!
 );
 
+// Verify the caller's token signature against the project's JWKS (the correct check for
+// the ES256 tokens). Returns the caller's id, or null if the token is missing/invalid.
+async function verifyActor(req: Request): Promise<string | null> {
+  try {
+    const token = (req.headers.get('Authorization') || '').replace('Bearer ', '');
+    if (!token) return null;
+    const { payload } = await jwtVerify(token, JWKS, { algorithms: ['ES256'] });
+    return (payload.sub as string) ?? null;
+  } catch (e) {
+    console.error('jwt verify failed:', (e as Error).message);
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
   try {
-    const jwt = (req.headers.get('Authorization') || '').replace('Bearer ', '');
-    const { data: u } = await admin.auth.getUser(jwt);
-    const actor = u?.user?.id;
-    if (!actor) return new Response('Unauthorized', { status: 401, headers: cors });
+    const actor = await verifyActor(req);
+    if (!actor) {
+      return new Response(JSON.stringify({ error: 'unauthorized' }), {
+        status: 401, headers: { ...cors, 'Content-Type': 'application/json' }
+      });
+    }
 
     const { type, taskId } = await req.json();
     let recipients: string[] = [];
