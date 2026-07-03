@@ -51,14 +51,11 @@ document.addEventListener('DOMContentLoaded', () => {
   $('themeToggle').addEventListener('click', toggleTheme);
   reflectTheme();
 
-  // Re-sync when returning to the foreground or regaining network — mobile drops the
-  // realtime socket while the app is backgrounded, which otherwise needs a restart.
-  document.addEventListener('visibilitychange', () => {
-    if(!document.hidden && session){ resync(); subscribeRealtime(onRealtime); }
-  });
-  window.addEventListener('online', () => {
-    if(session){ resync(); subscribeRealtime(onRealtime); }
-  });
+  // When the app returns to the foreground or regains network, refresh the auth token
+  // (a backgrounded PWA lets it expire → requests would otherwise fall back to the anon
+  // key and get denied) and re-sync, since the realtime socket may also have dropped.
+  document.addEventListener('visibilitychange', () => { if(!document.hidden) refreshAndResync(); });
+  window.addEventListener('online', refreshAndResync);
 
   startApp();
 });
@@ -129,4 +126,21 @@ async function resync(){
   renderTasks();
   renderCredits();
   renderSuggestions();
+}
+
+// Ensure a fresh access token before re-syncing, so requests never fall back to anon.
+async function refreshAndResync(){
+  if(!sb) return;
+  try{
+    let { data } = await sb.auth.getSession();
+    session = data.session || null;
+    if(session && session.expires_at && (session.expires_at * 1000 - Date.now() < 60000)){
+      const r = await sb.auth.refreshSession();
+      session = r.data.session || session;
+    }
+  }catch(e){ console.warn('session refresh', e); }
+  if(!session) return;   // onAuthStateChange will show the login screen if truly signed out
+  try{ if(sb.realtime) sb.realtime.setAuth(session.access_token); }catch(e){}
+  await resync();
+  subscribeRealtime(onRealtime);
 }
