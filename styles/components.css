@@ -186,3 +186,21 @@ body.is-kid .parent-only{ display:none !important; }
 .li-amount.pos{ color:var(--success); }
 .li-amount.neg{ color:var(--danger); }
 .placeholder.mini{ padding:22px 16px; }
+
+/* ---- Suggestions ---- */
+.suggestion{
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:12px 13px; box-shadow:var(--shadow-sm); margin-bottom:8px;
+}
+.sg-title{ font-weight:600; }
+.sg-notes{ color:var(--muted); font-size:.85rem; margin-top:2px; }
+.sg-foot{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:10px; }
+.vote-row{ display:flex; align-items:center; gap:6px; }
+.vote{
+  cursor:pointer; border:1px solid var(--border); background:var(--card-2); color:var(--text);
+  border-radius:999px; padding:5px 11px; font-size:.85rem; font-weight:600;
+}
+.vote.up.on{ background:var(--success-soft); border-color:var(--success); color:var(--success); }
+.vote.down.on{ background:var(--danger-soft); border-color:var(--danger); color:var(--danger); }
+.sg-by{ font-size:.76rem; color:var(--faint); margin-left:4px; }
+.sg-actions{ display:flex; align-items:center; gap:6px; }

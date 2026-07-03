@@ -76,7 +76,8 @@
   <nav class="tabs" role="tablist" aria-label="Vyer">
     <button class="tab active" data-view="calendar" type="button" role="tab">📅 Kalender</button>
     <button class="tab" data-view="tasks" type="button" role="tab">✅ Jobb</button>
-    <button class="tab" data-view="credits" type="button" role="tab">⭐ Mitt konto</button>
+    <button class="tab" data-view="credits" type="button" role="tab">⭐ Konto</button>
+    <button class="tab" data-view="suggestions" type="button" role="tab">💡 Förslag</button>
   </nav>
 
   <main class="view-wrap">
@@ -102,6 +103,15 @@
     <!-- Credits -->
     <section class="view" id="view-credits" hidden>
       <div id="creditsBody"></div>
+    </section>
+
+    <!-- Suggestions -->
+    <section class="view" id="view-suggestions" hidden>
+      <div class="view-head">
+        <h2>Förslag</h2>
+        <button class="btn sm" id="addSuggestionBtn" type="button">+ Nytt förslag</button>
+      </div>
+      <div id="suggestionList"></div>
     </section>
   </main>
 </div>
@@ -230,6 +240,25 @@
   </form>
 </dialog>
 
+<!-- Suggestion dialog ------------------------------------------------ -->
+<dialog id="suggestionDialog">
+  <form method="dialog" class="dlg-body" id="suggestionForm">
+    <h3>Nytt förslag</h3>
+    <div class="dlg-field">
+      <label for="sgTitle">Förslag</label>
+      <input id="sgTitle" type="text" required maxlength="80" placeholder="T.ex. Åka till parken" />
+    </div>
+    <div class="dlg-field">
+      <label for="sgNotes">Beskrivning (valfritt)</label>
+      <textarea id="sgNotes" rows="2" maxlength="300"></textarea>
+    </div>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="sgCancel" type="button">Avbryt</button>
+      <button class="btn" value="ok" id="sgSave" type="submit">Spara</button>
+    </div>
+  </form>
+</dialog>
+
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -242,6 +271,7 @@
 <script src="scripts/calendar.js"></script>
 <script src="scripts/tasks.js"></script>
 <script src="scripts/credits.js"></script>
+<script src="scripts/suggestions.js"></script>
 <script src="scripts/profile.js"></script>
 <script src="scripts/theme.js"></script>
 <script src="scripts/main.js"></script>

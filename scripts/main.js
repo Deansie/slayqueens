@@ -41,6 +41,12 @@ document.addEventListener('DOMContentLoaded', () => {
   $('profileForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveProfile(); });
   $('profileCancel').addEventListener('click', () => $('profileDialog').close());
 
+  // Suggestions
+  $('addSuggestionBtn').addEventListener('click', openSuggestionDialog);
+  $('suggestionList').addEventListener('click', onSuggestionClick);
+  $('suggestionForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveSuggestion(); });
+  $('sgCancel').addEventListener('click', () => $('suggestionDialog').close());
+
   // Theme
   $('themeToggle').addEventListener('click', toggleTheme);
   reflectTheme();
@@ -107,16 +113,20 @@ async function onRealtime(payload){
   else if(t === 'credit_ledger'){ await loadLedger(); await loadBalances(); }
   else if(t === 'payout_requests') await loadPayouts();
   else if(t === 'task_templates') await loadTemplates();
+  else if(t === 'event_suggestions') await loadSuggestions();
+  else if(t === 'suggestion_votes') await loadVotes();
   renderCalendar();
   renderTasks();
   renderCredits();
+  renderSuggestions();
 }
 
 // Full reload + repaint, used when the app resumes and may have missed live updates.
 async function resync(){
   if(!sb || !session) return;
-  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates()]);
+  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes()]);
   renderCalendar();
   renderTasks();
   renderCredits();
+  renderSuggestions();
 }
