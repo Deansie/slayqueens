@@ -105,6 +105,7 @@ async function onRealtime(payload){
   else if(t === 'tasks') await loadTasks();
   else if(t === 'credit_ledger'){ await loadLedger(); await loadBalances(); }
   else if(t === 'payout_requests') await loadPayouts();
+  else if(t === 'task_templates') await loadTemplates();
   renderCalendar();
   renderTasks();
   renderCredits();
@@ -113,7 +114,7 @@ async function onRealtime(payload){
 // Full reload + repaint, used when the app resumes and may have missed live updates.
 async function resync(){
   if(!sb || !session) return;
-  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts()]);
+  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates()]);
   renderCalendar();
   renderTasks();
   renderCredits();

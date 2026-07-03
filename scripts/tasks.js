@@ -2,6 +2,8 @@
 // Chore board: parents post jobs; kids claim + submit; parents approve/reject.
 // All state transitions go through SECURITY DEFINER RPCs so a kid can't self-credit.
 let editingJob = null;
+let editingTemplate = null;
+let jobDialogMode = 'job';
 let rejectingTaskId = null;
 
 function renderTasks(){
@@ -14,20 +16,57 @@ function renderTasks(){
     taskSection(board, 'Att godkänna', tasks.filter(t => t.status === 'submitted'));
     taskSection(board, 'Lediga',       tasks.filter(t => t.status === 'open'));
     taskSection(board, 'Pågående',      tasks.filter(t => t.status === 'claimed'));
+    if(!board.children.length){
+      const hint = document.createElement('div');
+      hint.className = 'placeholder';
+      hint.innerHTML = '<div class="ph-emoji">✅</div><h3>Inga aktiva jobb</h3><p>Lägg upp ett jobb eller aktivera en mall nedan.</p>';
+      board.appendChild(hint);
+    }
+    renderTemplates(board);
   } else {
     taskSection(board, 'Mina jobb',
       tasks.filter(t => t.claimed_by === me.id && (t.status === 'claimed' || t.status === 'rejected')));
     taskSection(board, 'Väntar på godkännande',
       tasks.filter(t => t.claimed_by === me.id && t.status === 'submitted'));
     taskSection(board, 'Lediga jobb', tasks.filter(t => t.status === 'open'));
+    if(!board.children.length){
+      board.innerHTML =
+        '<div class="placeholder"><div class="ph-emoji">✅</div><h3>Inga jobb än</h3><p>Inga lediga jobb just nu.</p></div>';
+    }
   }
+}
 
-  if(!board.children.length){
-    board.innerHTML =
-      '<div class="placeholder"><div class="ph-emoji">✅</div><h3>Inga jobb än</h3><p>' +
-      (isParent() ? 'Lägg upp ett jobb så kan barnen plocka det.' : 'Inga lediga jobb just nu.') +
-      '</p></div>';
+function renderTemplates(board){
+  const templates = state.templates || [];
+  const head = document.createElement('div');
+  head.className = 'section-title tpl-head';
+  head.innerHTML = '<span>Mallar</span><button class="btn ghost sm" data-act="newtpl" type="button">+ Ny mall</button>';
+  board.appendChild(head);
+  if(!templates.length){
+    const empty = document.createElement('div');
+    empty.className = 'placeholder mini';
+    empty.innerHTML = '<p>Spara återkommande jobb som mallar och aktivera dem med ett tryck.</p>';
+    board.appendChild(empty);
+    return;
   }
+  for(const tpl of templates) board.appendChild(templateCard(tpl));
+}
+
+function templateCard(tpl){
+  const el = document.createElement('div');
+  el.className = 'task';
+  el.innerHTML = `
+    <div class="task-main">
+      <div class="task-title">${escapeHtml(tpl.title)}</div>
+      ${tpl.description ? `<div class="task-desc">${escapeHtml(tpl.description)}</div>` : ''}
+      <div class="task-meta"><span class="reward">${escapeHtml(fmtMoney(tpl.reward))}</span></div>
+    </div>
+    <div class="task-actions">
+      <button class="btn sm" data-act="activatetpl" data-id="${tpl.id}">Aktivera</button>
+      <button class="icon-btn" data-act="edittpl" data-id="${tpl.id}" aria-label="Redigera">✎</button>
+      <button class="icon-btn" data-act="deltpl" data-id="${tpl.id}" aria-label="Ta bort">🗑</button>
+    </div>`;
+  return el;
 }
 
 function taskSection(board, title, list){
@@ -91,6 +130,7 @@ function onTaskBoardClick(e){
   if(!btn) return;
   const id = btn.dataset.id;
   const found = () => state.tasks.find(t => t.id === id);
+  const tpl = () => (state.templates || []).find(t => t.id === id);
   switch(btn.dataset.act){
     case 'claim':   taskRpc('claim_task',   { p_task: id }, 'Plockat!'); break;
     case 'submit':  taskRpc('submit_task',  { p_task: id }, 'Inskickat för godkännande'); break;
@@ -99,6 +139,10 @@ function onTaskBoardClick(e){
     case 'reject':  openRejectDialog(id); break;
     case 'editjob': openJobDialog(found()); break;
     case 'deljob':  deleteJob(found()); break;
+    case 'newtpl':      openTemplateDialog(null); break;
+    case 'activatetpl': activateTemplate(tpl()); break;
+    case 'edittpl':     openTemplateDialog(tpl()); break;
+    case 'deltpl':      deleteTemplate(tpl()); break;
   }
 }
 
@@ -118,12 +162,46 @@ async function taskRpc(fn, args, okMsg){
 
 // Create / edit job (parent) -------------------------------------------
 function openJobDialog(job){
+  jobDialogMode = 'job';
   editingJob = job || null;
   $('jobDlgTitle').textContent = job ? 'Redigera jobb' : 'Nytt jobb';
   $('jobTitle').value  = job ? job.title : '';
   $('jobDesc').value   = job ? (job.description || '') : '';
   $('jobReward').value = job ? job.reward : 10;
   $('jobDialog').showModal();
+}
+
+function openTemplateDialog(tpl){
+  jobDialogMode = 'template';
+  editingTemplate = tpl || null;
+  $('jobDlgTitle').textContent = tpl ? 'Redigera mall' : 'Ny mall';
+  $('jobTitle').value  = tpl ? tpl.title : '';
+  $('jobDesc').value   = tpl ? (tpl.description || '') : '';
+  $('jobReward').value = tpl ? tpl.reward : 10;
+  $('jobDialog').showModal();
+}
+
+async function activateTemplate(tpl){
+  if(!tpl) return;
+  try{
+    const { error } = await sb.from('tasks').insert({ title: tpl.title, description: tpl.description, reward: tpl.reward, created_by: me.id });
+    if(error) throw error;
+    toast('ok', 'Jobb upplagt');
+    await loadTasks();
+    renderTasks();
+  }catch(err){ console.warn('activateTemplate', err); toast('warn', 'Kunde inte aktivera'); }
+}
+
+async function deleteTemplate(tpl){
+  if(!tpl) return;
+  if(!(await confirmDialog(`Ta bort mallen "${tpl.title}"?`))) return;
+  try{
+    const { error } = await sb.from('task_templates').delete().eq('id', tpl.id);
+    if(error) throw error;
+    toast('ok', 'Mall borttagen');
+    await loadTemplates();
+    renderTasks();
+  }catch(err){ console.warn('deleteTemplate', err); toast('warn', 'Kunde inte ta bort'); }
 }
 
 async function saveJobFromDialog(){
@@ -133,14 +211,25 @@ async function saveJobFromDialog(){
   const description = $('jobDesc').value.trim() || null;
   try{
     let error;
-    if(editingJob){
-      ({ error } = await sb.from('tasks').update({ title, description, reward }).eq('id', editingJob.id));
+    if(jobDialogMode === 'template'){
+      if(editingTemplate){
+        ({ error } = await sb.from('task_templates').update({ title, description, reward }).eq('id', editingTemplate.id));
+      } else {
+        ({ error } = await sb.from('task_templates').insert({ title, description, reward, created_by: me.id }));
+      }
+      if(error) throw error;
+      toast('ok', editingTemplate ? 'Mall uppdaterad' : 'Mall sparad');
+      await loadTemplates();
     } else {
-      ({ error } = await sb.from('tasks').insert({ title, description, reward, created_by: me.id }));
+      if(editingJob){
+        ({ error } = await sb.from('tasks').update({ title, description, reward }).eq('id', editingJob.id));
+      } else {
+        ({ error } = await sb.from('tasks').insert({ title, description, reward, created_by: me.id }));
+      }
+      if(error) throw error;
+      toast('ok', editingJob ? 'Uppdaterat' : 'Jobb tillagt');
+      await loadTasks();
     }
-    if(error) throw error;
-    toast('ok', editingJob ? 'Uppdaterat' : 'Jobb tillagt');
-    await loadTasks();
     renderTasks();
   }catch(err){
     console.warn('saveJob', err);

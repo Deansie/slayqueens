@@ -117,6 +117,8 @@ body.is-kid .parent-only{ display:none !important; }
 }
 #taskBoard .section-title:first-child,
 #creditsBody .section-title:first-child{ padding-top:2px; }
+.tpl-head{ display:flex; align-items:center; justify-content:space-between; }
+.tpl-head .btn{ text-transform:none; letter-spacing:0; }
 .task{
   display:flex; align-items:flex-start; gap:12px; margin-bottom:8px;
   background:var(--card); border:1px solid var(--border);
