@@ -55,6 +55,7 @@ function suggestionCard(s){
         <span class="sg-by">av ${escapeHtml(by ? capital(by.name) : '—')} · ${escapeHtml(fmtWhen(s.created_at))}</span>
       </div>
       <div class="sg-actions">
+        ${chatButton('suggestion', s.id)}
         ${isParent() ? `<button class="btn ghost sm" data-promote="${s.id}" type="button">Lägg i kalender</button>` : ''}
         ${canDelete ? `<button class="icon-btn" data-delsg="${s.id}" aria-label="Ta bort">🗑</button>` : ''}
       </div>

@@ -292,15 +292,20 @@
   </form>
 </dialog>
 
-<!-- Event chat dialog ------------------------------------------------ -->
-<dialog id="eventChatDialog">
+<!-- Chat dialog (events, jobs, suggestions) -------------------------- -->
+<dialog id="chatDialog">
   <div class="dlg-body chat-body">
     <div class="chat-head">
       <h3 id="chatTitle">Kommentarer</h3>
       <button class="icon-btn" id="chatClose" type="button" aria-label="Stäng">✕</button>
     </div>
     <div class="chat-thread" id="chatThread"></div>
+    <div class="chat-preview" id="chatPreview" hidden>
+      <img id="chatPreviewImg" alt="Förhandsvisning av bild" />
+      <button class="chat-preview-x" id="chatImageClear" type="button" aria-label="Ta bort bild">✕</button>
+    </div>
     <form class="chat-compose" id="chatForm">
+      <label class="chat-attach" for="chatFile" aria-label="Bifoga bild">📎<input id="chatFile" type="file" accept="image/*" hidden /></label>
       <input id="chatInput" type="text" maxlength="500" placeholder="Skriv en kommentar…" autocomplete="off" />
       <button class="btn sm" value="send" type="submit">Skicka</button>
     </form>
@@ -321,6 +326,7 @@
 <script src="scripts/credits.js"></script>
 <script src="scripts/suggestions.js"></script>
 <script src="scripts/todos.js"></script>
+<script src="scripts/chat.js"></script>
 <script src="scripts/profile.js"></script>
 <script src="scripts/theme.js"></script>
 <script src="scripts/push.js"></script>

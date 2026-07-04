@@ -54,10 +54,13 @@ document.addEventListener('DOMContentLoaded', () => {
   $('todoForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveTodo(); });
   $('todoCancel').addEventListener('click', () => $('todoDialog').close());
 
-  // Event chat
-  $('chatForm').addEventListener('submit', (e) => { e.preventDefault(); sendEventMessage(); });
-  $('chatClose').addEventListener('click', () => $('eventChatDialog').close());
+  // Chat (events, jobs, suggestions)
+  document.addEventListener('click', onChatOpenClick);   // delegated 💬 buttons on every card
+  $('chatForm').addEventListener('submit', (e) => { e.preventDefault(); sendChatMessage(); });
+  $('chatClose').addEventListener('click', () => $('chatDialog').close());
   $('chatThread').addEventListener('click', onChatThreadClick);
+  $('chatFile').addEventListener('change', onChatFileChange);
+  $('chatImageClear').addEventListener('click', clearChatImage);
 
   // Theme
   $('themeToggle').addEventListener('click', toggleTheme);
@@ -124,26 +127,26 @@ async function onRealtime(payload){
   else if(t === 'task_templates') await loadTemplates();
   else if(t === 'event_suggestions') await loadSuggestions();
   else if(t === 'suggestion_votes') await loadVotes();
-  else if(t === 'event_messages') await loadEventMessages();
+  else if(t === 'messages') await loadMessages();
   else if(t === 'todos') await loadTodos();
   renderCalendar();
   renderTasks();
   renderCredits();
   renderSuggestions();
   renderTodos();
-  renderEventChat();
+  renderChat();
 }
 
 // Full reload + repaint, used when the app resumes and may have missed live updates.
 async function resync(){
   if(!sb || !session) return;
-  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadEventMessages(), loadTodos()]);
+  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos()]);
   renderCalendar();
   renderTasks();
   renderCredits();
   renderSuggestions();
   renderTodos();
-  renderEventChat();
+  renderChat();
 }
 
 // Ensure a fresh access token before re-syncing, so requests never fall back to anon.

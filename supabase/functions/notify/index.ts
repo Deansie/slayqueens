@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
     const actor = await verifyActor(req);
     if (!actor) return json({ error: 'unauthorized' }, 401);
 
-    const { type, taskId, eventId, payoutId, suggestionId, toProfile } = await req.json();
+    const { type, taskId, eventId, payoutId, suggestionId, toProfile, context, parentId } = await req.json();
     let recipients: string[] = [];
     let title = 'Slayqueens';
     let body = '';
@@ -135,28 +135,53 @@ Deno.serve(async (req) => {
         body = `${ev.title} · ${whenLabel(ev.starts_at, ev.all_day)}`;
       }
 
-    } else if (type === 'event_msg') {
-      const { data: ev } = await admin.from('calendar_events')
-        .select('title, private, owner_id, created_by').eq('id', eventId).single();
-      if (ev) {
-        // notify the people involved: event owner + creator + everyone who has posted here.
-        const set = new Set<string>();
-        if (ev.created_by) set.add(ev.created_by);
-        if (ev.owner_id) set.add(ev.owner_id);
-        const { data: authors } = await admin.from('event_messages').select('author_id').eq('event_id', eventId);
-        for (const a of authors ?? []) set.add(a.author_id);
-        recipients = [...set];
-        if (ev.private) {
-          const allowed = new Set<string>([ev.created_by, ev.owner_id, ...(await ids('parent'))].filter(Boolean) as string[]);
-          recipients = recipients.filter((r) => allowed.has(r));
+    } else if (type === 'message') {
+      // A comment posted on an event / job / suggestion thread. Notify the people involved
+      // in that thread (never the whole family), and honour private-event visibility.
+      const set = new Set<string>();
+      const { data: authors } = await admin.from('messages')
+        .select('author_id').eq('context', context).eq('parent_id', parentId);
+      for (const a of authors ?? []) set.add(a.author_id);
+      let threadTitle = 'en tråd';
+
+      if (context === 'event') {
+        const { data: ev } = await admin.from('calendar_events')
+          .select('title, private, owner_id, created_by').eq('id', parentId).single();
+        if (ev) {
+          if (ev.created_by) set.add(ev.created_by);
+          if (ev.owner_id) set.add(ev.owner_id);
+          recipients = [...set];
+          if (ev.private) {
+            const allowed = new Set<string>([ev.created_by, ev.owner_id, ...(await ids('parent'))].filter(Boolean) as string[]);
+            recipients = recipients.filter((r) => allowed.has(r));
+          }
+          threadTitle = ev.title;
         }
-        const { data: msgs } = await admin.from('event_messages')
-          .select('body').eq('event_id', eventId).order('created_at', { ascending: false }).limit(1);
-        const who = await profile(actor);
-        const text = msgs?.[0]?.body ?? '';
-        title = `💬 ${ev.title}`;
-        body = `${who?.name ?? 'Någon'}: ${text.length > 90 ? text.slice(0, 90) + '…' : text}`;
+      } else if (context === 'task') {
+        const { data: tk } = await admin.from('tasks').select('title, created_by, claimed_by').eq('id', parentId).single();
+        if (tk) {
+          if (tk.created_by) set.add(tk.created_by);
+          if (tk.claimed_by) set.add(tk.claimed_by);
+          recipients = [...set];
+          threadTitle = tk.title;
+        }
+      } else if (context === 'suggestion') {
+        const { data: sg } = await admin.from('event_suggestions').select('title, created_by').eq('id', parentId).single();
+        if (sg) {
+          if (sg.created_by) set.add(sg.created_by);
+          recipients = [...set];
+          threadTitle = sg.title;
+        }
       }
+
+      const { data: msgs } = await admin.from('messages')
+        .select('body, image_path').eq('context', context).eq('parent_id', parentId)
+        .order('created_at', { ascending: false }).limit(1);
+      const latest = msgs?.[0];
+      const who = await profile(actor);
+      const text = (latest?.body && latest.body.trim()) ? latest.body : (latest?.image_path ? '📷 Bild' : '');
+      title = `💬 ${threadTitle}`;
+      body = `${who?.name ?? 'Någon'}: ${text.length > 90 ? text.slice(0, 90) + '…' : text}`;
 
     } else if (type === 'suggestion') {
       const { data: sg } = await admin.from('event_suggestions').select('title, created_by').eq('id', suggestionId).single();

@@ -95,7 +95,7 @@ function taskCard(task){
         ${who}
       </div>
     </div>
-    <div class="task-actions">${taskActions(task)}</div>`;
+    <div class="task-actions">${chatButton('task', task.id)}${taskActions(task)}</div>`;
   return el;
 }
 

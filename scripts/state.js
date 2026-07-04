@@ -1,6 +1,6 @@
 'use strict';
 // In-memory copy of the shared data, plus realtime subscriptions.
-const state = { profiles: [], profilesById: {}, events: [], tasks: [], balances: [], ledger: [], payouts: [], templates: [], suggestions: [], votes: [], eventMessages: [], todos: [] };
+const state = { profiles: [], profilesById: {}, events: [], tasks: [], balances: [], ledger: [], payouts: [], templates: [], suggestions: [], votes: [], messages: [], todos: [] };
 
 async function loadProfiles(){
   const { data, error } = await sb.from('profiles').select('*').order('name');
@@ -58,10 +58,10 @@ async function loadVotes(){
   state.votes = data || [];
 }
 
-async function loadEventMessages(){
-  const { data, error } = await sb.from('event_messages').select('*').order('created_at');
-  if(error){ console.warn('loadEventMessages', error); return; }
-  state.eventMessages = data || [];
+async function loadMessages(){
+  const { data, error } = await sb.from('messages').select('*').order('created_at');
+  if(error){ console.warn('loadMessages', error); return; }
+  state.messages = data || [];
 }
 
 async function loadTodos(){
@@ -85,7 +85,7 @@ function subscribeRealtime(onChange){
     .on('postgres_changes', { event: '*', schema: 'public', table: 'task_templates' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'event_suggestions' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'suggestion_votes' }, onChange)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'event_messages' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'todos' }, onChange)
     .subscribe();
 }

@@ -154,7 +154,7 @@ body.is-kid .parent-only{ display:none !important; }
 .task-who{ display:inline-flex; align-items:center; gap:6px; font-size:.78rem; color:var(--muted); }
 .task-who .dot{ width:8px; height:8px; border-radius:50%; flex:0 0 auto; }
 .task-wait{ font-size:.8rem; color:var(--muted); font-style:italic; white-space:nowrap; }
-.task-actions{ display:flex; gap:4px; align-items:center; flex:0 0 auto; }
+.task-actions{ display:flex; gap:4px; align-items:center; flex:0 0 auto; flex-wrap:wrap; justify-content:flex-end; }
 
 /* ---- Credits ---- */
 .balance-card{
@@ -254,8 +254,23 @@ body.is-kid .parent-only{ display:none !important; }
 .msg-del{ margin-left:auto; border:0; background:transparent; color:var(--faint); cursor:pointer; font-size:.85rem; padding:0 2px; }
 .msg-del:hover{ color:var(--danger); }
 .msg-body{ font-size:.92rem; margin-top:3px; white-space:pre-wrap; word-break:break-word; }
-.chat-compose{ display:flex; gap:8px; }
+.chat-compose{ display:flex; gap:8px; align-items:center; }
 .chat-compose input{ flex:1; }
+.chat-attach{
+  flex:0 0 auto; cursor:pointer; display:grid; place-items:center; height:40px; width:40px;
+  border:1px solid var(--border); border-radius:var(--radius-sm);
+  background:var(--card-2); color:var(--muted); font-size:1.15rem;
+}
+.chat-attach:hover{ color:var(--text); border-color:var(--border-strong); }
+.chat-preview{ position:relative; align-self:flex-start; }
+.chat-preview img{ max-height:120px; max-width:100%; border-radius:10px; border:1px solid var(--border); display:block; }
+.chat-preview-x{
+  position:absolute; top:-8px; right:-8px; width:24px; height:24px; border-radius:50%;
+  border:0; cursor:pointer; background:var(--danger); color:#fff; font-size:.75rem; line-height:1;
+  box-shadow:var(--shadow-sm); display:grid; place-items:center;
+}
+.msg-img-link{ display:inline-block; margin-top:6px; }
+.msg-img{ display:block; max-width:100%; max-height:240px; border-radius:10px; border:1px solid var(--border); }
 
 /* ---- To-do list ---- */
 .todo{

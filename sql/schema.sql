@@ -380,7 +380,7 @@ begin
   if not found then raise exception 'Uppgiften kan inte återkallas'; end if;
 end; $$;
 
--- Event chat -----------------------------------------------------------
+-- Chat (events, jobs, suggestions) ------------------------------------
 -- SECURITY DEFINER visibility helper — mirrors "family reads events" without re-triggering
 -- RLS on calendar_events inside another table's policy subquery.
 create or replace function public.can_see_event(p_event uuid)
@@ -392,23 +392,50 @@ returns boolean language sql stable security definer set search_path = public as
   );
 $$;
 
-create table if not exists public.event_messages (
+-- A logged-in family member may see a thread if its parent is visible to them: events use
+-- the private-aware rule; jobs and suggestions are family-wide (must still exist).
+create or replace function public.can_see_message_parent(p_context text, p_parent uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select auth.uid() is not null and case
+    when p_context = 'event'      then public.can_see_event(p_parent)
+    when p_context = 'task'       then exists (select 1 from public.tasks where id = p_parent)
+    when p_context = 'suggestion' then exists (select 1 from public.event_suggestions where id = p_parent)
+    else false
+  end;
+$$;
+
+-- One comment thread system keyed by (context, parent_id). Optional image attachments live
+-- in the 'chat' Storage bucket; only the path is kept on the row (DB + realtime stay lean).
+create table if not exists public.messages (
   id         uuid primary key default gen_random_uuid(),
-  event_id   uuid not null references public.calendar_events(id) on delete cascade,
+  context    text not null check (context in ('event','task','suggestion')),
+  parent_id  uuid not null,
   author_id  uuid not null references public.profiles(id) on delete cascade,
-  body       text not null check (length(btrim(body)) > 0),
-  created_at timestamptz not null default now()
+  body       text,
+  image_path text,
+  created_at timestamptz not null default now(),
+  check (coalesce(btrim(body), '') <> '' or image_path is not null)
 );
-alter table public.event_messages enable row level security;
-drop policy if exists "read messages on visible events" on public.event_messages;
-create policy "read messages on visible events" on public.event_messages
-  for select using (public.can_see_event(event_id));
-drop policy if exists "post messages on visible events" on public.event_messages;
-create policy "post messages on visible events" on public.event_messages
-  for insert with check (author_id = auth.uid() and public.can_see_event(event_id));
-drop policy if exists "delete own message or parent" on public.event_messages;
-create policy "delete own message or parent" on public.event_messages
+alter table public.messages enable row level security;
+drop policy if exists "read messages" on public.messages;
+create policy "read messages" on public.messages
+  for select using (public.can_see_message_parent(context, parent_id));
+drop policy if exists "post messages" on public.messages;
+create policy "post messages" on public.messages
+  for insert with check (author_id = auth.uid() and public.can_see_message_parent(context, parent_id));
+drop policy if exists "delete own message or parent" on public.messages;
+create policy "delete own message or parent" on public.messages
   for delete using (author_id = auth.uid() or public.is_parent());
+
+-- Image storage: public bucket, unguessable filenames; family-only writes, owner/parent deletes.
+insert into storage.buckets (id, name, public) values ('chat','chat',true) on conflict (id) do nothing;
+drop policy if exists "chat read" on storage.objects;
+create policy "chat read" on storage.objects for select using (bucket_id = 'chat');
+drop policy if exists "chat upload" on storage.objects;
+create policy "chat upload" on storage.objects for insert to authenticated with check (bucket_id = 'chat');
+drop policy if exists "chat delete" on storage.objects;
+create policy "chat delete" on storage.objects for delete to authenticated
+  using (bucket_id = 'chat' and (owner = auth.uid() or public.is_parent()));
 
 -- To-do lists ----------------------------------------------------------
 -- Shared (private=false, owner_id null): whole family sees + checks off.
@@ -440,8 +467,8 @@ create policy "delete own todo or parent" on public.todos
   for delete using (created_by = auth.uid() or owner_id = auth.uid() or public.is_parent());
 
 do $$ begin
-  if not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='event_messages') then
-    alter publication supabase_realtime add table public.event_messages;
+  if not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='messages') then
+    alter publication supabase_realtime add table public.messages;
   end if;
   if not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='todos') then
     alter publication supabase_realtime add table public.todos;
