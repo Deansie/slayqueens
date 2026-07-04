@@ -10,6 +10,14 @@ function votesFor(suggestionId){
   return { up, down, mine };
 }
 
+// The people behind a given vote direction (1 = 👍, -1 = 👎), as profile objects.
+function votersFor(suggestionId, vote){
+  return (state.votes || [])
+    .filter(v => v.suggestion_id === suggestionId && v.vote === vote)
+    .map(v => state.profilesById[v.profile_id])
+    .filter(Boolean);
+}
+
 function renderSuggestions(){
   const box = $('suggestionList');
   if(!box || !me) return;
@@ -30,6 +38,11 @@ function suggestionCard(s){
   const by = state.profilesById[s.created_by];
   const { up, down, mine } = votesFor(s.id);
   const canDelete = (me && s.created_by === me.id) || isParent();
+  const voterLine = (emoji, list) => list.length
+    ? `<div class="voter-line"><span class="voter-emoji">${emoji}</span>${list.map(p =>
+        `<span class="voter-chip"><span class="dot" style="background:${profileColor(p)}"></span>${escapeHtml(capital(p.name))}</span>`).join('')}</div>`
+    : '';
+  const voters = voterLine('👍', votersFor(s.id, 1)) + voterLine('👎', votersFor(s.id, -1));
   const el = document.createElement('div');
   el.className = 'suggestion';
   el.innerHTML = `
@@ -45,7 +58,8 @@ function suggestionCard(s){
         ${isParent() ? `<button class="btn ghost sm" data-promote="${s.id}" type="button">Lägg i kalender</button>` : ''}
         ${canDelete ? `<button class="icon-btn" data-delsg="${s.id}" aria-label="Ta bort">🗑</button>` : ''}
       </div>
-    </div>`;
+    </div>
+    ${voters ? `<div class="sg-voters">${voters}</div>` : ''}`;
   return el;
 }
 

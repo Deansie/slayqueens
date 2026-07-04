@@ -67,6 +67,12 @@ textarea{ resize:vertical; }
   color:var(--faint); padding:14px 4px 4px;
 }
 .day-head.is-today{ color:var(--accent-ink); }
+.cal-more{
+  width:100%; margin-top:12px; cursor:pointer;
+  background:transparent; border:1px dashed var(--border-strong); color:var(--muted);
+  border-radius:var(--radius-sm); padding:11px; font-weight:600; font-size:.88rem;
+}
+.cal-more:hover{ background:var(--card-2); color:var(--text); }
 .event{
   display:flex; align-items:flex-start; gap:12px;
   background:var(--card); border:1px solid var(--border);
@@ -204,6 +210,15 @@ body.is-kid .parent-only{ display:none !important; }
 .vote.down.on{ background:var(--danger-soft); border-color:var(--danger); color:var(--danger); }
 .sg-by{ font-size:.76rem; color:var(--faint); margin-left:4px; }
 .sg-actions{ display:flex; align-items:center; gap:6px; }
+.sg-voters{ display:flex; flex-direction:column; gap:5px; margin-top:9px; padding-top:9px; border-top:1px solid var(--border); }
+.voter-line{ display:flex; align-items:center; flex-wrap:wrap; gap:6px; }
+.voter-emoji{ font-size:.85rem; flex:0 0 auto; }
+.voter-chip{
+  display:inline-flex; align-items:center; gap:5px;
+  background:var(--card-2); border-radius:999px; padding:2px 8px;
+  font-size:.74rem; color:var(--muted);
+}
+.voter-chip .dot{ width:7px; height:7px; border-radius:50%; flex:0 0 auto; }
 
 /* ---- Tabs: icon + label ---- */
 .tab{ display:flex; align-items:center; justify-content:center; gap:6px; }

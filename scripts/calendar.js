@@ -2,6 +2,8 @@
 // Family calendar: render upcoming events grouped by day, and add/edit/delete.
 let editingEvent = null;
 let categoryFilter = null;
+let calendarExpanded = false;      // false = next 7 days only; true = all upcoming
+const CAL_WINDOW_DAYS = 7;
 
 function ownerLabel(ev){
   if(!ev.owner_id) return { name: 'Familjen', color: 'var(--faint)' };
@@ -29,6 +31,8 @@ function renderCalendar(){
   const list = $('eventList');
   list.innerHTML = '';
   const today = new Date(); today.setHours(0, 0, 0, 0);
+  const cutoff = new Date(today); cutoff.setDate(cutoff.getDate() + CAL_WINDOW_DAYS);
+
   const upcoming = state.events
     .filter(ev => new Date(ev.starts_at) >= today)
     .filter(ev => !categoryFilter || (ev.category || 'annat') === categoryFilter)
@@ -42,18 +46,45 @@ function renderCalendar(){
     return;
   }
 
-  let lastKey = null;
-  for(const ev of upcoming){
-    const key = dateKey(ev.starts_at);
-    if(key !== lastKey){
-      lastKey = key;
-      const head = document.createElement('div');
-      head.className = 'day-head' + (key === todayKey() ? ' is-today' : '');
-      head.textContent = relativeDay(ev.starts_at);
-      list.appendChild(head);
+  // Default to the next 7 days; "Visa fler" reveals everything further out.
+  const inWindow = upcoming.filter(ev => new Date(ev.starts_at) < cutoff);
+  const beyond = upcoming.length - inWindow.length;
+  const shown = calendarExpanded ? upcoming : inWindow;
+
+  if(!shown.length){
+    const ph = document.createElement('div');
+    ph.className = 'placeholder mini';
+    ph.innerHTML = '<p>Inget de närmaste 7 dagarna.</p>';
+    list.appendChild(ph);
+  } else {
+    let lastKey = null;
+    for(const ev of shown){
+      const key = dateKey(ev.starts_at);
+      if(key !== lastKey){
+        lastKey = key;
+        const head = document.createElement('div');
+        head.className = 'day-head' + (key === todayKey() ? ' is-today' : '');
+        head.textContent = relativeDay(ev.starts_at);
+        list.appendChild(head);
+      }
+      list.appendChild(eventRow(ev));
     }
-    list.appendChild(eventRow(ev));
   }
+
+  if(beyond > 0){
+    list.appendChild(calendarExpanded
+      ? calMoreButton('Visa mindre', false)
+      : calMoreButton(`Visa fler (${beyond})`, true));
+  }
+}
+
+function calMoreButton(label, expand){
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'cal-more';
+  btn.textContent = label;
+  btn.onclick = () => { calendarExpanded = expand; renderCalendar(); };
+  return btn;
 }
 
 function eventRow(ev){
