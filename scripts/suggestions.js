@@ -39,7 +39,7 @@ function suggestionCard(s){
       <div class="vote-row">
         <button class="vote up${mine === 1 ? ' on' : ''}" data-vote="1" data-id="${s.id}" type="button">👍 ${up}</button>
         <button class="vote down${mine === -1 ? ' on' : ''}" data-vote="-1" data-id="${s.id}" type="button">👎 ${down}</button>
-        <span class="sg-by">av ${escapeHtml(by ? capital(by.name) : '—')}</span>
+        <span class="sg-by">av ${escapeHtml(by ? capital(by.name) : '—')} · ${escapeHtml(fmtWhen(s.created_at))}</span>
       </div>
       <div class="sg-actions">
         ${isParent() ? `<button class="btn ghost sm" data-promote="${s.id}" type="button">Lägg i kalender</button>` : ''}
@@ -84,9 +84,10 @@ async function saveSuggestion(){
   if(!title){ toast('warn', 'Skriv ett förslag'); return; }
   const notes = $('sgNotes').value.trim() || null;
   try{
-    const { error } = await sb.from('event_suggestions').insert({ title, notes, created_by: me.id });
+    const { data, error } = await sb.from('event_suggestions').insert({ title, notes, created_by: me.id }).select('id').single();
     if(error) throw error;
     toast('ok', 'Förslag tillagt');
+    if(data) notify('suggestion', { suggestionId: data.id });
     await loadSuggestions();
     renderSuggestions();
   }catch(err){ console.warn('saveSuggestion', err); toast('warn', 'Kunde inte spara'); }

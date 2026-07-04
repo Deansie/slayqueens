@@ -114,6 +114,8 @@ async function requestPayout(){
     if(error) throw error;
     toast('ok', 'Begäran skickad');
     await loadPayouts();
+    const mine = (state.payouts || []).find(p => p.profile_id === me.id && p.status === 'pending');
+    if(mine) notify('payout_request', { payoutId: mine.id });
     renderCredits();
   }catch(err){ console.warn('requestPayout', err); toast('warn', 'Kunde inte begära'); }
 }
@@ -123,6 +125,7 @@ async function resolvePayout(id, approve){
     const { error } = await sb.rpc('resolve_payout', { p_request: id, p_approve: approve });
     if(error) throw error;
     toast('ok', approve ? 'Utbetalt' : 'Nekad');
+    notify('payout_resolved', { payoutId: id });
     await Promise.all([loadPayouts(), loadBalances(), loadLedger()]);
     renderCredits();
   }catch(err){ console.warn('resolvePayout', err); toast('warn', 'Kunde inte hantera'); }

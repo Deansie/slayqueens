@@ -35,11 +35,12 @@ async function enterApp(){
     applyRole();
     $('meName').textContent = capital(me.name);
     $('meDot').style.background = profileColor(me);
-    await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes()]);
+    await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadEventMessages(), loadTodos()]);
     renderCalendar();
     renderTasks();
     renderCredits();
     renderSuggestions();
+    renderTodos();
     subscribeRealtime(onRealtime);
     initPush();
     showApp();

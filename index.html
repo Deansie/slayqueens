@@ -74,10 +74,11 @@
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Vyer">
-    <button class="tab active" data-view="calendar" type="button" role="tab">📅 Kalender</button>
-    <button class="tab" data-view="tasks" type="button" role="tab">✅ Jobb</button>
-    <button class="tab" data-view="credits" type="button" role="tab">⭐ Konto</button>
-    <button class="tab" data-view="suggestions" type="button" role="tab">💡 Förslag</button>
+    <button class="tab active" data-view="calendar" type="button" role="tab" aria-label="Kalender"><span class="tico" aria-hidden="true">📅</span><span class="tlabel">Kalender</span></button>
+    <button class="tab" data-view="tasks" type="button" role="tab" aria-label="Jobb"><span class="tico" aria-hidden="true">✅</span><span class="tlabel">Jobb</span></button>
+    <button class="tab" data-view="credits" type="button" role="tab" aria-label="Konto"><span class="tico" aria-hidden="true">⭐</span><span class="tlabel">Konto</span></button>
+    <button class="tab" data-view="todos" type="button" role="tab" aria-label="Att göra"><span class="tico" aria-hidden="true">📝</span><span class="tlabel">Lista</span></button>
+    <button class="tab" data-view="suggestions" type="button" role="tab" aria-label="Förslag"><span class="tico" aria-hidden="true">💡</span><span class="tlabel">Förslag</span></button>
   </nav>
 
   <main class="view-wrap">
@@ -103,6 +104,15 @@
     <!-- Credits -->
     <section class="view" id="view-credits" hidden>
       <div id="creditsBody"></div>
+    </section>
+
+    <!-- Todos -->
+    <section class="view" id="view-todos" hidden>
+      <div class="view-head">
+        <h2>Att göra</h2>
+        <button class="btn sm" id="addTodoBtn" type="button">+ Ny</button>
+      </div>
+      <div id="todoList"></div>
     </section>
 
     <!-- Suggestions -->
@@ -266,6 +276,37 @@
   </form>
 </dialog>
 
+<!-- Todo dialog ------------------------------------------------------ -->
+<dialog id="todoDialog">
+  <form method="dialog" class="dlg-body" id="todoForm">
+    <h3>Ny att göra</h3>
+    <div class="dlg-field">
+      <label for="todoTitle">Vad</label>
+      <input id="todoTitle" type="text" required maxlength="120" placeholder="T.ex. Handla mjölk" />
+    </div>
+    <label class="dlg-check"><input type="checkbox" id="todoPrivate" /> 🔒 Privat — bara jag ser den</label>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="todoCancel" type="button">Avbryt</button>
+      <button class="btn" value="ok" id="todoSave" type="submit">Lägg till</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Event chat dialog ------------------------------------------------ -->
+<dialog id="eventChatDialog">
+  <div class="dlg-body chat-body">
+    <div class="chat-head">
+      <h3 id="chatTitle">Kommentarer</h3>
+      <button class="icon-btn" id="chatClose" type="button" aria-label="Stäng">✕</button>
+    </div>
+    <div class="chat-thread" id="chatThread"></div>
+    <form class="chat-compose" id="chatForm">
+      <input id="chatInput" type="text" maxlength="500" placeholder="Skriv en kommentar…" autocomplete="off" />
+      <button class="btn sm" value="send" type="submit">Skicka</button>
+    </form>
+  </div>
+</dialog>
+
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -279,6 +320,7 @@
 <script src="scripts/tasks.js"></script>
 <script src="scripts/credits.js"></script>
 <script src="scripts/suggestions.js"></script>
+<script src="scripts/todos.js"></script>
 <script src="scripts/profile.js"></script>
 <script src="scripts/theme.js"></script>
 <script src="scripts/push.js"></script>

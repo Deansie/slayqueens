@@ -1,7 +1,18 @@
+@media (max-width:520px){
+  /* Five tabs won't fit with labels on a phone, so collapse inactive tabs to just their
+     icon and let the active tab keep its label — you always see where you are. */
+  .tab{ flex:0 0 auto; padding:9px 11px; }
+  .tab.active{ flex:1 1 auto; }
+  .tab .tlabel{ display:none; }
+  .tab.active .tlabel{ display:inline; }
+  .tico{ font-size:1.15rem; }
+}
+
 @media (max-width:480px){
   .app{ padding:calc(12px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right))
                 calc(48px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left)); }
-  .tab{ font-size:.82rem; padding:9px 6px; }
+  .tab{ font-size:.82rem; }
+  .tab.active{ font-size:.82rem; }
   .brand h1{ font-size:1.05rem; }
   .dlg-row{ flex-wrap:wrap; }
   .time-field{ max-width:none; }

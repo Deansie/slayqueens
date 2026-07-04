@@ -204,3 +204,58 @@ body.is-kid .parent-only{ display:none !important; }
 .vote.down.on{ background:var(--danger-soft); border-color:var(--danger); color:var(--danger); }
 .sg-by{ font-size:.76rem; color:var(--faint); margin-left:4px; }
 .sg-actions{ display:flex; align-items:center; gap:6px; }
+
+/* ---- Tabs: icon + label ---- */
+.tab{ display:flex; align-items:center; justify-content:center; gap:6px; }
+.tico{ font-size:1rem; line-height:1; }
+
+/* ---- Today's events (highlighted so the day stands out) ---- */
+.event.is-today{
+  border-left:3px solid var(--accent);
+  background:linear-gradient(90deg, var(--accent-soft), var(--card) 55%);
+}
+
+/* ---- Event side column + chat button ---- */
+.ev-side{ display:flex; flex-direction:column; align-items:flex-end; gap:2px; flex:0 0 auto; }
+.ev-chat{
+  border:0; background:transparent; cursor:pointer; color:var(--faint);
+  border-radius:8px; padding:4px 7px; font-size:.95rem;
+  display:inline-flex; align-items:center; gap:3px;
+}
+.ev-chat:hover{ background:var(--card-2); color:var(--text); }
+.ev-chat-n{ font-size:.72rem; font-weight:700; color:var(--accent-ink); }
+
+/* ---- Event chat dialog ---- */
+.chat-body{ gap:10px; }
+.chat-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.chat-head h3{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.chat-thread{ display:flex; flex-direction:column; gap:8px; max-height:52vh; overflow-y:auto; padding:2px; }
+.chat-empty{ color:var(--muted); font-size:.9rem; text-align:center; padding:22px 8px; }
+.msg{ background:var(--card-2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px 10px; }
+.msg.mine{ background:var(--accent-soft); border-color:transparent; }
+.msg-head{ display:flex; align-items:center; gap:6px; font-size:.76rem; color:var(--muted); font-weight:600; }
+.msg-head .dot{ width:8px; height:8px; border-radius:50%; flex:0 0 auto; }
+.msg-time{ color:var(--faint); font-weight:500; }
+.msg-del{ margin-left:auto; border:0; background:transparent; color:var(--faint); cursor:pointer; font-size:.85rem; padding:0 2px; }
+.msg-del:hover{ color:var(--danger); }
+.msg-body{ font-size:.92rem; margin-top:3px; white-space:pre-wrap; word-break:break-word; }
+.chat-compose{ display:flex; gap:8px; }
+.chat-compose input{ flex:1; }
+
+/* ---- To-do list ---- */
+.todo{
+  display:flex; align-items:center; gap:11px; margin-bottom:8px;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:11px 13px; box-shadow:var(--shadow-sm);
+}
+.todo.done{ opacity:.6; }
+.todo-check{
+  width:24px; height:24px; flex:0 0 auto; cursor:pointer;
+  border:2px solid var(--border-strong); background:var(--card-2);
+  border-radius:7px; display:grid; place-items:center; font-size:.85rem; color:#fff;
+}
+.todo.done .todo-check{ background:var(--success); border-color:var(--success); }
+.todo-main{ flex:1; min-width:0; }
+.todo-title{ font-weight:500; }
+.todo.done .todo-title{ text-decoration:line-through; }
+.todo-meta{ font-size:.76rem; color:var(--faint); margin-top:1px; }

@@ -1,4 +1,4 @@
-// Slayqueens — web push sender. Called from the client after job actions; derives the
+// Slayqueens — web push sender. Called from the client after actions; derives the
 // recipients server-side and sends via VAPID. Secrets (set in the dashboard/CLI):
 //   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT (a mailto:).
 // SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are injected automatically.
@@ -41,52 +41,140 @@ async function verifyActor(req: Request): Promise<string | null> {
   }
 }
 
+type Profile = { id: string; name: string; role: string };
+
+async function profile(id: string | null | undefined): Promise<Profile | null> {
+  if (!id) return null;
+  const { data } = await admin.from('profiles').select('id, name, role').eq('id', id).single();
+  return data ?? null;
+}
+
+// All family ids, or just those with a given role.
+async function ids(role?: 'parent' | 'kid'): Promise<string[]> {
+  let q = admin.from('profiles').select('id');
+  if (role) q = q.eq('role', role);
+  const { data } = await q;
+  return (data ?? []).map((r: { id: string }) => r.id);
+}
+
+function whenLabel(startsAt: string, allDay: boolean): string {
+  const opts: Intl.DateTimeFormatOptions = allDay
+    ? { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Europe/Stockholm' }
+    : { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Stockholm' };
+  return new Intl.DateTimeFormat('sv-SE', opts).format(new Date(startsAt));
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors });
+  const json = (obj: unknown, status = 200) =>
+    new Response(JSON.stringify(obj), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
+
   try {
     const actor = await verifyActor(req);
-    if (!actor) {
-      return new Response(JSON.stringify({ error: 'unauthorized' }), {
-        status: 401, headers: { ...cors, 'Content-Type': 'application/json' }
-      });
-    }
+    if (!actor) return json({ error: 'unauthorized' }, 401);
 
-    const { type, taskId } = await req.json();
+    const { type, taskId, eventId, payoutId, suggestionId, toProfile } = await req.json();
     let recipients: string[] = [];
     let title = 'Slayqueens';
     let body = '';
-    const url = './';
 
     if (type === 'new_job') {
       const { data: task } = await admin.from('tasks').select('title, reward').eq('id', taskId).single();
-      const { data: kids } = await admin.from('profiles').select('id').eq('role', 'kid');
-      recipients = (kids ?? []).map((k) => k.id).filter((id) => id !== actor);
+      recipients = await ids('kid');
       title = 'Nytt jobb! ✅';
       body = task ? `${task.title} — ${task.reward} kr` : 'Ett nytt jobb finns att plocka';
+
     } else if (type === 'submitted') {
       const { data: task } = await admin.from('tasks').select('title, claimed_by').eq('id', taskId).single();
-      const who = task?.claimed_by
-        ? (await admin.from('profiles').select('name').eq('id', task.claimed_by).single()).data
-        : null;
-      const { data: parents } = await admin.from('profiles').select('id').eq('role', 'parent');
-      recipients = (parents ?? []).map((p) => p.id).filter((id) => id !== actor);
+      const who = await profile(task?.claimed_by);
+      recipients = await ids('parent');
       title = 'Jobb klart 👀';
       body = task ? `${who?.name ?? 'Ett barn'} är klar med "${task.title}"` : 'Ett jobb väntar på godkännande';
+
     } else if (type === 'approved') {
       const { data: task } = await admin.from('tasks').select('title, reward, claimed_by').eq('id', taskId).single();
       if (task?.claimed_by) recipients = [task.claimed_by];
       title = 'Godkänt! ⭐';
       body = task ? `Du fick ${task.reward} kr för "${task.title}"` : 'Ditt jobb godkändes';
+
+    } else if (type === 'rejected') {
+      const { data: task } = await admin.from('tasks').select('title, claimed_by, reject_reason').eq('id', taskId).single();
+      if (task?.claimed_by) recipients = [task.claimed_by];
+      title = 'Behöver fixas 🔧';
+      body = task ? `"${task.title}" skickades tillbaka${task.reject_reason ? ' — ' + task.reject_reason : ''}` : 'Ditt jobb skickades tillbaka';
+
+    } else if (type === 'recalled') {
+      const me = await profile(actor);
+      if (me?.role !== 'parent') return json({ error: 'forbidden' }, 403);
+      if (toProfile) recipients = [toProfile];
+      const { data: task } = await admin.from('tasks').select('title').eq('id', taskId).single();
+      title = 'Jobb återkallat';
+      body = task ? `"${task.title}" togs tillbaka av en förälder` : 'Ett jobb togs tillbaka';
+
+    } else if (type === 'payout_request') {
+      const { data: p } = await admin.from('payout_requests').select('profile_id, amount').eq('id', payoutId).single();
+      const who = await profile(p?.profile_id);
+      recipients = await ids('parent');
+      title = 'Begäran om utbetalning 💸';
+      body = p ? `${who?.name ?? 'Ett barn'} vill ta ut ${p.amount} kr` : 'En utbetalning väntar';
+
+    } else if (type === 'payout_resolved') {
+      const { data: p } = await admin.from('payout_requests').select('profile_id, amount, status').eq('id', payoutId).single();
+      if (p?.profile_id) recipients = [p.profile_id];
+      if (p?.status === 'paid') { title = 'Utbetalt! 💸'; body = `Du har fått ${p.amount} kr utbetalt`; }
+      else { title = 'Utbetalning nekad'; body = p ? `Din begäran om ${p.amount} kr nekades` : 'Din begäran nekades'; }
+
+    } else if (type === 'event_new') {
+      const { data: ev } = await admin.from('calendar_events')
+        .select('title, starts_at, all_day, owner_id, created_by').eq('id', eventId).single();
+      if (ev) {
+        if (ev.owner_id && ev.owner_id !== ev.created_by) recipients = [ev.owner_id]; // added for someone
+        else if (!ev.owner_id) recipients = await ids();                              // whole-family event
+        // personal event (owner === creator): nobody else needs to know
+        title = 'Ny händelse 📅';
+        body = `${ev.title} · ${whenLabel(ev.starts_at, ev.all_day)}`;
+      }
+
+    } else if (type === 'event_msg') {
+      const { data: ev } = await admin.from('calendar_events')
+        .select('title, private, owner_id, created_by').eq('id', eventId).single();
+      if (ev) {
+        // notify the people involved: event owner + creator + everyone who has posted here.
+        const set = new Set<string>();
+        if (ev.created_by) set.add(ev.created_by);
+        if (ev.owner_id) set.add(ev.owner_id);
+        const { data: authors } = await admin.from('event_messages').select('author_id').eq('event_id', eventId);
+        for (const a of authors ?? []) set.add(a.author_id);
+        recipients = [...set];
+        if (ev.private) {
+          const allowed = new Set<string>([ev.created_by, ev.owner_id, ...(await ids('parent'))].filter(Boolean) as string[]);
+          recipients = recipients.filter((r) => allowed.has(r));
+        }
+        const { data: msgs } = await admin.from('event_messages')
+          .select('body').eq('event_id', eventId).order('created_at', { ascending: false }).limit(1);
+        const who = await profile(actor);
+        const text = msgs?.[0]?.body ?? '';
+        title = `💬 ${ev.title}`;
+        body = `${who?.name ?? 'Någon'}: ${text.length > 90 ? text.slice(0, 90) + '…' : text}`;
+      }
+
+    } else if (type === 'suggestion') {
+      const { data: sg } = await admin.from('event_suggestions').select('title, created_by').eq('id', suggestionId).single();
+      const who = await profile(sg?.created_by ?? actor);
+      recipients = await ids();
+      title = 'Nytt förslag 💡';
+      body = sg ? `${who?.name ?? 'Någon'}: ${sg.title}` : 'Ett nytt förslag lades till';
+
     } else {
-      return new Response('Unknown type', { status: 400, headers: cors });
+      return json({ error: 'unknown type' }, 400);
     }
 
-    if (!recipients.length) {
-      return new Response(JSON.stringify({ sent: 0 }), { headers: { ...cors, 'Content-Type': 'application/json' } });
-    }
+    // Never notify the actor about their own action; de-dupe.
+    recipients = [...new Set(recipients)].filter((id) => id && id !== actor);
+    if (!recipients.length) return json({ sent: 0 });
 
     const { data: subs } = await admin.from('push_subscriptions').select('*').in('profile_id', recipients);
-    const payload = JSON.stringify({ title, body, url });
+    const payload = JSON.stringify({ title, body, url: './' });
     let sent = 0;
 
     await Promise.all((subs ?? []).map(async (s) => {
@@ -104,7 +192,7 @@ Deno.serve(async (req) => {
       }
     }));
 
-    return new Response(JSON.stringify({ sent }), { headers: { ...cors, 'Content-Type': 'application/json' } });
+    return json({ sent });
   } catch (e) {
     console.error(e);
     return new Response('Error', { status: 500, headers: cors });

@@ -108,7 +108,9 @@ function taskActions(task){
            <button class="icon-btn" data-act="deljob" data-id="${task.id}" aria-label="Ta bort">🗑</button>`
         : `<button class="btn sm" data-act="claim" data-id="${task.id}">Plocka</button>`;
     case 'claimed':
-      return (!isParent() && mine)
+      if(isParent())
+        return `<button class="btn ghost sm" data-act="recall" data-id="${task.id}">Återkalla</button>`;
+      return mine
         ? `<button class="btn sm" data-act="submit" data-id="${task.id}">Markera klar</button>
            <button class="btn ghost sm" data-act="abort" data-id="${task.id}">Släpp</button>` : '';
     case 'rejected':
@@ -136,6 +138,7 @@ function onTaskBoardClick(e){
     case 'submit':  taskRpc('submit_task',  { p_task: id }, 'Inskickat för godkännande', 'submitted'); break;
     case 'approve': taskRpc('approve_task', { p_task: id }, 'Godkänt ⭐', 'approved'); break;
     case 'abort':   taskRpc('abort_task',   { p_task: id }, 'Jobbet släpptes'); break;
+    case 'recall':  recallTask(found()); break;
     case 'reject':  openRejectDialog(id); break;
     case 'editjob': openJobDialog(found()); break;
     case 'deljob':  deleteJob(found()); break;
@@ -159,6 +162,23 @@ async function taskRpc(fn, args, okMsg, notifyType){
     console.warn(fn, err);
     toast('warn', 'Något gick fel');
   }
+}
+
+// Recall a claimed job back from a kid (parent) ------------------------
+async function recallTask(task){
+  if(!task) return;
+  const claimer = task.claimed_by ? state.profilesById[task.claimed_by] : null;
+  const from = claimer ? ' från ' + capital(claimer.name) : '';
+  if(!(await confirmDialog(`Återkalla "${task.title}"${from}? Jobbet blir ledigt igen.`, 'Återkalla'))) return;
+  const kidId = task.claimed_by;   // captured before the RPC clears it
+  try{
+    const { error } = await sb.rpc('recall_task', { p_task: task.id });
+    if(error) throw error;
+    toast('ok', 'Återkallat');
+    if(kidId) notify('recalled', { taskId: task.id, toProfile: kidId });
+    await loadTasks();
+    renderTasks();
+  }catch(err){ console.warn('recallTask', err); toast('warn', 'Kunde inte återkalla'); }
 }
 
 // Create / edit job (parent) -------------------------------------------
@@ -270,6 +290,7 @@ async function confirmReject(){
     const { error } = await sb.rpc('reject_task', { p_task: rejectingTaskId, p_reason: reason });
     if(error) throw error;
     toast('ok', 'Nekat');
+    notify('rejected', rejectingTaskId);
     await loadTasks();
     renderTasks();
   }catch(err){

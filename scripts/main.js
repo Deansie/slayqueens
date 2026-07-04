@@ -48,6 +48,17 @@ document.addEventListener('DOMContentLoaded', () => {
   $('suggestionForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveSuggestion(); });
   $('sgCancel').addEventListener('click', () => $('suggestionDialog').close());
 
+  // Todos
+  $('addTodoBtn').addEventListener('click', openTodoDialog);
+  $('todoList').addEventListener('click', onTodoListClick);
+  $('todoForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveTodo(); });
+  $('todoCancel').addEventListener('click', () => $('todoDialog').close());
+
+  // Event chat
+  $('chatForm').addEventListener('submit', (e) => { e.preventDefault(); sendEventMessage(); });
+  $('chatClose').addEventListener('click', () => $('eventChatDialog').close());
+  $('chatThread').addEventListener('click', onChatThreadClick);
+
   // Theme
   $('themeToggle').addEventListener('click', toggleTheme);
   reflectTheme();
@@ -113,20 +124,26 @@ async function onRealtime(payload){
   else if(t === 'task_templates') await loadTemplates();
   else if(t === 'event_suggestions') await loadSuggestions();
   else if(t === 'suggestion_votes') await loadVotes();
+  else if(t === 'event_messages') await loadEventMessages();
+  else if(t === 'todos') await loadTodos();
   renderCalendar();
   renderTasks();
   renderCredits();
   renderSuggestions();
+  renderTodos();
+  renderEventChat();
 }
 
 // Full reload + repaint, used when the app resumes and may have missed live updates.
 async function resync(){
   if(!sb || !session) return;
-  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes()]);
+  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadEventMessages(), loadTodos()]);
   renderCalendar();
   renderTasks();
   renderCredits();
   renderSuggestions();
+  renderTodos();
+  renderEventChat();
 }
 
 // Ensure a fresh access token before re-syncing, so requests never fall back to anon.

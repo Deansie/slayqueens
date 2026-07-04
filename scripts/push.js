@@ -64,9 +64,12 @@ function togglePush(){
   if(btn && btn.dataset.on === '1') disablePush(); else enablePush();
 }
 
-// Fire-and-forget: ask the edge function to send a push for this event.
-async function notify(type, taskId){
-  try{ await sb.functions.invoke('notify', { body: { type, taskId } }); }
+// Fire-and-forget: ask the edge function to send a push. `ref` is either a task id
+// (back-compat with the original job notifications) or an object with the ids a given
+// type needs, e.g. notify('event_msg', { eventId }) or notify('recalled', { taskId, toProfile }).
+async function notify(type, ref){
+  const body = (ref && typeof ref === 'object') ? { type, ...ref } : { type, taskId: ref };
+  try{ await sb.functions.invoke('notify', { body }); }
   catch(e){ console.warn('notify', e); }
 }
 
