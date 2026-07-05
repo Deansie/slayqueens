@@ -38,6 +38,15 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeProfileMenu(); });
 
+  // Weather location picker
+  $('weather').addEventListener('click', openWeatherDialog);
+  $('weatherForm').addEventListener('submit', (e) => e.preventDefault());   // Enter must not close the dialog
+  $('wxSearch').addEventListener('input', onWeatherSearchInput);
+  $('wxResults').addEventListener('click', onWeatherResultsClick);
+  $('wxGeo').addEventListener('click', useMyLocation);
+  $('wxOff').addEventListener('click', turnWeatherOff);
+  $('wxCancel').addEventListener('click', () => $('weatherDialog').close());
+
   // Calendar
   $('catFilter').addEventListener('click', onCatFilterClick);
   $('eventForm').addEventListener('submit', (e) => {
@@ -179,6 +188,7 @@ function onProfileMenuClick(e){
   closeProfileMenu();
   if(act === 'credits') switchView('credits');
   else if(act === 'profile') openProfileDialog();
+  else if(act === 'weather') openWeatherDialog();
   else if(act === 'theme') toggleTheme();
   else if(act === 'logout'){ unsubscribeRealtime(); signOut(); }
 }

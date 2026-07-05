@@ -73,9 +73,10 @@
       <div class="hd-sub" id="hdSub"></div>
     </div>
     <div class="head-right">
-      <button class="weather" id="weather" type="button" hidden aria-label="Väder">
+      <button class="weather" id="weather" type="button" hidden aria-label="Byt väderplats">
         <span class="wx-temp serif"><span id="wxTemp">–</span><span class="wx-deg">°</span></span>
         <span class="wx-desc" id="wxDesc"></span>
+        <span class="wx-loc" id="wxLoc"></span>
       </button>
       <button class="me-chip" id="meChip" type="button" aria-haspopup="menu" aria-expanded="false">
         <span class="me-avatar" id="meAvatar">–</span>
@@ -156,6 +157,7 @@
     <div class="mp-bal" id="mpBal" hidden></div>
     <button class="mp-item" data-menu="credits" type="button" role="menuitem"><span class="mp-ico">⭐</span> Poäng</button>
     <button class="mp-item" data-menu="profile" type="button" role="menuitem"><span class="mp-ico">🎨</span> Profil &amp; notiser</button>
+    <button class="mp-item" data-menu="weather" type="button" role="menuitem"><span class="mp-ico">📍</span> Väderplats</button>
     <button class="mp-item" data-menu="theme" type="button" role="menuitem"><span class="mp-ico" id="mpThemeIco">🌙</span> <span id="mpThemeLabel">Mörkt tema</span></button>
     <div class="mp-sep"></div>
     <button class="mp-item danger" data-menu="logout" type="button" role="menuitem"><span class="mp-ico">↩︎</span> Logga ut</button>
@@ -341,6 +343,24 @@
     <div class="dlg-actions">
       <button class="btn ghost" value="cancel" type="submit">Avbryt</button>
       <button class="btn" value="ok" id="budgetMonthOk" type="submit">Skapa</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Weather location picker ------------------------------------------ -->
+<dialog id="weatherDialog">
+  <form method="dialog" class="dlg-body" id="weatherForm">
+    <h3 class="serif">Väderplats</h3>
+    <div class="dlg-field">
+      <label for="wxSearch">Sök ort</label>
+      <input id="wxSearch" type="text" autocomplete="off" placeholder="T.ex. Ljungby" />
+    </div>
+    <div class="wx-results" id="wxResults"></div>
+    <button class="btn ghost block" id="wxGeo" type="button">📍 Använd min plats</button>
+    <div class="wx-current" id="wxCurrent"></div>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="wxOff" type="button">Stäng av väder</button>
+      <button class="btn ghost" id="wxCancel" type="button">Stäng</button>
     </div>
   </form>
 </dialog>

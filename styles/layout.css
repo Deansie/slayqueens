@@ -41,14 +41,17 @@
 
 .head-right{ display:flex; flex-direction:column-reverse; align-items:flex-end; gap:12px; flex:0 0 auto; }
 
-/* Weather widget */
+/* Weather widget (tap to change location) */
 .weather{
   display:flex; flex-direction:column; align-items:flex-end; gap:0;
-  background:transparent; border:0; cursor:default; color:inherit; text-align:right;
+  background:transparent; border:0; cursor:pointer; color:inherit; text-align:right;
+  border-radius:12px; padding:2px 4px; margin:-2px -4px;
 }
+.weather:hover{ background:var(--card-2); }
 .wx-temp{ font-size:2rem; font-weight:600; line-height:1; position:relative; }
 .wx-deg{ font-size:1rem; vertical-align:super; color:var(--muted); }
 .wx-desc{ font-size:.82rem; color:var(--muted); margin-top:2px; }
+.wx-loc{ font-size:.72rem; color:var(--faint); margin-top:1px; max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
 /* Profile pill */
 .me-chip{

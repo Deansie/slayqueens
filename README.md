@@ -54,8 +54,8 @@ What actually protects the data:
 5. Promote the parent account(s) — the last lines of `sql/schema.sql` show the one
    SQL statement to run.
 6. **Settings → API:** copy the **Project URL** and the **anon/publishable key**
-   into `scripts/config.js`. While there, set `WEATHER_LAT`/`WEATHER_LON` to your
-   town (or set `WEATHER_ENABLED: false` to hide the weather widget).
+   into `scripts/config.js`. The `WEATHER_*` values there are only a first-run
+   default — each device picks its own location in the app.
 
 ### Budget & weather
 
@@ -65,8 +65,10 @@ What actually protects the data:
   read-merge-write keyed on each month's timestamp, and realtime keeps both parents'
   devices in sync (the same merge model the OneDrive version used, minus OneDrive).
 - **Weather.** The header widget uses the free, keyless [Open-Meteo](https://open-meteo.com)
-  API. It stays hidden until a reading arrives and hides itself again on any error,
-  so the app never looks broken offline.
+  API (forecast + town search/geocoding). Each device picks its own location — tap the
+  weather, or the profile menu → **Väderplats**, then search a town or use your current
+  location; the choice is saved in `localStorage` and overrides the `config.js` default.
+  It hides itself on any error or when turned off, so the app never looks broken offline.
 
 ## Project structure
 

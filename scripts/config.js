@@ -16,8 +16,11 @@ const CONFIG = {
   VAPID_PUBLIC_KEY:  'BHZEVi1GdRiJxh1qbhLZCx2TopWTYmzzZDUOT7OyWQ_eRP9yb0W9fQlxGXkPx4zmfkRfT2ppghLeBesvHGx0qQY',  // public — safe to commit
 
   // Weather widget in the header. Uses the free, keyless Open-Meteo API (open-meteo.com).
-  // Set to your town's coordinates; leave WEATHER_ENABLED false to hide the widget entirely.
+  // These are just the FIRST-RUN default — each device can pick its own location in the app
+  // (tap the weather, or the profile menu → "Väderplats"); that choice is saved per device
+  // and overrides this. Set WEATHER_ENABLED false for no default (users can still opt in).
   WEATHER_ENABLED: true,
   WEATHER_LAT:     56.833,   // Ljungby
-  WEATHER_LON:     13.941
+  WEATHER_LON:     13.941,
+  WEATHER_LABEL:   'Ljungby'
 };

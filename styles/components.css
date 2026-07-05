@@ -331,3 +331,14 @@ body.is-kid .parent-only{ display:none !important; }
 }
 .msg-img-link{ display:inline-block; margin-top:6px; }
 .msg-img{ display:block; max-width:100%; max-height:240px; border-radius:10px; border:1px solid var(--border); }
+
+/* Weather location picker */
+.wx-results{ display:flex; flex-direction:column; gap:5px; max-height:230px; overflow-y:auto; }
+.wx-result{
+  display:block; width:100%; text-align:left; cursor:pointer;
+  background:var(--card-2); border:1px solid var(--border); border-radius:var(--radius-sm);
+  padding:10px 12px; color:var(--text); font-size:.92rem; font-weight:500;
+}
+.wx-result:hover{ border-color:var(--border-strong); }
+.wx-hint{ color:var(--muted); font-size:.86rem; padding:8px 2px; }
+.wx-current{ font-size:.82rem; color:var(--muted); }
