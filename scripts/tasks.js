@@ -81,7 +81,7 @@ function taskSection(board, title, list){
 function taskCard(task){
   const claimer = task.claimed_by ? state.profilesById[task.claimed_by] : null;
   const who = claimer
-    ? `<span class="task-who"><span class="dot" style="background:${profileColor(claimer)}"></span>${escapeHtml(capital(claimer.name))}</span>`
+    ? `<span class="task-who">${avatarHtml(profileColor(claimer), claimer.name)}${escapeHtml(capital(claimer.name))}</span>`
     : '';
   const el = document.createElement('div');
   el.className = 'task';

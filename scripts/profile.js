@@ -29,9 +29,10 @@ async function saveProfile(){
     const { error } = await sb.from('profiles').update({ color: pickedColor }).eq('id', me.id);
     if(error) throw error;
     me.color = pickedColor;
-    $('meDot').style.background = profileColor(me);
+    const av = $('meAvatar');
+    if(av) av.style.background = profileColor(me);
     await loadProfiles();
-    renderCalendar(); renderTasks(); renderCredits();
+    renderCalendar(); renderTasks(); renderCredits(); renderSuggestions(); renderTodos();
     toast('ok', 'Färg sparad');
   }catch(err){
     console.warn('saveProfile', err);

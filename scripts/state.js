@@ -87,6 +87,7 @@ function subscribeRealtime(onChange){
     .on('postgres_changes', { event: '*', schema: 'public', table: 'suggestion_votes' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'todos' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'budget' }, onChange)
     .subscribe();
 }
 function unsubscribeRealtime(){

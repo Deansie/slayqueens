@@ -6,17 +6,30 @@ let calendarExpanded = false;      // false = next 7 days only; true = all upcom
 const CAL_WINDOW_DAYS = 7;
 
 function ownerLabel(ev){
-  if(!ev.owner_id) return { name: 'Familjen', color: 'var(--faint)' };
+  if(!ev.owner_id) return { name: 'Familjen', color: 'var(--gold)', letter: 'F' };
   const p = state.profilesById[ev.owner_id];
-  if(!p) return { name: '—', color: 'var(--faint)' };
-  return { name: capital(p.name), color: profileColor(p) };
+  if(!p) return { name: '—', color: 'var(--faint)', letter: '?' };
+  return { name: capital(p.name), color: profileColor(p), letter: initialOf(p.name) };
+}
+
+// An event is "ongoing" if now falls between its start and end (events without an end
+// get a 2-hour default window) — used for the amber PÅGÅR badge on today's cards.
+function isOngoing(ev){
+  if(ev.all_day) return false;
+  const now = new Date();
+  const start = new Date(ev.starts_at);
+  const end = ev.ends_at ? new Date(ev.ends_at) : new Date(start.getTime() + 2 * 3600 * 1000);
+  return now >= start && now <= end;
 }
 
 function renderCategoryFilter(){
   const box = $('catFilter');
   if(!box) return;
-  const chip = (key, label) => `<button class="fchip${categoryFilter === key ? ' active' : ''}" data-cat="${key || ''}" type="button">${label}</button>`;
-  box.innerHTML = chip(null, 'Alla') + CATEGORIES.map(c => chip(c.key, `${c.emoji} ${escapeHtml(c.label)}`)).join('');
+  const chip = (key, label, color) =>
+    `<button class="fchip${categoryFilter === key ? ' active' : ''}" data-cat="${key || ''}" type="button">` +
+    `${color ? `<span class="dot" style="--c:${color}"></span>` : ''}${label}</button>`;
+  box.innerHTML = chip(null, 'Alla', null) +
+    CATEGORIES.map(c => chip(c.key, escapeHtml(c.label), c.color)).join('');
 }
 
 function onCatFilterClick(e){
@@ -27,6 +40,7 @@ function onCatFilterClick(e){
 }
 
 function renderCalendar(){
+  renderHeader();
   renderCategoryFilter();
   const list = $('eventList');
   list.innerHTML = '';
@@ -62,10 +76,7 @@ function renderCalendar(){
       const key = dateKey(ev.starts_at);
       if(key !== lastKey){
         lastKey = key;
-        const head = document.createElement('div');
-        head.className = 'day-head' + (key === todayKey() ? ' is-today' : '');
-        head.textContent = relativeDay(ev.starts_at);
-        list.appendChild(head);
+        list.appendChild(dayHeader(ev.starts_at));
       }
       list.appendChild(eventRow(ev));
     }
@@ -78,6 +89,22 @@ function renderCalendar(){
   }
 }
 
+// Serif day heading with a hair-rule; "Imorgon" also shows its weekday.
+function dayHeader(d){
+  const head = document.createElement('div');
+  const key = dateKey(d);
+  head.className = 'day-head' + (key === todayKey() ? ' is-today' : '');
+  const x = new Date(d); x.setHours(0, 0, 0, 0);
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const diff = Math.round((x - today) / 86400000);
+  const sub = diff === 1 ? WEEKDAYS[x.getDay()] : '';
+  head.innerHTML =
+    `<span class="dh-label">${escapeHtml(relativeDay(d))}</span>` +
+    (sub ? `<span class="dh-sub">${escapeHtml(sub)}</span>` : '') +
+    '<span class="dh-rule"></span>';
+  return head;
+}
+
 function calMoreButton(label, expand){
   const btn = document.createElement('button');
   btn.type = 'button';
@@ -88,9 +115,10 @@ function calMoreButton(label, expand){
 }
 
 function eventRow(ev){
-  const row = document.createElement('div');
+  const row = document.createElement('article');
   const isToday = dateKey(ev.starts_at) === todayKey();
-  row.className = 'event' + (isToday ? ' is-today' : '');
+  const ongoing = isToday && isOngoing(ev);
+  row.className = 'event' + (isToday ? ' is-today' : '') + (ongoing ? ' is-ongoing' : '');
   const owner = ownerLabel(ev);
   const cat = categoryOf(ev.category);
   const canEdit = (me && ev.created_by === me.id) || isParent();
@@ -98,25 +126,34 @@ function eventRow(ev){
     ? 'Heldag'
     : fmtTime(ev.starts_at) + (ev.ends_at ? '–' + fmtTime(ev.ends_at) : '');
   row.innerHTML = `
-    <div class="ev-body">
-      <div class="ev-when">${when}</div>
-      <div class="ev-title">${ev.private ? '🔒 ' : ''}${escapeHtml(ev.title)}</div>
-      ${ev.notes ? `<div class="ev-notes">${escapeHtml(ev.notes)}</div>` : ''}
-      <div class="ev-tags">
-        <span class="cat-chip"><span class="dot" style="background:${cat.color}"></span>${cat.emoji} ${escapeHtml(cat.label)}</span>
-        <span class="owner-chip"><span class="dot" style="background:${owner.color}"></span>${escapeHtml(owner.name)}</span>
+    <div class="ev-top">
+      <div class="ev-when">
+        <span class="ev-time">${escapeHtml(when)}</span>
+        ${ongoing ? '<span class="ev-live">Pågår</span>' : ''}
       </div>
+      ${canEdit ? `
+      <details class="ev-menu">
+        <summary aria-label="Fler val">⋯</summary>
+        <div class="ev-menu-pop">
+          <button type="button" data-edit>✎ Redigera</button>
+          <button type="button" data-del class="danger">🗑 Ta bort</button>
+        </div>
+      </details>` : ''}
     </div>
-    <div class="ev-side">
+    <h3 class="ev-title">${ev.private ? '🔒 ' : ''}${escapeHtml(ev.title)}</h3>
+    ${ev.notes ? `<p class="ev-notes">${escapeHtml(ev.notes)}</p>` : ''}
+    <div class="ev-foot">
+      <div class="ev-tags">
+        <span class="cat-chip" style="--c:${cat.color}"><span class="dot"></span>${escapeHtml(cat.label)}</span>
+        <span class="owner-chip">${avatarHtml(owner.color, owner.name)}${escapeHtml(owner.name)}</span>
+      </div>
       ${chatButton('event', ev.id)}
-      ${canEdit ? `<div class="ev-actions">
-        <button class="icon-btn" data-edit type="button" aria-label="Redigera">✎</button>
-        <button class="icon-btn" data-del type="button" aria-label="Ta bort">🗑</button>
-      </div>` : ''}
     </div>`;
   if(canEdit){
-    row.querySelector('[data-edit]').onclick = () => openEventDialog(ev);
-    row.querySelector('[data-del]').onclick  = () => deleteEvent(ev);
+    const menu = row.querySelector('.ev-menu');
+    const close = () => { if(menu) menu.open = false; };
+    row.querySelector('[data-edit]').onclick = () => { close(); openEventDialog(ev); };
+    row.querySelector('[data-del]').onclick  = () => { close(); deleteEvent(ev); };
   }
   return row;
 }

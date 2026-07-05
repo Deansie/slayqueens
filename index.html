@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" id="themeColor" content="#eae7f1" />
+<meta name="theme-color" id="themeColor" content="#0a0c0a" />
 <script>
   // set the theme before first paint (stored choice, else system) to avoid a flash
   (function(){
@@ -16,7 +16,7 @@
 </script>
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="Slayqueens" />
 <title>Slayqueens</title>
 
@@ -24,9 +24,14 @@
 <link rel="apple-touch-icon" href="icons/icon.svg" />
 <link rel="manifest" href="manifest.json" />
 
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,800;1,600&display=swap" />
+
 <link rel="stylesheet" href="styles/base.css" />
 <link rel="stylesheet" href="styles/layout.css" />
 <link rel="stylesheet" href="styles/components.css" />
+<link rel="stylesheet" href="styles/budget.css" />
 <link rel="stylesheet" href="styles/overlays.css" />
 <link rel="stylesheet" href="styles/responsive.css" />
 </head>
@@ -43,7 +48,7 @@
   <form class="login-card" id="loginForm">
     <div class="brand brand-lg">
       <div class="logo" aria-hidden="true">👑</div>
-      <h1>Slayqueens</h1>
+      <h1 class="serif">Slayqueens</h1>
     </div>
     <p class="login-sub">Logga in för att se familjens kalender och jobb.</p>
     <div class="field">
@@ -62,74 +67,105 @@
 <!-- APP -------------------------------------------------------------- -->
 <div id="appScreen" class="app" hidden>
   <header class="app-header">
-    <div class="brand">
-      <div class="logo sm" aria-hidden="true">👑</div>
-      <h1>Slayqueens</h1>
+    <div class="head-date">
+      <div class="hd-weekday serif" id="hdWeekday">—</div>
+      <h1 class="hd-date serif" id="hdDate">—</h1>
+      <div class="hd-sub" id="hdSub"></div>
     </div>
-    <div class="header-right">
-      <button class="icon-btn theme-toggle" id="themeToggle" type="button" aria-label="Byt tema">🌙</button>
-      <button class="me-chip" id="meChip" type="button"><span class="me-dot" id="meDot"></span><span id="meName">—</span></button>
-      <button class="btn ghost sm" id="logoutBtn" type="button">Logga ut</button>
+    <div class="head-right">
+      <button class="weather" id="weather" type="button" hidden aria-label="Väder">
+        <span class="wx-temp serif"><span id="wxTemp">–</span><span class="wx-deg">°</span></span>
+        <span class="wx-desc" id="wxDesc"></span>
+      </button>
+      <button class="me-chip" id="meChip" type="button" aria-haspopup="menu" aria-expanded="false">
+        <span class="me-avatar" id="meAvatar">–</span>
+        <span class="me-name" id="meName">—</span>
+        <span class="me-caret" aria-hidden="true">▾</span>
+      </button>
     </div>
   </header>
-
-  <nav class="tabs" role="tablist" aria-label="Vyer">
-    <button class="tab active" data-view="calendar" type="button" role="tab" aria-label="Kalender"><span class="tico" aria-hidden="true">📅</span><span class="tlabel">Kalender</span></button>
-    <button class="tab" data-view="tasks" type="button" role="tab" aria-label="Jobb"><span class="tico" aria-hidden="true">✅</span><span class="tlabel">Jobb</span></button>
-    <button class="tab" data-view="credits" type="button" role="tab" aria-label="Konto"><span class="tico" aria-hidden="true">⭐</span><span class="tlabel">Konto</span></button>
-    <button class="tab" data-view="todos" type="button" role="tab" aria-label="Att göra"><span class="tico" aria-hidden="true">📝</span><span class="tlabel">Lista</span></button>
-    <button class="tab" data-view="suggestions" type="button" role="tab" aria-label="Förslag"><span class="tico" aria-hidden="true">💡</span><span class="tlabel">Förslag</span></button>
-  </nav>
 
   <main class="view-wrap">
     <!-- Calendar -->
     <section class="view active" id="view-calendar">
-      <div class="view-head">
-        <h2>Kommande</h2>
-        <button class="btn sm" id="addEventBtn" type="button">+ Ny händelse</button>
-      </div>
       <div class="cat-filter" id="catFilter"></div>
       <div class="event-list" id="eventList"></div>
     </section>
 
-    <!-- Tasks -->
-    <section class="view" id="view-tasks" hidden>
-      <div class="view-head">
-        <h2>Jobb</h2>
-        <button class="btn sm parent-only" id="addTaskBtn" type="button">+ Nytt jobb</button>
-      </div>
-      <div id="taskBoard"></div>
-    </section>
-
-    <!-- Credits -->
-    <section class="view" id="view-credits" hidden>
-      <div id="creditsBody"></div>
-    </section>
-
-    <!-- Todos -->
+    <!-- Att göra (to-do list) -->
     <section class="view" id="view-todos" hidden>
-      <div class="view-head">
-        <h2>Att göra</h2>
-        <button class="btn sm" id="addTodoBtn" type="button">+ Ny</button>
-      </div>
+      <h2 class="view-title serif">Att göra</h2>
       <div id="todoList"></div>
     </section>
 
-    <!-- Suggestions -->
+    <!-- Jobb (chore board) -->
+    <section class="view" id="view-tasks" hidden>
+      <h2 class="view-title serif">Jobb</h2>
+      <div id="taskBoard"></div>
+    </section>
+
+    <!-- Idéer (suggestions) -->
     <section class="view" id="view-suggestions" hidden>
-      <div class="view-head">
-        <h2>Förslag</h2>
-        <button class="btn sm" id="addSuggestionBtn" type="button">+ Nytt förslag</button>
-      </div>
+      <h2 class="view-title serif">Idéer</h2>
       <div id="suggestionList"></div>
     </section>
+
+    <!-- Budget (parents only) -->
+    <section class="view" id="view-budget" hidden>
+      <div id="budgetBody"></div>
+    </section>
+
+    <!-- Poäng (credits — reached from the profile menu) -->
+    <section class="view" id="view-credits" hidden>
+      <h2 class="view-title serif">Poäng</h2>
+      <div id="creditsBody"></div>
+    </section>
   </main>
+
+  <!-- Context-aware add button -->
+  <button class="fab" id="fab" type="button" hidden>
+    <span class="fab-plus" aria-hidden="true">+</span><span id="fabLabel">Ny händelse</span>
+  </button>
+
+  <!-- Bottom navigation -->
+  <nav class="tabbar" role="tablist" aria-label="Vyer">
+    <button class="tab active" data-view="calendar" type="button" role="tab" aria-label="Kalender">
+      <svg class="tico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg>
+      <span class="tlabel">Kalender</span>
+    </button>
+    <button class="tab" data-view="todos" type="button" role="tab" aria-label="Att göra">
+      <svg class="tico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><path d="M8 12.2l2.7 2.7L16.4 9"/></svg>
+      <span class="tlabel">Att göra</span>
+    </button>
+    <button class="tab" data-view="tasks" type="button" role="tab" aria-label="Jobb">
+      <svg class="tico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><path d="M8.5 7.5V6a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v1.5M3 12.5h18"/></svg>
+      <span class="tlabel">Jobb</span>
+    </button>
+    <button class="tab" data-view="suggestions" type="button" role="tab" aria-label="Idéer">
+      <svg class="tico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 18h5.6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.55.42.9 1 .98 1.7h5.24c.08-.7.43-1.28.98-1.7A6 6 0 0 0 12 3z"/></svg>
+      <span class="tlabel">Idéer</span>
+    </button>
+    <button class="tab parent-only" data-view="budget" type="button" role="tab" aria-label="Budget">
+      <svg class="tico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H18a1.5 1.5 0 0 1 1.5 1.5V8"/><rect x="3" y="7.5" width="17.5" height="11.5" rx="2.5"/><circle cx="16" cy="13.2" r="1.15"/></svg>
+      <span class="tlabel">Budget</span>
+    </button>
+  </nav>
+
+  <!-- Profile menu (opens from the "me" pill) -->
+  <div class="menu-pop" id="profileMenu" hidden role="menu" aria-label="Profilmeny">
+    <div class="mp-bal" id="mpBal" hidden></div>
+    <button class="mp-item" data-menu="credits" type="button" role="menuitem"><span class="mp-ico">⭐</span> Poäng</button>
+    <button class="mp-item" data-menu="profile" type="button" role="menuitem"><span class="mp-ico">🎨</span> Profil &amp; notiser</button>
+    <button class="mp-item" data-menu="theme" type="button" role="menuitem"><span class="mp-ico" id="mpThemeIco">🌙</span> <span id="mpThemeLabel">Mörkt tema</span></button>
+    <div class="mp-sep"></div>
+    <button class="mp-item danger" data-menu="logout" type="button" role="menuitem"><span class="mp-ico">↩︎</span> Logga ut</button>
+  </div>
 </div>
 
 <!-- Event dialog ----------------------------------------------------- -->
 <dialog id="eventDialog">
   <form method="dialog" class="dlg-body" id="eventForm">
-    <h3 id="eventDlgTitle">Ny händelse</h3>
+    <h3 id="eventDlgTitle" class="serif">Ny händelse</h3>
     <div class="dlg-field">
       <label for="evTitle">Vad</label>
       <input id="evTitle" type="text" required maxlength="80" placeholder="T.ex. Fotbollsträning" />
@@ -172,7 +208,7 @@
 <!-- Confirm dialog --------------------------------------------------- -->
 <dialog id="confirmDialog">
   <form method="dialog" class="dlg-body">
-    <h3 id="confirmTitle">Ta bort</h3>
+    <h3 id="confirmTitle" class="serif">Ta bort</h3>
     <p id="confirmText"></p>
     <div class="dlg-actions">
       <button class="btn ghost" value="cancel" type="submit">Avbryt</button>
@@ -184,7 +220,7 @@
 <!-- Job dialog ------------------------------------------------------- -->
 <dialog id="jobDialog">
   <form method="dialog" class="dlg-body" id="jobForm">
-    <h3 id="jobDlgTitle">Nytt jobb</h3>
+    <h3 id="jobDlgTitle" class="serif">Nytt jobb</h3>
     <div class="dlg-field">
       <label for="jobTitle">Vad ska göras</label>
       <input id="jobTitle" type="text" required maxlength="80" placeholder="T.ex. Diska" />
@@ -207,7 +243,7 @@
 <!-- Reject dialog ---------------------------------------------------- -->
 <dialog id="rejectDialog">
   <form method="dialog" class="dlg-body" id="rejectForm">
-    <h3>Neka jobb</h3>
+    <h3 class="serif">Neka jobb</h3>
     <div class="dlg-field">
       <label for="rejectReason">Anledning (valfritt)</label>
       <textarea id="rejectReason" rows="2" maxlength="200" placeholder="T.ex. inte klart än"></textarea>
@@ -222,7 +258,7 @@
 <!-- Adjust dialog ---------------------------------------------------- -->
 <dialog id="adjustDialog">
   <form method="dialog" class="dlg-body" id="adjustForm">
-    <h3 id="adjustTitle">Justera saldo</h3>
+    <h3 id="adjustTitle" class="serif">Justera saldo</h3>
     <div class="dlg-field">
       <label for="adjustAmount">Belopp (kr, minus för utbetalning)</label>
       <input id="adjustAmount" type="number" step="1" required placeholder="-50" />
@@ -241,7 +277,7 @@
 <!-- Profile dialog --------------------------------------------------- -->
 <dialog id="profileDialog">
   <form method="dialog" class="dlg-body" id="profileForm">
-    <h3>Din profil</h3>
+    <h3 class="serif">Din profil</h3>
     <div class="dlg-field">
       <label>Färg</label>
       <div class="swatches" id="profileSwatches"></div>
@@ -260,9 +296,9 @@
 <!-- Suggestion dialog ------------------------------------------------ -->
 <dialog id="suggestionDialog">
   <form method="dialog" class="dlg-body" id="suggestionForm">
-    <h3>Nytt förslag</h3>
+    <h3 class="serif">Ny idé</h3>
     <div class="dlg-field">
-      <label for="sgTitle">Förslag</label>
+      <label for="sgTitle">Idé</label>
       <input id="sgTitle" type="text" required maxlength="80" placeholder="T.ex. Åka till parken" />
     </div>
     <div class="dlg-field">
@@ -279,7 +315,7 @@
 <!-- Todo dialog ------------------------------------------------------ -->
 <dialog id="todoDialog">
   <form method="dialog" class="dlg-body" id="todoForm">
-    <h3>Ny att göra</h3>
+    <h3 class="serif">Ny att göra</h3>
     <div class="dlg-field">
       <label for="todoTitle">Vad</label>
       <input id="todoTitle" type="text" required maxlength="120" placeholder="T.ex. Handla mjölk" />
@@ -292,11 +328,28 @@
   </form>
 </dialog>
 
+<!-- Budget: new month dialog ----------------------------------------- -->
+<dialog id="budgetMonthDialog">
+  <form method="dialog" class="dlg-body" id="budgetMonthForm">
+    <h3 class="serif">Ny månad</h3>
+    <p>Välj vilken månad du vill lägga till.</p>
+    <div class="dlg-field">
+      <label for="budgetMonthInput">Månad</label>
+      <input type="month" id="budgetMonthInput" required />
+    </div>
+    <label class="dlg-check"><input type="checkbox" id="budgetCopyCheck" checked /> Kopiera poster från nuvarande månad</label>
+    <div class="dlg-actions">
+      <button class="btn ghost" value="cancel" type="submit">Avbryt</button>
+      <button class="btn" value="ok" id="budgetMonthOk" type="submit">Skapa</button>
+    </div>
+  </form>
+</dialog>
+
 <!-- Chat dialog (events, jobs, suggestions) -------------------------- -->
 <dialog id="chatDialog">
   <div class="dlg-body chat-body">
     <div class="chat-head">
-      <h3 id="chatTitle">Kommentarer</h3>
+      <h3 id="chatTitle" class="serif">Kommentarer</h3>
       <button class="icon-btn" id="chatClose" type="button" aria-label="Stäng">✕</button>
     </div>
     <div class="chat-thread" id="chatThread"></div>
@@ -321,6 +374,8 @@
 <script src="scripts/toast.js"></script>
 <script src="scripts/state.js"></script>
 <script src="scripts/auth.js"></script>
+<script src="scripts/header.js"></script>
+<script src="scripts/weather.js"></script>
 <script src="scripts/calendar.js"></script>
 <script src="scripts/tasks.js"></script>
 <script src="scripts/credits.js"></script>
@@ -328,6 +383,7 @@
 <script src="scripts/todos.js"></script>
 <script src="scripts/chat.js"></script>
 <script src="scripts/profile.js"></script>
+<script src="scripts/budget.js"></script>
 <script src="scripts/theme.js"></script>
 <script src="scripts/push.js"></script>
 <script src="scripts/main.js"></script>

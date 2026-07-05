@@ -27,7 +27,7 @@ function renderSuggestions(){
   list.sort((a, b) => (score[b.id] - score[a.id]) || (new Date(b.created_at) - new Date(a.created_at)));
 
   if(!list.length){
-    box.innerHTML = '<div class="placeholder"><div class="ph-emoji">💡</div><h3>Inga förslag än</h3><p>Föreslå något kul att göra tillsammans!</p></div>';
+    box.innerHTML = '<div class="placeholder"><div class="ph-emoji">💡</div><h3>Inga idéer än</h3><p>Föreslå något kul att göra tillsammans!</p></div>';
     return;
   }
   box.innerHTML = '';
@@ -40,7 +40,7 @@ function suggestionCard(s){
   const canDelete = (me && s.created_by === me.id) || isParent();
   const voterLine = (emoji, list) => list.length
     ? `<div class="voter-line"><span class="voter-emoji">${emoji}</span>${list.map(p =>
-        `<span class="voter-chip"><span class="dot" style="background:${profileColor(p)}"></span>${escapeHtml(capital(p.name))}</span>`).join('')}</div>`
+        `<span class="voter-chip">${avatarHtml(profileColor(p), p.name)}${escapeHtml(capital(p.name))}</span>`).join('')}</div>`
     : '';
   const voters = voterLine('👍', votersFor(s.id, 1)) + voterLine('👎', votersFor(s.id, -1));
   const el = document.createElement('div');

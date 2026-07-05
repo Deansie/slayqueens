@@ -10,13 +10,12 @@ function currentTheme(){
 
 function reflectTheme(){
   const dark = currentTheme() === 'dark';
-  const btn = $('themeToggle');
-  if(btn){
-    btn.textContent = dark ? '☀️' : '🌙';
-    btn.setAttribute('aria-label', dark ? 'Byt till ljust tema' : 'Byt till mörkt tema');
-  }
+  // the theme switch now lives in the profile menu
+  const ico = $('mpThemeIco'), label = $('mpThemeLabel');
+  if(ico) ico.textContent = dark ? '☀️' : '🌙';
+  if(label) label.textContent = dark ? 'Ljust tema' : 'Mörkt tema';
   const meta = $('themeColor');
-  if(meta) meta.setAttribute('content', dark ? '#0f0d18' : '#eae7f1');
+  if(meta) meta.setAttribute('content', dark ? '#0a0c0a' : '#f1ece1');
 }
 
 function toggleTheme(){

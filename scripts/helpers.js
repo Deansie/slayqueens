@@ -4,6 +4,7 @@ const $ = id => document.getElementById(id);
 
 const WEEKDAYS = ['söndag','måndag','tisdag','onsdag','torsdag','fredag','lördag'];
 const MONTHS   = ['jan','feb','mars','apr','maj','juni','juli','aug','sep','okt','nov','dec'];
+const MONTHS_LONG = ['januari','februari','mars','april','maj','juni','juli','augusti','september','oktober','november','december'];
 
 function pad(n){ return String(n).padStart(2, '0'); }
 function capital(s){ return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
@@ -43,7 +44,7 @@ function safeColor(c){
   return (typeof c === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(c)) ? c : null;
 }
 // per-person palette; auto-assigns a stable colour by profile id until one is chosen
-const PALETTE = ['#7c5cc4','#3d8f6a','#d98a2b','#4f8fd6','#c94f9c','#3fae9a','#cf5f72','#b8863d'];
+const PALETTE = ['#c98aa8','#5b8def','#7ea065','#d79b4e','#c94f9c','#3fae9a','#cf5f72','#b8863d'];
 function profileColor(p){
   if(!p) return 'var(--faint)';
   const chosen = safeColor(p.color);
@@ -53,14 +54,21 @@ function profileColor(p){
   for(let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
   return PALETTE[h % PALETTE.length];
 }
+// first letter of a name, for the round avatars
+function initialOf(name){ const s = String(name || '').trim(); return s ? s.charAt(0).toUpperCase() : '?'; }
+// a coloured circle with an initial; `color` is a hex or a CSS var string (both are trusted here)
+function avatarHtml(color, name){
+  return `<span class="avatar" style="--c:${color}">${escapeHtml(initialOf(name))}</span>`;
+}
+
 // calendar event categories (client-side list; add/rename freely)
 const CATEGORIES = [
-  { key:'aktivitet', label:'Aktiviteter', emoji:'🏅', color:'#3d8f6a' },
-  { key:'skola',     label:'Skola',       emoji:'📚', color:'#4f8fd6' },
-  { key:'familj',    label:'Familj',      emoji:'👨‍👩‍👧', color:'#7c5cc4' },
-  { key:'halsa',     label:'Hälsa',       emoji:'🏥', color:'#cf5f72' },
+  { key:'aktivitet', label:'Aktiviteter', emoji:'🏅', color:'#d79b4e' },
+  { key:'skola',     label:'Skola',       emoji:'📚', color:'#7ea065' },
+  { key:'familj',    label:'Familj',      emoji:'👨‍👩‍👧', color:'#caa25c' },
+  { key:'halsa',     label:'Hälsa',       emoji:'🏥', color:'#d6788a' },
   { key:'kalas',     label:'Kalas',       emoji:'🎂', color:'#d98a2b' },
-  { key:'annat',     label:'Annat',       emoji:'📌', color:'#6b6577' }
+  { key:'annat',     label:'Annat',       emoji:'📌', color:'#8b95a1' }
 ];
 function categoryOf(key){ return CATEGORIES.find(c => c.key === key) || CATEGORIES[CATEGORIES.length - 1]; }
 

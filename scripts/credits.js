@@ -42,7 +42,7 @@ function renderCreditsParent(box){
     const bal = balanceOf(k.id);
     return `
     <div class="balance-row">
-      <span class="br-name"><span class="dot" style="background:${profileColor(k)}"></span>${escapeHtml(capital(k.name))}</span>
+      <span class="br-name">${avatarHtml(profileColor(k), k.name)}${escapeHtml(capital(k.name))}</span>
       <span class="br-bal">${escapeHtml(fmtMoney(bal))}</span>
       <span class="br-actions">
         ${bal > 0 ? `<button class="btn ghost sm" data-payout="${k.id}" type="button">Betala ut</button>` : ''}
@@ -55,7 +55,7 @@ function renderCreditsParent(box){
     const kid = state.profilesById[p.profile_id];
     return `
     <div class="balance-row">
-      <span class="br-name"><span class="dot" style="background:${profileColor(kid)}"></span>${escapeHtml(kid ? capital(kid.name) : '—')} vill ta ut</span>
+      <span class="br-name">${avatarHtml(profileColor(kid), kid ? kid.name : '?')}${escapeHtml(kid ? capital(kid.name) : '—')} vill ta ut</span>
       <span class="br-bal">${escapeHtml(fmtMoney(p.amount))}</span>
       <span class="br-actions">
         <button class="btn sm" data-resolve="${p.id}" data-approve="1" type="button">Betala</button>

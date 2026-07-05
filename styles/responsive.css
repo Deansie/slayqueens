@@ -1,19 +1,25 @@
 @media (max-width:520px){
-  /* Five tabs won't fit with labels on a phone, so collapse inactive tabs to just their
-     icon and let the active tab keep its label — you always see where you are. */
-  .tab{ flex:0 0 auto; padding:9px 11px; }
-  .tab.active{ flex:1 1 auto; }
-  .tab .tlabel{ display:none; }
-  .tab.active .tlabel{ display:inline; }
-  .tico{ font-size:1.15rem; }
+  .hd-date{ font-size:2.55rem; }
+  .wx-temp{ font-size:1.8rem; }
+  /* three summary cards get narrow on a phone — keep each total on one line and
+     drop the savings-rate pill into normal flow so it never covers the "Kvar" label */
+  .budget .top-cards{ gap:9px; }
+  .budget .card{ padding:13px 12px; }
+  .budget .card .value{ font-size:1.2rem; }
+  .budget .card .pill{ position:static; display:inline-block; margin-bottom:6px; font-size:.64rem; padding:2px 7px; }
+}
+
+@media (max-width:420px){
+  .app{ padding-left:calc(14px + env(safe-area-inset-left));
+        padding-right:calc(14px + env(safe-area-inset-right)); }
+  .hd-date{ font-size:2.35rem; }
+  .hd-weekday{ font-size:1.2rem; }
+  .tab .tlabel{ font-size:.6rem; }
+  .tab .tico{ width:22px; height:22px; }
+  .fab{ padding:12px 16px 12px 14px; font-size:.9rem; }
+  .me-name{ max-width:88px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 }
 
 @media (max-width:480px){
-  .app{ padding:calc(12px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right))
-                calc(48px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left)); }
-  .tab{ font-size:.82rem; }
-  .tab.active{ font-size:.82rem; }
-  .brand h1{ font-size:1.05rem; }
   .dlg-row{ flex-wrap:wrap; }
-  .time-field{ max-width:none; }
 }

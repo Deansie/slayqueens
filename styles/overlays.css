@@ -1,37 +1,43 @@
-/* Toasts */
+/* Toasts (sit above the bottom nav) */
 .toasts{
-  position:fixed; left:0; right:0; bottom:calc(16px + env(safe-area-inset-bottom));
+  position:fixed; left:0; right:0;
+  bottom:calc(var(--nav-h) + 26px + env(safe-area-inset-bottom));
   display:flex; flex-direction:column; align-items:center; gap:8px;
   z-index:50; pointer-events:none; padding:0 16px;
 }
 .toast{
   pointer-events:auto; cursor:pointer;
   background:var(--text); color:var(--bg);
-  padding:10px 16px; border-radius:999px;
-  font-size:.88rem; font-weight:600; max-width:90vw;
+  padding:11px 16px; border-radius:var(--radius-pill);
+  font-size:.88rem; font-weight:600; max-width:92vw;
   box-shadow:var(--shadow);
   opacity:0; transform:translateY(10px);
   transition:opacity .2s, transform .2s;
+  display:flex; align-items:center; gap:14px;
 }
 .toast.show{ opacity:1; transform:none; }
 .toast.ok{ background:var(--success); color:#fff; }
 .toast.warn{ background:var(--danger); color:#fff; }
+.toast-action{
+  pointer-events:auto; cursor:pointer; flex:0 0 auto;
+  background:transparent; border:0; color:inherit; font:inherit; font-weight:800;
+  text-decoration:underline; padding:0;
+}
 
 /* Dialogs */
 dialog{
-  position:fixed; inset:0; margin:auto;               /* centre (the * reset zeroed margin:auto) */
-  width:min(420px, 92vw); max-height:90dvh; overflow:auto;
+  position:fixed; inset:0; margin:auto;
+  width:min(440px, 92vw); max-height:90dvh; overflow:auto;
   border:none; padding:0; border-radius:var(--radius);
   background:var(--card); color:var(--text);
   box-shadow:var(--shadow);
 }
-dialog::backdrop{ background:rgba(15,10,25,.45); }
-.dlg-body{ padding:20px; display:flex; flex-direction:column; gap:13px; }
-.dlg-body h3{ font-size:1.1rem; }
+dialog::backdrop{ background:rgba(6,8,6,.55); -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px); }
+.dlg-body{ padding:22px; display:flex; flex-direction:column; gap:13px; }
+.dlg-body h3{ font-size:1.3rem; font-weight:700; }
 .dlg-body p{ color:var(--muted); font-size:.92rem; }
 .dlg-row{ display:flex; gap:10px; }
 .dlg-row .dlg-field{ flex:1; }
-.time-field{ max-width:120px; }
 .dlg-check{ display:flex; align-items:center; gap:8px; font-size:.9rem; color:var(--muted); }
 .dlg-check input{ width:auto; }
 .dlg-actions{ display:flex; justify-content:flex-end; gap:9px; margin-top:4px; }

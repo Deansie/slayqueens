@@ -20,10 +20,11 @@ function messagesFor(context, parentId){
 function chatCountFor(context, parentId){
   return (state.messages || []).filter(m => m.context === context && m.parent_id === parentId).length;
 }
-// small 💬 button (with count) reused on every card/row
+// small chat button (bubble + count) reused on every card/row
 function chatButton(context, parentId){
   const n = chatCountFor(context, parentId);
-  return `<button class="ev-chat" data-chatopen="${context}:${parentId}" type="button" aria-label="Kommentarer">💬${n ? `<span class="ev-chat-n">${n}</span>` : ''}</button>`;
+  const bubble = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-10.9 6.7L4 19.5l1.4-4.1A7.5 7.5 0 1 1 20 11.5z"/></svg>';
+  return `<button class="ev-chat" data-chatopen="${context}:${parentId}" type="button" aria-label="Kommentarer">${bubble}${n ? `<span class="n">${n}</span>` : ''}</button>`;
 }
 
 function chatImageUrl(path){

@@ -33,16 +33,20 @@ async function enterApp(){
     await loadMe();
     if(!me){ toast('warn', 'Kontot saknar en profil'); await signOut(); return; }
     applyRole();
+    const av = $('meAvatar');
+    if(av){ av.textContent = initialOf(me.name); av.style.background = profileColor(me); }
     $('meName').textContent = capital(me.name);
-    $('meDot').style.background = profileColor(me);
     await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos()]);
+    renderHeader();
     renderCalendar();
     renderTasks();
     renderCredits();
     renderSuggestions();
     renderTodos();
+    if(isParent() && window.Budget){ Budget.init(); Budget.load(); }
     subscribeRealtime(onRealtime);
     initPush();
+    initWeather();
     showApp();
     switchView('calendar');
   }catch(err){
