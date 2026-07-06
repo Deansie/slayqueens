@@ -32,6 +32,7 @@
 <link rel="stylesheet" href="styles/layout.css" />
 <link rel="stylesheet" href="styles/components.css" />
 <link rel="stylesheet" href="styles/budget.css" />
+<link rel="stylesheet" href="styles/matsedel.css" />
 <link rel="stylesheet" href="styles/overlays.css" />
 <link rel="stylesheet" href="styles/responsive.css" />
 </head>
@@ -112,6 +113,11 @@
       <div id="suggestionList"></div>
     </section>
 
+    <!-- Matsedel (weekly meal plan) -->
+    <section class="view" id="view-matsedel" hidden>
+      <div id="matsedelBody"></div>
+    </section>
+
     <!-- Budget (parents only) -->
     <section class="view" id="view-budget" hidden>
       <div id="budgetBody"></div>
@@ -147,9 +153,9 @@
       <svg class="tico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 18h5.6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.55.42.9 1 .98 1.7h5.24c.08-.7.43-1.28.98-1.7A6 6 0 0 0 12 3z"/></svg>
       <span class="tlabel">Idéer</span>
     </button>
-    <button class="tab parent-only" data-view="budget" type="button" role="tab" aria-label="Budget">
-      <svg class="tico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H18a1.5 1.5 0 0 1 1.5 1.5V8"/><rect x="3" y="7.5" width="17.5" height="11.5" rx="2.5"/><circle cx="16" cy="13.2" r="1.15"/></svg>
-      <span class="tlabel">Budget</span>
+    <button class="tab" data-view="matsedel" type="button" role="tab" aria-label="Matsedel">
+      <svg class="tico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18.5h18"/><path d="M5.2 18.5a6.8 6.8 0 0 1 13.6 0"/><path d="M12 5.6V4.2"/><circle cx="12" cy="3.4" r="1.05"/></svg>
+      <span class="tlabel">Matsedel</span>
     </button>
   </nav>
 
@@ -157,6 +163,7 @@
   <div class="menu-pop" id="profileMenu" hidden role="menu" aria-label="Profilmeny">
     <div class="mp-bal" id="mpBal" hidden></div>
     <button class="mp-item" data-menu="credits" type="button" role="menuitem"><span class="mp-ico">⭐</span> Poäng</button>
+    <button class="mp-item parent-only" data-menu="budget" type="button" role="menuitem"><span class="mp-ico">💰</span> Budget</button>
     <button class="mp-item" data-menu="profile" type="button" role="menuitem"><span class="mp-ico">🎨</span> Profil &amp; notiser</button>
     <button class="mp-item" data-menu="weather" type="button" role="menuitem"><span class="mp-ico">📍</span> Väderplats</button>
     <button class="mp-item" data-menu="theme" type="button" role="menuitem"><span class="mp-ico" id="mpThemeIco">🌙</span> <span id="mpThemeLabel">Mörkt tema</span></button>
@@ -348,6 +355,63 @@
   </form>
 </dialog>
 
+<!-- Meal editor (parent) --------------------------------------------- -->
+<dialog id="mealDialog">
+  <form method="dialog" class="dlg-body" id="mealForm">
+    <h3 id="mealDlgTitle" class="serif">Måltid</h3>
+    <div class="dlg-field">
+      <label for="mealTitle">Rätt</label>
+      <input id="mealTitle" type="text" required maxlength="80" placeholder="T.ex. Tacos" />
+    </div>
+    <div class="dlg-field">
+      <label for="mealNote">Notis (valfritt)</label>
+      <input id="mealNote" type="text" maxlength="120" placeholder="T.ex. vegetariskt" />
+    </div>
+    <div class="dlg-field" id="mealWishWrap" hidden>
+      <label>Barnens önskemål</label>
+      <div class="ms-picks" id="mealWishPicks"></div>
+    </div>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="mealClear" type="button">Rensa dag</button>
+      <button class="btn ghost" id="mealCancel" type="button">Avbryt</button>
+      <button class="btn" value="ok" id="mealSave" type="submit">Spara</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Matsedel templates (parent) -------------------------------------- -->
+<dialog id="mealTemplateDialog">
+  <div class="dlg-body">
+    <div class="chat-head">
+      <h3 class="serif">Matsedel-mallar</h3>
+      <button class="icon-btn" id="mealTemplateClose" type="button" aria-label="Stäng">✕</button>
+    </div>
+    <div class="ms-tpl-list" id="mealTemplateList"></div>
+    <div class="dlg-field">
+      <label for="mealTemplateName">Spara den här veckan som mall</label>
+      <div class="ms-save-row">
+        <input id="mealTemplateName" type="text" maxlength="40" placeholder="T.ex. Standardvecka" />
+        <button class="btn" id="saveWeekTemplate" type="button">Spara</button>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<!-- Meal wish (anyone) ----------------------------------------------- -->
+<dialog id="wishDialog">
+  <form method="dialog" class="dlg-body" id="wishForm">
+    <h3 class="serif">Önska en måltid</h3>
+    <div class="dlg-field">
+      <label for="wishTitle">Vad vill du äta?</label>
+      <input id="wishTitle" type="text" required maxlength="80" placeholder="T.ex. Lasagne" />
+    </div>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="wishCancel" type="button">Avbryt</button>
+      <button class="btn" value="ok" id="wishSave" type="submit">Skicka</button>
+    </div>
+  </form>
+</dialog>
+
 <!-- Weather location picker ------------------------------------------ -->
 <dialog id="weatherDialog">
   <form method="dialog" class="dlg-body" id="weatherForm">
@@ -405,6 +469,7 @@
 <script src="scripts/chat.js"></script>
 <script src="scripts/profile.js"></script>
 <script src="scripts/budget.js"></script>
+<script src="scripts/matsedel.js"></script>
 <script src="scripts/theme.js"></script>
 <script src="scripts/push.js"></script>
 <script src="scripts/main.js"></script>

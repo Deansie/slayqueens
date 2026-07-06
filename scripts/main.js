@@ -9,6 +9,7 @@ const FAB_ACTIONS = {
   todos:       { label: 'Att göra',    run: () => openTodoDialog() },
   tasks:       { label: 'Nytt jobb',   run: () => openJobDialog(null), parentOnly: true },
   suggestions: { label: 'Ny idé',      run: () => openSuggestionDialog() },
+  matsedel:    { label: 'Önska',       run: () => openWishDialog() },
   budget:      null,
   credits:     null
 };
@@ -82,6 +83,18 @@ document.addEventListener('DOMContentLoaded', () => {
   $('todoList').addEventListener('click', onTodoListClick);
   $('todoForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveTodo(); });
   $('todoCancel').addEventListener('click', () => $('todoDialog').close());
+
+  // Matsedel
+  $('matsedelBody').addEventListener('click', onMatsedelClick);
+  $('mealForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveMeal(); });
+  $('mealCancel').addEventListener('click', () => $('mealDialog').close());
+  $('mealClear').addEventListener('click', clearMeal);
+  $('mealWishPicks').addEventListener('click', onMealWishPickClick);
+  $('mealTemplateList').addEventListener('click', onMealTemplateListClick);
+  $('mealTemplateClose').addEventListener('click', () => $('mealTemplateDialog').close());
+  $('saveWeekTemplate').addEventListener('click', saveWeekAsTemplate);
+  $('wishForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveWish(); });
+  $('wishCancel').addEventListener('click', () => $('wishDialog').close());
 
   // Chat (events, jobs, suggestions)
   document.addEventListener('click', onChatOpenClick);   // delegated chat buttons on every card
@@ -188,6 +201,7 @@ function onProfileMenuClick(e){
   const act = b.dataset.menu;
   closeProfileMenu();
   if(act === 'credits') switchView('credits');
+  else if(act === 'budget') switchView('budget');
   else if(act === 'profile') openProfileDialog();
   else if(act === 'weather') openWeatherDialog();
   else if(act === 'theme') toggleTheme();
@@ -219,23 +233,29 @@ async function onRealtime(payload){
   else if(t === 'suggestion_votes') await loadVotes();
   else if(t === 'messages') await loadMessages();
   else if(t === 'todos') await loadTodos();
+  else if(t === 'meals') await loadMeals();
+  else if(t === 'meal_templates') await loadMealTemplates();
+  else if(t === 'meal_wishes') await loadMealWishes();
   renderCalendar();
   renderTasks();
   renderCredits();
   renderSuggestions();
   renderTodos();
+  renderMatsedel();
   renderChat();
+  if($('mealTemplateDialog').open) renderMealTemplateList();
 }
 
 // Full reload + repaint, used when the app resumes and may have missed live updates.
 async function resync(){
   if(!sb || !session) return;
-  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos()]);
+  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealTemplates(), loadMealWishes()]);
   renderCalendar();
   renderTasks();
   renderCredits();
   renderSuggestions();
   renderTodos();
+  renderMatsedel();
   renderChat();
   if(isParent() && window.Budget) Budget.load();
 }

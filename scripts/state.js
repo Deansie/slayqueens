@@ -1,6 +1,6 @@
 'use strict';
 // In-memory copy of the shared data, plus realtime subscriptions.
-const state = { profiles: [], profilesById: {}, events: [], tasks: [], balances: [], ledger: [], payouts: [], templates: [], suggestions: [], votes: [], messages: [], todos: [] };
+const state = { profiles: [], profilesById: {}, events: [], tasks: [], balances: [], ledger: [], payouts: [], templates: [], suggestions: [], votes: [], messages: [], todos: [], meals: [], mealTemplates: [], mealWishes: [] };
 
 async function loadProfiles(){
   const { data, error } = await sb.from('profiles').select('*').order('name');
@@ -70,6 +70,24 @@ async function loadTodos(){
   state.todos = data || [];
 }
 
+async function loadMeals(){
+  const { data, error } = await sb.from('meals').select('*').order('date');
+  if(error){ console.warn('loadMeals', error); return; }
+  state.meals = data || [];
+}
+
+async function loadMealTemplates(){
+  const { data, error } = await sb.from('meal_templates').select('*').order('name');
+  if(error){ console.warn('loadMealTemplates', error); return; }
+  state.mealTemplates = data || [];
+}
+
+async function loadMealWishes(){
+  const { data, error } = await sb.from('meal_wishes').select('*').order('created_at', { ascending: false });
+  if(error){ console.warn('loadMealWishes', error); return; }
+  state.mealWishes = data || [];
+}
+
 // Live updates: re-fetch + re-render whenever the shared tables change on any device.
 let realtimeChannel = null;
 function subscribeRealtime(onChange){
@@ -88,6 +106,9 @@ function subscribeRealtime(onChange){
     .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'todos' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'budget' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'meals' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'meal_templates' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'meal_wishes' }, onChange)
     .subscribe();
 }
 function unsubscribeRealtime(){

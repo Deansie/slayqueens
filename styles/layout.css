@@ -89,13 +89,14 @@
   box-shadow:var(--shadow);
 }
 .tab{
-  flex:1; border:0; background:transparent; cursor:pointer;
-  display:flex; flex-direction:column; align-items:center; gap:4px;
-  padding:5px 4px; border-radius:16px;
+  flex:1 1 0; min-width:0; border:0; background:transparent; cursor:pointer;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+  padding:5px 3px; border-radius:16px;
   color:var(--faint); font-weight:600; font-size:.66rem; letter-spacing:.01em;
   transition:color .14s;
 }
-.tab .tico{ width:23px; height:23px; }
+.tab .tlabel{ max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.tab .tico{ width:23px; height:23px; flex:0 0 auto; }
 .tab.active{ color:var(--accent-ink); }
 .tab:not(.active):hover{ color:var(--muted); }
 

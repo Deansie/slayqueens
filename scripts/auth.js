@@ -36,13 +36,14 @@ async function enterApp(){
     const av = $('meAvatar');
     if(av){ av.textContent = initialOf(me.name); av.style.background = profileColor(me); }
     $('meName').textContent = capital(me.name);
-    await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos()]);
+    await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealTemplates(), loadMealWishes()]);
     renderHeader();
     renderCalendar();
     renderTasks();
     renderCredits();
     renderSuggestions();
     renderTodos();
+    renderMatsedel();
     if(isParent() && window.Budget){ Budget.init(); Budget.load(); }
     subscribeRealtime(onRealtime);
     initPush();

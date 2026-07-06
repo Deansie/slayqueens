@@ -35,6 +35,33 @@ function relativeDay(d){
   return `${wd} ${x.getDate()} ${MONTHS[x.getMonth()]}`;
 }
 
+// ---- Week helpers (Monday-first) for the matsedel ----
+const MEAL_WEEKDAYS = ['Mån','Tis','Ons','Tor','Fre','Lör','Sön'];
+
+// ISO-8601 week number of a date.
+function isoWeek(d){
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = (t.getUTCDay() + 6) % 7;            // Mon=0 … Sun=6
+  t.setUTCDate(t.getUTCDate() - dayNum + 3);         // nearest Thursday
+  const firstThu = new Date(Date.UTC(t.getUTCFullYear(), 0, 4));
+  const firstDayNum = (firstThu.getUTCDay() + 6) % 7;
+  firstThu.setUTCDate(firstThu.getUTCDate() - firstDayNum + 3);
+  return 1 + Math.round((t - firstThu) / (7 * 86400000));
+}
+// Monday of the week that is `offset` weeks from this one (0 = current).
+function mondayOfWeek(offset){
+  const d = new Date(); d.setHours(0, 0, 0, 0);
+  const dayNum = (d.getDay() + 6) % 7;
+  d.setDate(d.getDate() - dayNum + offset * 7);
+  return d;
+}
+// "6–12 juli" or, across a month boundary, "29 juni–5 juli"
+function weekRangeLabel(mon){
+  const sun = new Date(mon); sun.setDate(sun.getDate() + 6);
+  if(mon.getMonth() === sun.getMonth()) return `${mon.getDate()}–${sun.getDate()} ${MONTHS_LONG[sun.getMonth()]}`;
+  return `${mon.getDate()} ${MONTHS_LONG[mon.getMonth()]}–${sun.getDate()} ${MONTHS_LONG[sun.getMonth()]}`;
+}
+
 function escapeHtml(s){
   return String(s ?? '').replace(/[&<>"']/g, c =>
     ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));

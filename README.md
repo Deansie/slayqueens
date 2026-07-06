@@ -40,6 +40,11 @@ adjustments. (Reached from the profile menu rather than the tab bar.)
 Anyone proposes something to do together; the family votes 👍/👎; a parent can turn a popular
 idea into a real calendar event.
 
+**🍽 Matsedel — weekly meal plan.**
+This week's dinners laid out like a menu card, with the week number and ‹ › to move between
+weeks. Parents fill the week — and can save the current week as a reusable template to
+activate later; kids add *önskemål* (dishes they'd like) that parents can drop into a day.
+
 **💰 Budget — household budget (parents only).**
 Plan income and expenses one month at a time, group related items (e.g. all loans under
 "Lån"), and see totals, a savings rate, and where the money goes. Kids never see it.
@@ -195,10 +200,11 @@ for the service worker, push, and geolocation). Then on each phone, open the sit
 
 ## Everyday use
 
-- The **bottom bar** switches between Kalender, Att göra, Jobb, Idéer, and (parents only)
-  Budget. The **＋** button adds something to the current view.
-- The **profile pill** (top-right) opens a menu with **Poäng** (your balance), **Profil &
-  notiser** (colour + notifications), **Väderplats**, the **theme** switch, and **log out**.
+- The **bottom bar** switches between Kalender, Att göra, Jobb, Idéer, and Matsedel — the
+  same five for everyone. The **＋** button adds something to the current view.
+- The **profile pill** (top-right) opens a menu with **Poäng** (your balance), **Budget**
+  (parents only), **Profil & notiser** (colour + notifications), **Väderplats**, the
+  **theme** switch, and **log out**.
 - **Weather location:** tap the weather in the header, or profile menu → **Väderplats**, then
   search a town or use your current location. It's saved per device.
 
@@ -224,6 +230,7 @@ styles/               CSS, split by concern; design tokens for the dark + light 
   layout.css          App shell, header, bottom nav, FAB, profile menu
   components.css      Cards, chips, avatars, lists, dialogs' contents
   budget.css          Budget view (scoped under .budget)
+  matsedel.css        Veckans matsedel (menu-card layout)
   overlays.css        Toasts and dialogs
   responsive.css      Phone breakpoints
 
@@ -244,6 +251,7 @@ scripts/              Plain JS, loaded in order (classic scripts, not modules)
   chat.js             Comment threads + image attachments
   profile.js          Personal colour + push toggle
   budget.js           Budget (parents only), Supabase-backed
+  matsedel.js         Veckans matsedel (plan, templates, wishes)
   theme.js            Light/dark switch
   push.js             Notification permission + subscription
   main.js             View routing, FAB, profile menu, wiring
