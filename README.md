@@ -1,67 +1,59 @@
 # Slayqueens
 
 A private web app for running a family: a shared calendar, a chore board where the kids
-earn pocket money, shared and personal to-do lists, an ideas board the family votes on,
-and a parents-only household budget — all in one installable app with a dark, magazine-style
-look. The interface is in Swedish and money is in kronor.
+earn pocket money, shared and personal to-do lists, an ideas board the family votes on, a
+weekly meal plan, and a parents-only household budget, all in one installable app with a
+dark, magazine-style look. The interface is in Swedish and money is in kronor.
 
 It installs to the phone's home screen as a PWA (so it behaves like a native app and can
 send push notifications), everything syncs live between everyone's devices, and each person
 signs in with their own account. Parents and kids see different things: kids can't see the
 family finances, can't approve their own chores, and can't credit themselves.
 
----
-
 ## What it does
 
-**📅 Kalender — shared calendar.**
-Upcoming events grouped by day (*Idag*, *Imorgon*, then by weekday), each tagged with a
-category (Aktiviteter, Skola, Familj, Hälsa, Kalas, Annat) and whose it is — a family member
-or the whole family. Events can be timed or all-day, carry an optional note, and be marked
-**private** (hidden from the other kids, still visible to parents). An event happening right
-now shows a *Pågår* badge. The header shows today's date, a count of today's and tomorrow's
-events, and the local weather.
+**Kalender.** The family's shared calendar. Upcoming events are grouped by day (*Idag*,
+*Imorgon*, then by weekday), each tagged with a category (Aktiviteter, Skola, Familj, Hälsa,
+Kalas, Annat) and with whose it is: a family member or the whole family. Events can be timed
+or all-day, carry an optional note, and be marked **private** (hidden from the other kids,
+still visible to parents). An event happening right now shows a *Pågår* badge. The header
+shows today's date, a count of today's and tomorrow's events, and the local weather.
 
-**✅ Att göra — to-do lists.**
-A shared family checklist anyone can tick off, plus each person's own private to-dos.
+**Att göra.** Shared and personal to-do lists: a family checklist anyone can tick off, plus
+each person's own private to-dos.
 
-**🧹 Jobb — chore board.**
-Parents post jobs with a reward in kronor (and can save recurring ones as reusable
-templates). A kid picks a job, does it, and marks it done; a parent then approves it (which
-pays out the reward) or rejects it with a reason. Parents can also recall a job or a kid can
-release one they no longer want.
+**Jobb.** The chore board. Parents post jobs with a reward in kronor (and can save recurring
+ones as reusable templates). A kid picks a job, does it, and marks it done; a parent then
+approves it (which pays out the reward) or rejects it with a reason. Parents can also recall
+a job, or a kid can release one they no longer want.
 
-**⭐ Poäng — pocket-money accounts.**
-Every approved job adds to the kid's balance. Kids see their balance and history and can
-request a payout; parents see everyone's balances, approve payouts, and make manual
-adjustments. (Reached from the profile menu rather than the tab bar.)
+**Poäng.** Pocket-money accounts. Every approved job adds to the kid's balance. Kids see their
+balance and history and can request a payout; parents see everyone's balances, approve
+payouts, and make manual adjustments. (Reached from the profile menu rather than the tab bar.)
 
-**💡 Idéer — suggestions.**
-Anyone proposes something to do together; the family votes 👍/👎; a parent can turn a popular
-idea into a real calendar event.
+**Idéer.** Suggestions. Anyone proposes something to do together, the family votes it up or
+down, and a parent can turn a popular idea into a real calendar event.
 
-**🍽 Matsedel — weekly meal plan.**
-This week's dinners laid out like a menu card, with the week number and ‹ › to move between
-weeks. Parents fill the week by picking from a growing library of the family's regular dishes
-("Rätter"); kids add *önskemål* (dishes they'd like) that parents can drop into a day.
+**Matsedel.** The weekly meal plan, laid out like a menu card with the week number and ‹ › to
+move between weeks. Parents fill the week by picking from a growing library of the family's
+regular dishes ("Rätter"); kids add *önskemål* (dishes they'd like) that parents can drop into
+a day, and a wish clears itself once it's on the menu so they don't pile up.
 
-**💰 Budget — household budget (parents only).**
-Plan income and expenses one month at a time, group related items (e.g. all loans under
-"Lån"), and see totals, a savings rate, and where the money goes. Kids never see it.
+**Budget.** The household budget (parents only). Plan income and expenses one month at a time,
+group related items (e.g. all loans under "Lån"), and see totals, a savings rate, and where
+the money goes. Kids never see it.
 
-**💬 Comments & photos.**
-Events, jobs, and ideas each have a comment thread, with optional image attachments.
+**Comments and photos.** Events, jobs, and ideas each have a comment thread, with optional
+image attachments. The calendar shows a banner pointing to the newest comment so a new
+message never gets missed.
 
-**🔔 Notifications, 🌤 weather, 🌗 themes.**
-Opt-in push notifications for new jobs, approvals, payouts, comments, and more. A weather
-widget whose location each device chooses. A light/dark theme, and a personal colour per
-person shown as an avatar throughout the app.
-
----
+**Notifications, weather, and themes.** Opt-in push notifications for new jobs, approvals,
+payouts, comments, and more. A weather widget whose location each device chooses. A light or
+dark theme, and a personal colour per person shown as an avatar throughout the app.
 
 ## How it's built
 
-A static front end — plain HTML, CSS, and JavaScript with **no build step and no framework**.
+A static front end: plain HTML, CSS, and JavaScript with **no build step and no framework**.
 The only things loaded from a CDN are the Supabase client and the display font. Everything
 else is served exactly as it sits in this repo.
 
@@ -69,8 +61,8 @@ The backend is [Supabase](https://supabase.com):
 
 - **Postgres + Row Level Security** for all data. RLS is default-deny, so anonymous requests
   get nothing and each signed-in person only sees what they're allowed to (a kid sees only
-  their own credits; only parents see the budget). Privileged actions — claiming, approving,
-  and adjusting credits — go through `SECURITY DEFINER` database functions, so a kid can never
+  their own credits; only parents see the budget). Privileged actions (claiming, approving,
+  and adjusting credits) go through `SECURITY DEFINER` database functions, so a kid can never
   write the ledger directly.
 - **Auth** (email + password) with a `role` of `parent` or `kid` on each profile that drives
   all of the above.
@@ -81,8 +73,6 @@ The backend is [Supabase](https://supabase.com):
 It installs as a PWA via `manifest.json` and a small service worker (`sw.js`) that receives
 push messages.
 
----
-
 ## Set it up for yourself
 
 You'll need a (free) Supabase project and somewhere to host static files. No server to run.
@@ -92,16 +82,16 @@ You'll need a (free) Supabase project and somewhere to host static files. No ser
 Create a project (an EU region is nice for a Swedish family). Then under
 **Authentication → Sign In / Providers**:
 
-- **Turn OFF "Allow new users to sign up"** — parents create the accounts; nobody on the
+- **Turn OFF "Allow new users to sign up".** Parents create the accounts; nobody on the
   internet should be able to register.
-- **Turn OFF email confirmation** — so parent-made kid accounts work without the kids
-  needing a real inbox.
+- **Turn OFF email confirmation**, so parent-made kid accounts work without the kids needing
+  a real inbox.
 
 ### 2. Create the database
 
 In the **SQL editor**, run:
 
-1. `sql/schema.sql` — the base tables, RLS policies, and workflow functions.
+1. `sql/schema.sql`: the base tables, RLS policies, and workflow functions.
 2. Then each file in `sql/migrations/`, **oldest first** by the date in the filename. They're
    additive and idempotent, so re-running or overlaps are harmless:
 
@@ -111,8 +101,9 @@ In the **SQL editor**, run:
    2026-07-03c_event_private_categories.sql
    2026-07-03d_suggestions.sql
    2026-07-04_recall_chat_todos.sql
-   2026-07-05_unified_chat_images.sql        ← also creates the "chat" Storage bucket
+   2026-07-05_unified_chat_images.sql        (also creates the "chat" Storage bucket)
    2026-07-05b_budget.sql
+   2026-07-06_matsedel.sql
    ```
 
    If the SQL editor refuses to create the Storage policies in the chat migration, create a
@@ -148,7 +139,7 @@ key** into `scripts/config.js`:
 const CONFIG = {
   SUPABASE_URL:      'https://YOUR-PROJECT.supabase.co',
   SUPABASE_ANON_KEY: 'YOUR-ANON-KEY',
-  VAPID_PUBLIC_KEY:  'YOUR-VAPID-PUBLIC-KEY',   // for push — see step 5
+  VAPID_PUBLIC_KEY:  'YOUR-VAPID-PUBLIC-KEY',   // for push (see step 5)
   WEATHER_ENABLED:   true,
   WEATHER_LAT:       56.833,                    // first-run default only; each device
   WEATHER_LON:       13.941,                    // can change it in the app
@@ -156,8 +147,8 @@ const CONFIG = {
 };
 ```
 
-The anon key is **meant to live in the browser** and is safe to commit — RLS and auth are
-what protect your data, not hiding this key. Never put the `service_role` key or the VAPID
+The anon key is **meant to live in the browser** and is safe to commit, because RLS and auth
+are what protect your data, not hiding this key. Never put the `service_role` key or the VAPID
 *private* key in the repo (see step 5).
 
 ### 5. Push notifications (optional, recommended)
@@ -170,7 +161,7 @@ what protect your data, not hiding this key. Never put the `service_role` key or
 
 2. Put the **public** key in `scripts/config.js` (`VAPID_PUBLIC_KEY` above).
 3. Set the function's secrets (dashboard **Edge Functions → Secrets**, or the CLI). The
-   `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` are provided automatically — you only add:
+   `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` are provided automatically, so you only add:
 
    ```sh
    npx supabase secrets set \
@@ -196,12 +187,10 @@ Host the folder on any static host over **HTTPS** (GitHub Pages works well; HTTP
 for the service worker, push, and geolocation). Then on each phone, open the site and use
 **Add to Home Screen** to install it as an app.
 
----
-
 ## Everyday use
 
-- The **bottom bar** switches between Kalender, Att göra, Jobb, Idéer, and Matsedel — the
-  same five for everyone. The **＋** button adds something to the current view.
+- The **bottom bar** switches between Kalender, Att göra, Jobb, Idéer, and Matsedel, the same
+  five for everyone. The **＋** button adds something to the current view.
 - The **profile pill** (top-right) opens a menu with **Poäng** (your balance), **Budget**
   (parents only), **Profil & notiser** (colour + notifications), **Väderplats**, the
   **theme** switch, and **log out**.
@@ -213,9 +202,7 @@ for the service worker, push, and geolocation). Then on each phone, open the sit
 The budget here is a port of the standalone OneDrive budget app and uses the same data shape.
 To bring an existing `budget.json` across, upsert it into the single-row `public.budget`
 table's `data` column (keep the `months` / `currentMonth` / `deletedMonths` keys) via the SQL
-editor. Keep any such export out of a public repo — it contains your real figures.
-
----
+editor. Keep any such export out of a public repo; it contains your real figures.
 
 ## Project structure
 
@@ -251,7 +238,7 @@ scripts/              Plain JS, loaded in order (classic scripts, not modules)
   chat.js             Comment threads + image attachments
   profile.js          Personal colour + push toggle
   budget.js           Budget (parents only), Supabase-backed
-  matsedel.js         Veckans matsedel (plan, templates, wishes)
+  matsedel.js         Veckans matsedel (plan, dish library, wishes)
   theme.js            Light/dark switch
   push.js             Notification permission + subscription
   main.js             View routing, FAB, profile menu, wiring
@@ -265,23 +252,19 @@ supabase/
   config.toml         Function config (notify runs with verify_jwt off)
 ```
 
----
-
 ## Privacy & security
 
 Your family's data lives in your own Supabase project. What keeps it safe isn't secrecy of
-the front end — the anon key ships in the browser by design — it's:
+the front end (the anon key ships in the browser by design); it's:
 
 - **Row Level Security on every table, default-deny**, so nothing is readable without being
   signed in, and each person only sees their own slice (kids never see the budget or other
   kids' private items).
 - **Privileged actions behind `SECURITY DEFINER` functions**, so credits can only change
-  through the approve/adjust/payout flow — a kid can't credit themselves.
+  through the approve/adjust/payout flow, and a kid can't credit themselves.
 - **Public sign-ups disabled**, so only parent-created accounts exist.
-- **Real secrets stay server-side** — the `service_role` key and the VAPID *private* key live
+- **Real secrets stay server-side**: the `service_role` key and the VAPID *private* key live
   only as Supabase secrets, never in this repo.
-
----
 
 ## Credits
 
