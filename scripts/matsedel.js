@@ -138,7 +138,14 @@ async function saveMeal(){
       const { error: e2 } = await sb.from('meal_dishes').insert({ title, created_by: me.id });
       if(e2) console.warn('add dish', e2); else await loadMealDishes();
     }
-    toast('ok', 'Sparad');
+    // a wished dish that's now on the menu is fulfilled — remove matching wishes so they
+    // don't pile up (a parent can delete any wish per RLS)
+    const fulfilled = (state.mealWishes || []).filter(w => (w.title || '').trim().toLowerCase() === title.toLowerCase());
+    if(fulfilled.length){
+      const { error: e3 } = await sb.from('meal_wishes').delete().in('id', fulfilled.map(w => w.id));
+      if(e3) console.warn('consume wish', e3); else await loadMealWishes();
+    }
+    toast('ok', fulfilled.length ? 'Sparad – önskemål uppfyllt' : 'Sparad');
     await loadMeals(); renderMatsedel();
   }catch(err){ console.warn('saveMeal', err); toast('warn', 'Kunde inte spara'); }
 }
