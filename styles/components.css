@@ -57,6 +57,24 @@ textarea{ resize:vertical; }
   background:var(--c, var(--accent));
 }
 
+/* "Ny kommentar" bar (top of the calendar) */
+.notis{
+  display:flex; align-items:center; gap:11px; width:100%; text-align:left; cursor:pointer;
+  background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--text);
+  border-radius:var(--radius-sm); padding:11px 14px; margin-bottom:14px;
+  box-shadow:var(--shadow-sm); animation:viewfade .2s ease;
+}
+.notis:hover{ filter:brightness(1.03); }
+.notis-ico{ font-size:1.05rem; flex:0 0 auto; }
+.notis-text{ flex:1; min-width:0; font-size:.9rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.notis-text b{ color:var(--accent-ink); font-weight:700; }
+.notis-preview{ color:var(--muted); }
+.notis-x{
+  flex:0 0 auto; width:26px; height:26px; border-radius:50%; display:grid; place-items:center;
+  color:var(--muted); font-size:.78rem;
+}
+.notis-x:hover{ background:color-mix(in srgb, var(--text) 9%, transparent); color:var(--text); }
+
 /* Category filter bar */
 .cat-filter{
   display:flex; gap:8px; overflow-x:auto; padding:2px 2px 16px; margin:0 -2px;

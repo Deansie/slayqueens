@@ -11,6 +11,7 @@ const CHAT_IMG_QUALITY = 0.6;    // JPEG quality
 let chatContext = null;          // 'event' | 'task' | 'suggestion'
 let chatParentId = null;
 let chatImageBlob = null;        // pending (already downscaled) attachment, if any
+let chatAtBottom = true;         // true while the thread is pinned to the newest message
 
 function messagesFor(context, parentId){
   return (state.messages || [])
@@ -52,11 +53,15 @@ function chatTitleFor(context, parentId){
 function openChat(context, parentId, titleText){
   chatContext = context;
   chatParentId = parentId;
+  chatAtBottom = true;                   // a freshly opened thread starts pinned to the newest message
   clearChatImage();
   $('chatTitle').textContent = titleText || 'Kommentarer';
   $('chatDialog').showModal();          // open before painting — renderChat skips a closed dialog
   renderChat();
-  $('chatInput').focus();
+  // Deliberately no auto-focus: on iOS focusing the input inside this tap gesture pops the
+  // keyboard immediately. The user taps the field when they actually want to type.
+  const ln = latestNotisMessage();
+  if(ln && ln.context === context && ln.parent_id === parentId) dismissNotis(ln.id);
 }
 
 function renderChat(){
@@ -88,7 +93,24 @@ function renderChat(){
         ${img}
       </div>`;
   }).join('');
-  thread.scrollTop = thread.scrollHeight;
+  // Pin to the newest message. Do it after layout (rAF), and again as each image loads —
+  // images arrive late and grow the thread, which would otherwise leave us above the bottom.
+  if(chatAtBottom){
+    requestAnimationFrame(scrollChatToBottom);
+    thread.querySelectorAll('img').forEach(img => {
+      if(!img.complete) img.addEventListener('load', () => { if(chatAtBottom) scrollChatToBottom(); }, { once: true });
+    });
+  }
+}
+
+function scrollChatToBottom(){
+  const t = $('chatThread');
+  if(t) t.scrollTop = t.scrollHeight;
+}
+function chatNearBottom(){
+  const t = $('chatThread');
+  if(!t) return true;
+  return t.scrollHeight - t.scrollTop - t.clientHeight < 60;
 }
 
 // The three list views show comment counts, so refresh them after a thread changes.
@@ -115,6 +137,7 @@ async function sendChatMessage(){
     });
     if(error) throw error;
     await loadMessages();
+    chatAtBottom = true;                 // jump to my just-sent message
     renderChat();
     renderChatCounts();
     notify('message', { context: chatContext, parentId: chatParentId });
@@ -197,4 +220,51 @@ async function uploadChatImage(blob){
   const { error } = await sb.storage.from('chat').upload(path, blob, { contentType: 'image/jpeg', upsert: false });
   if(error) throw error;
   return path;
+}
+
+// ---- "Ny kommentar" bar on the calendar ------------------------------
+// A dismissible banner at the top of the calendar pointing at the newest comment posted by
+// someone else. Tapping it opens that thread; the ✕ just dismisses. Which message has been
+// seen is remembered per device, so a newer comment brings the bar back on its own.
+const NOTIS_SEEN_KEY = 'slayqueens_notis_seen';
+
+function threadExists(context, parentId){
+  return context === 'event'      ? (state.events || []).some(e => e.id === parentId)
+       : context === 'task'       ? (state.tasks || []).some(t => t.id === parentId)
+       : context === 'suggestion' ? (state.suggestions || []).some(s => s.id === parentId)
+       : false;
+}
+// newest message from someone else, on a thread that still exists (and is visible to me)
+function latestNotisMessage(){
+  let best = null;
+  for(const m of (state.messages || [])){
+    if(me && m.author_id === me.id) continue;
+    if(!threadExists(m.context, m.parent_id)) continue;
+    if(!best || new Date(m.created_at) > new Date(best.created_at)) best = m;
+  }
+  return best;
+}
+function getNotisSeen(){ try{ return localStorage.getItem(NOTIS_SEEN_KEY) || ''; }catch(e){ return ''; } }
+function dismissNotis(id){ try{ localStorage.setItem(NOTIS_SEEN_KEY, id); }catch(e){} renderNotisBar(); }
+
+function renderNotisBar(){
+  const bar = $('notisBar');
+  if(!bar) return;
+  const m = me ? latestNotisMessage() : null;
+  if(!m || m.id === getNotisSeen()){ bar.innerHTML = ''; bar.hidden = true; return; }
+  const author = state.profilesById[m.author_id];
+  const title = chatTitleFor(m.context, m.parent_id);
+  const preview = m.body ? m.body : (m.image_path ? '📷 Bild' : '');
+  bar.hidden = false;
+  bar.innerHTML =
+    `<button class="notis" type="button">
+       <span class="notis-ico" aria-hidden="true">💬</span>
+       <span class="notis-text"><b>${escapeHtml(author ? capital(author.name) : 'Någon')}</b> skrev i ”${escapeHtml(title)}”${preview ? ` · <span class="notis-preview">${escapeHtml(preview)}</span>` : ''}</span>
+       <span class="notis-x" data-dismiss aria-label="Stäng">✕</span>
+     </button>`;
+  bar.querySelector('.notis').onclick = (e) => {
+    if(e.target.closest('[data-dismiss]')){ dismissNotis(m.id); return; }
+    dismissNotis(m.id);
+    openChat(m.context, m.parent_id, title);
+  };
 }

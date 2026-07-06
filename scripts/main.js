@@ -88,6 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('chatForm').addEventListener('submit', (e) => { e.preventDefault(); sendChatMessage(); });
   $('chatClose').addEventListener('click', () => $('chatDialog').close());
   $('chatThread').addEventListener('click', onChatThreadClick);
+  $('chatThread').addEventListener('scroll', () => { chatAtBottom = chatNearBottom(); });
   $('chatFile').addEventListener('change', onChatFileChange);
   $('chatImageClear').addEventListener('click', clearChatImage);
 

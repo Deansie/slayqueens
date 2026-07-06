@@ -41,6 +41,7 @@ function onCatFilterClick(e){
 
 function renderCalendar(){
   renderHeader();
+  renderNotisBar();
   renderCategoryFilter();
   const list = $('eventList');
   list.innerHTML = '';
