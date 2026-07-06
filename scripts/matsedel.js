@@ -1,7 +1,8 @@
 'use strict';
-// Veckans matsedel: a weekly dinner plan (one dish per day). Parents set the plan and manage
-// week templates; anyone (kids included) can add "önskemål" — meal wishes — that parents can
-// drop into a day. All plan writes are parent-only (RLS); kids get a read-only menu + wishes.
+// Veckans matsedel: a weekly dinner plan (one dish per day). Parents set the plan, picking
+// from a growing library of the family's regular dishes ("Rätter"); anyone (kids included)
+// can add "önskemål" — meal wishes — that parents can drop into a day. All plan/library
+// writes are parent-only (RLS); kids get a read-only menu and can add wishes.
 
 let mealWeekOffset = 0;      // 0 = current week, ±1 = neighbouring weeks
 let editingMealDate = null;  // 'YYYY-MM-DD' being edited in the meal dialog
@@ -11,6 +12,10 @@ function currentWeekDays(){
   return [...Array(7)].map((_, i) => { const d = new Date(mon); d.setDate(d.getDate() + i); return d; });
 }
 function mealForDate(k){ return (state.meals || []).find(m => m.date === k) || null; }
+function dishInLibrary(title){
+  const t = title.trim().toLowerCase();
+  return (state.mealDishes || []).some(d => (d.title || '').trim().toLowerCase() === t);
+}
 
 function renderMatsedel(){
   const box = $('matsedelBody');
@@ -55,7 +60,7 @@ function renderMatsedel(){
       <div class="ms-menu">${rows}</div>
 
       ${parent ? `<div class="ms-actions">
-        <button class="btn ghost sm" data-ms="templates" type="button">🍽 Mallar</button>
+        <button class="btn ghost sm" data-ms="dishes" type="button">🍽 Rätter</button>
         <button class="btn ghost sm" data-ms="clearweek" type="button">Rensa vecka</button>
       </div>` : ''}
 
@@ -83,7 +88,7 @@ function onMatsedelClick(e){
   if(del){ deleteWish(del.dataset.delwish); return; }
   const act = e.target.closest('[data-ms]');
   if(act){
-    if(act.dataset.ms === 'templates') openMealTemplates();
+    if(act.dataset.ms === 'dishes') openMealDishes();
     else if(act.dataset.ms === 'clearweek') clearWeek();
     return;
   }
@@ -98,18 +103,23 @@ function openMealDialog(k, meal){
   $('mealDlgTitle').textContent = `${capital(WEEKDAYS[d.getDay()])} ${d.getDate()} ${MONTHS[d.getMonth()]}`;
   $('mealTitle').value = meal ? (meal.title || '') : '';
   $('mealNote').value  = meal ? (meal.note  || '') : '';
-  const wishes = state.mealWishes || [];
-  const wrap = $('mealWishWrap'), picks = $('mealWishPicks');
-  if(wishes.length){
-    picks.innerHTML = wishes.map(w =>
-      `<button type="button" class="ms-pick" data-pick="${escapeHtml(w.title)}">${escapeHtml(w.title)}</button>`).join('');
-    wrap.hidden = false;
-  } else { picks.innerHTML = ''; wrap.hidden = true; }
+  fillPicks('mealDishPicks', 'mealDishWrap', (state.mealDishes || []).map(x => x.title));
+  fillPicks('mealWishPicks', 'mealWishWrap', (state.mealWishes || []).map(x => x.title));
+  $('mealSaveDish').checked = true;
   $('mealClear').hidden = !meal;       // nothing to clear on an empty day
   $('mealDialog').showModal();
 }
 
-function onMealWishPickClick(e){
+// tap-to-fill chips (used for both the dish library and the wishes)
+function fillPicks(picksId, wrapId, titles){
+  const wrap = $(wrapId), picks = $(picksId);
+  const uniq = [...new Set(titles.filter(Boolean))];
+  if(uniq.length){
+    picks.innerHTML = uniq.map(t => `<button type="button" class="ms-pick" data-pick="${escapeHtml(t)}">${escapeHtml(t)}</button>`).join('');
+    wrap.hidden = false;
+  } else { picks.innerHTML = ''; wrap.hidden = true; }
+}
+function onMealPickClick(e){
   const b = e.target.closest('[data-pick]');
   if(b) $('mealTitle').value = b.dataset.pick;
 }
@@ -123,6 +133,11 @@ async function saveMeal(){
       { date: editingMealDate, title, note, created_by: me.id, updated_at: new Date().toISOString() },
       { onConflict: 'date' });
     if(error) throw error;
+    // remember new dishes in the library so they're a tap away next time
+    if($('mealSaveDish').checked && !dishInLibrary(title)){
+      const { error: e2 } = await sb.from('meal_dishes').insert({ title, created_by: me.id });
+      if(e2) console.warn('add dish', e2); else await loadMealDishes();
+    }
     toast('ok', 'Sparad');
     await loadMeals(); renderMatsedel();
   }catch(err){ console.warn('saveMeal', err); toast('warn', 'Kunde inte spara'); }
@@ -138,84 +153,50 @@ async function clearMeal(){
   }catch(err){ console.warn('clearMeal', err); toast('warn', 'Kunde inte ta bort'); }
 }
 
-// ---- templates (parent) ----
-function openMealTemplates(){
-  $('mealTemplateName').value = '';
-  renderMealTemplateList();
-  $('mealTemplateDialog').showModal();
+// ---- dish library "Rätter" (parent) ----
+function openMealDishes(){
+  $('mealDishNew').value = '';
+  renderMealDishList();
+  $('mealDishDialog').showModal();
 }
 
-function renderMealTemplateList(){
-  const box = $('mealTemplateList');
-  const tpls = state.mealTemplates || [];
-  if(!tpls.length){
-    box.innerHTML = '<div class="ms-wish-empty">Inga mallar än. Bygg en vecka och spara den nedan.</div>';
+function renderMealDishList(){
+  const box = $('mealDishList');
+  const dishes = state.mealDishes || [];
+  if(!dishes.length){
+    box.innerHTML = '<div class="ms-wish-empty">Inga rätter än. Lägg till dem nedan — de dyker upp som snabbval när du planerar.</div>';
     return;
   }
-  box.innerHTML = tpls.map(t => {
-    const items = Array.isArray(t.items) ? t.items.filter(Boolean) : [];
-    const preview = items.slice(0, 3).join(' · ') + (items.length > 3 ? ' …' : '');
-    return `<div class="ms-tpl">
-        <div class="ms-tpl-main">
-          <div class="ms-tpl-name">${escapeHtml(t.name)}</div>
-          ${preview ? `<div class="ms-tpl-items">${escapeHtml(preview)}</div>` : ''}
-        </div>
-        <button class="btn sm" data-activate="${t.id}" type="button">Aktivera</button>
-        <button class="icon-btn" data-deltpl="${t.id}" type="button" aria-label="Ta bort">🗑</button>
-      </div>`;
-  }).join('');
+  box.innerHTML = dishes.map(d =>
+    `<div class="ms-lib">
+       <div class="ms-lib-name">${escapeHtml(d.title)}</div>
+       <button class="icon-btn" data-deldish="${d.id}" type="button" aria-label="Ta bort">🗑</button>
+     </div>`).join('');
 }
 
-function onMealTemplateListClick(e){
-  const a = e.target.closest('[data-activate]');
-  if(a){ activateMealTemplate(a.dataset.activate); return; }
-  const d = e.target.closest('[data-deltpl]');
-  if(d){ deleteMealTemplate(d.dataset.deltpl); }
+function onMealDishListClick(e){
+  const d = e.target.closest('[data-deldish]');
+  if(d) deleteMealDish(d.dataset.deldish);
 }
 
-async function activateMealTemplate(id){
-  const t = (state.mealTemplates || []).find(x => x.id === id);
-  if(!t) return;
-  if(!(await confirmDialog(`Aktivera "${t.name}" och ersätta veckans måltider?`, 'Aktivera'))) return;
-  const items = Array.isArray(t.items) ? t.items : [];
-  const rows = [], clears = [];
-  currentWeekDays().forEach((d, i) => {
-    const k = dateKey(d), dish = (items[i] || '').trim();
-    if(dish) rows.push({ date: k, title: dish, created_by: me.id, updated_at: new Date().toISOString() });
-    else clears.push(k);
-  });
+async function addMealDish(){
+  const title = $('mealDishNew').value.trim();
+  if(!title){ toast('warn', 'Skriv en rätt'); return; }
+  if(dishInLibrary(title)){ toast('warn', 'Rätten finns redan'); $('mealDishNew').value = ''; return; }
   try{
-    if(clears.length){ const { error } = await sb.from('meals').delete().in('date', clears); if(error) throw error; }
-    if(rows.length){ const { error } = await sb.from('meals').upsert(rows, { onConflict: 'date' }); if(error) throw error; }
-    $('mealTemplateDialog').close();
-    toast('ok', `${t.name} aktiverad`);
-    await loadMeals(); renderMatsedel();
-  }catch(err){ console.warn('activateMealTemplate', err); toast('warn', 'Kunde inte aktivera'); }
-}
-
-async function deleteMealTemplate(id){
-  const t = (state.mealTemplates || []).find(x => x.id === id);
-  if(!t) return;
-  if(!(await confirmDialog(`Ta bort mallen "${t.name}"?`))) return;
-  try{
-    const { error } = await sb.from('meal_templates').delete().eq('id', id);
+    const { error } = await sb.from('meal_dishes').insert({ title, created_by: me.id });
     if(error) throw error;
-    await loadMealTemplates(); renderMealTemplateList();
-  }catch(err){ console.warn('deleteMealTemplate', err); toast('warn', 'Kunde inte ta bort'); }
+    $('mealDishNew').value = '';
+    await loadMealDishes(); renderMealDishList();
+  }catch(err){ console.warn('addMealDish', err); toast('warn', 'Kunde inte lägga till'); }
 }
 
-async function saveWeekAsTemplate(){
-  const name = $('mealTemplateName').value.trim();
-  if(!name){ toast('warn', 'Ge mallen ett namn'); return; }
-  const items = currentWeekDays().map(d => { const m = mealForDate(dateKey(d)); return (m && m.title) ? m.title : ''; });
-  if(!items.some(Boolean)){ toast('warn', 'Veckan är tom'); return; }
+async function deleteMealDish(id){
   try{
-    const { error } = await sb.from('meal_templates').insert({ name, items, created_by: me.id });
+    const { error } = await sb.from('meal_dishes').delete().eq('id', id);
     if(error) throw error;
-    $('mealTemplateName').value = '';
-    toast('ok', 'Mall sparad');
-    await loadMealTemplates(); renderMealTemplateList();
-  }catch(err){ console.warn('saveWeekAsTemplate', err); toast('warn', 'Kunde inte spara'); }
+    await loadMealDishes(); renderMealDishList();
+  }catch(err){ console.warn('deleteMealDish', err); toast('warn', 'Kunde inte ta bort'); }
 }
 
 async function clearWeek(){

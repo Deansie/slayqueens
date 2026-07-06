@@ -1,6 +1,6 @@
 'use strict';
 // In-memory copy of the shared data, plus realtime subscriptions.
-const state = { profiles: [], profilesById: {}, events: [], tasks: [], balances: [], ledger: [], payouts: [], templates: [], suggestions: [], votes: [], messages: [], todos: [], meals: [], mealTemplates: [], mealWishes: [] };
+const state = { profiles: [], profilesById: {}, events: [], tasks: [], balances: [], ledger: [], payouts: [], templates: [], suggestions: [], votes: [], messages: [], todos: [], meals: [], mealDishes: [], mealWishes: [] };
 
 async function loadProfiles(){
   const { data, error } = await sb.from('profiles').select('*').order('name');
@@ -76,10 +76,10 @@ async function loadMeals(){
   state.meals = data || [];
 }
 
-async function loadMealTemplates(){
-  const { data, error } = await sb.from('meal_templates').select('*').order('name');
-  if(error){ console.warn('loadMealTemplates', error); return; }
-  state.mealTemplates = data || [];
+async function loadMealDishes(){
+  const { data, error } = await sb.from('meal_dishes').select('*').order('title');
+  if(error){ console.warn('loadMealDishes', error); return; }
+  state.mealDishes = data || [];
 }
 
 async function loadMealWishes(){
@@ -107,7 +107,7 @@ function subscribeRealtime(onChange){
     .on('postgres_changes', { event: '*', schema: 'public', table: 'todos' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'budget' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'meals' }, onChange)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'meal_templates' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'meal_dishes' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'meal_wishes' }, onChange)
     .subscribe();
 }

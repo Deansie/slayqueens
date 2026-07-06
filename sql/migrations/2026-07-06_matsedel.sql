@@ -1,11 +1,11 @@
 -- ============================================================ MATSEDEL 2026-07-06
--- Veckans matsedel — a weekly dinner plan (one dish per day), managed by parents, with
--- reusable week templates and kid "önskemål" (meal wishes).
+-- Veckans matsedel — a weekly dinner plan (one dish per day), managed by parents, with a
+-- reusable library of the family's regular dishes ("Rätter") and kid meal-wishes.
 --
---   meals           the plan itself: one row per date (unique). Family reads; parents write.
---   meal_templates  a named snapshot of a week's 7 dishes (JSON array, index 0 = Monday),
---                   parents activate onto a week. Parent-only.
---   meal_wishes     dishes anyone (incl. kids) would like; parents pull them into a day.
+--   meals        the plan itself: one row per date (unique). Family reads; parents write.
+--   meal_dishes  a flat library of dishes the family eats. Parents pick from it when
+--                planning a day, and it grows as they plan. Family reads; parents write.
+--   meal_wishes  dishes anyone (incl. kids) would like; parents pull them into a day.
 
 create table if not exists public.meals (
   id         uuid primary key default gen_random_uuid(),
@@ -24,16 +24,22 @@ drop policy if exists "parents manage meals" on public.meals;
 create policy "parents manage meals" on public.meals
   for all using (public.is_parent()) with check (public.is_parent());
 
-create table if not exists public.meal_templates (
+-- The plan uses a flat dish library (not a fixed weekly template); drop the old idea if a
+-- previous version of this migration created it.
+drop table if exists public.meal_templates cascade;
+
+create table if not exists public.meal_dishes (
   id         uuid primary key default gen_random_uuid(),
-  name       text not null,
-  items      jsonb not null default '[]'::jsonb,   -- 7 dishes, index 0 = Monday … 6 = Sunday
+  title      text not null check (length(btrim(title)) > 0),
   created_by uuid not null references public.profiles(id),
   created_at timestamptz not null default now()
 );
-alter table public.meal_templates enable row level security;
-drop policy if exists "parents manage meal templates" on public.meal_templates;
-create policy "parents manage meal templates" on public.meal_templates
+alter table public.meal_dishes enable row level security;
+drop policy if exists "family reads dishes" on public.meal_dishes;
+create policy "family reads dishes" on public.meal_dishes
+  for select using (auth.uid() is not null);
+drop policy if exists "parents manage dishes" on public.meal_dishes;
+create policy "parents manage dishes" on public.meal_dishes
   for all using (public.is_parent()) with check (public.is_parent());
 
 create table if not exists public.meal_wishes (
@@ -58,8 +64,8 @@ do $$ begin
   if not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='meals') then
     alter publication supabase_realtime add table public.meals;
   end if;
-  if not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='meal_templates') then
-    alter publication supabase_realtime add table public.meal_templates;
+  if not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='meal_dishes') then
+    alter publication supabase_realtime add table public.meal_dishes;
   end if;
   if not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='meal_wishes') then
     alter publication supabase_realtime add table public.meal_wishes;

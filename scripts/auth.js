@@ -36,7 +36,7 @@ async function enterApp(){
     const av = $('meAvatar');
     if(av){ av.textContent = initialOf(me.name); av.style.background = profileColor(me); }
     $('meName').textContent = capital(me.name);
-    await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealTemplates(), loadMealWishes()]);
+    await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes()]);
     renderHeader();
     renderCalendar();
     renderTasks();

@@ -78,15 +78,13 @@
 }
 .ms-pick:hover{ border-color:var(--gold-line); color:var(--accent-ink); }
 
-/* Template list */
-.ms-tpl-list{ display:flex; flex-direction:column; gap:8px; max-height:44vh; overflow-y:auto; }
-.ms-tpl{
+/* Dish library ("Rätter") list */
+.ms-lib-list{ display:flex; flex-direction:column; gap:8px; max-height:44vh; overflow-y:auto; }
+.ms-lib{
   display:flex; align-items:center; gap:10px;
   background:var(--card-2); border:1px solid var(--border);
-  border-radius:var(--radius-sm); padding:10px 12px;
+  border-radius:var(--radius-sm); padding:9px 12px;
 }
-.ms-tpl-main{ flex:1; min-width:0; }
-.ms-tpl-name{ font-weight:600; }
-.ms-tpl-items{ font-size:.78rem; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ms-lib-name{ flex:1; min-width:0; font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .ms-save-row{ display:flex; gap:8px; }
 .ms-save-row input{ flex:1; }

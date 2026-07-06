@@ -89,10 +89,11 @@ document.addEventListener('DOMContentLoaded', () => {
   $('mealForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveMeal(); });
   $('mealCancel').addEventListener('click', () => $('mealDialog').close());
   $('mealClear').addEventListener('click', clearMeal);
-  $('mealWishPicks').addEventListener('click', onMealWishPickClick);
-  $('mealTemplateList').addEventListener('click', onMealTemplateListClick);
-  $('mealTemplateClose').addEventListener('click', () => $('mealTemplateDialog').close());
-  $('saveWeekTemplate').addEventListener('click', saveWeekAsTemplate);
+  $('mealDishPicks').addEventListener('click', onMealPickClick);
+  $('mealWishPicks').addEventListener('click', onMealPickClick);
+  $('mealDishList').addEventListener('click', onMealDishListClick);
+  $('mealDishClose').addEventListener('click', () => $('mealDishDialog').close());
+  $('addMealDish').addEventListener('click', addMealDish);
   $('wishForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveWish(); });
   $('wishCancel').addEventListener('click', () => $('wishDialog').close());
 
@@ -234,7 +235,7 @@ async function onRealtime(payload){
   else if(t === 'messages') await loadMessages();
   else if(t === 'todos') await loadTodos();
   else if(t === 'meals') await loadMeals();
-  else if(t === 'meal_templates') await loadMealTemplates();
+  else if(t === 'meal_dishes') await loadMealDishes();
   else if(t === 'meal_wishes') await loadMealWishes();
   renderCalendar();
   renderTasks();
@@ -243,13 +244,13 @@ async function onRealtime(payload){
   renderTodos();
   renderMatsedel();
   renderChat();
-  if($('mealTemplateDialog').open) renderMealTemplateList();
+  if($('mealDishDialog').open) renderMealDishList();
 }
 
 // Full reload + repaint, used when the app resumes and may have missed live updates.
 async function resync(){
   if(!sb || !session) return;
-  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealTemplates(), loadMealWishes()]);
+  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes()]);
   renderCalendar();
   renderTasks();
   renderCredits();

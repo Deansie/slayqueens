@@ -42,8 +42,8 @@ idea into a real calendar event.
 
 **🍽 Matsedel — weekly meal plan.**
 This week's dinners laid out like a menu card, with the week number and ‹ › to move between
-weeks. Parents fill the week — and can save the current week as a reusable template to
-activate later; kids add *önskemål* (dishes they'd like) that parents can drop into a day.
+weeks. Parents fill the week by picking from a growing library of the family's regular dishes
+("Rätter"); kids add *önskemål* (dishes they'd like) that parents can drop into a day.
 
 **💰 Budget — household budget (parents only).**
 Plan income and expenses one month at a time, group related items (e.g. all loans under

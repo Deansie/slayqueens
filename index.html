@@ -363,14 +363,19 @@
       <label for="mealTitle">Rätt</label>
       <input id="mealTitle" type="text" required maxlength="80" placeholder="T.ex. Tacos" />
     </div>
-    <div class="dlg-field">
-      <label for="mealNote">Notis (valfritt)</label>
-      <input id="mealNote" type="text" maxlength="120" placeholder="T.ex. vegetariskt" />
+    <div class="dlg-field" id="mealDishWrap" hidden>
+      <label>Våra rätter</label>
+      <div class="ms-picks" id="mealDishPicks"></div>
     </div>
     <div class="dlg-field" id="mealWishWrap" hidden>
       <label>Barnens önskemål</label>
       <div class="ms-picks" id="mealWishPicks"></div>
     </div>
+    <div class="dlg-field">
+      <label for="mealNote">Notis (valfritt)</label>
+      <input id="mealNote" type="text" maxlength="120" placeholder="T.ex. vegetariskt" />
+    </div>
+    <label class="dlg-check"><input type="checkbox" id="mealSaveDish" checked /> Spara i Rätter</label>
     <div class="dlg-actions">
       <button class="btn ghost" id="mealClear" type="button">Rensa dag</button>
       <button class="btn ghost" id="mealCancel" type="button">Avbryt</button>
@@ -379,19 +384,19 @@
   </form>
 </dialog>
 
-<!-- Matsedel templates (parent) -------------------------------------- -->
-<dialog id="mealTemplateDialog">
+<!-- Dish library "Rätter" (parent) ----------------------------------- -->
+<dialog id="mealDishDialog">
   <div class="dlg-body">
     <div class="chat-head">
-      <h3 class="serif">Matsedel-mallar</h3>
-      <button class="icon-btn" id="mealTemplateClose" type="button" aria-label="Stäng">✕</button>
+      <h3 class="serif">Våra rätter</h3>
+      <button class="icon-btn" id="mealDishClose" type="button" aria-label="Stäng">✕</button>
     </div>
-    <div class="ms-tpl-list" id="mealTemplateList"></div>
+    <div class="ms-lib-list" id="mealDishList"></div>
     <div class="dlg-field">
-      <label for="mealTemplateName">Spara den här veckan som mall</label>
+      <label for="mealDishNew">Lägg till en rätt</label>
       <div class="ms-save-row">
-        <input id="mealTemplateName" type="text" maxlength="40" placeholder="T.ex. Standardvecka" />
-        <button class="btn" id="saveWeekTemplate" type="button">Spara</button>
+        <input id="mealDishNew" type="text" maxlength="80" placeholder="T.ex. Tacos" />
+        <button class="btn" id="addMealDish" type="button">Lägg till</button>
       </div>
     </div>
   </div>
