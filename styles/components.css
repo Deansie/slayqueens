@@ -289,24 +289,40 @@ body.is-kid .parent-only{ display:none !important; }
 }
 .sg-title{ font-weight:700; font-size:1.1rem; }
 .sg-notes{ color:var(--muted); font-size:.9rem; margin-top:3px; }
+/* top row mirrors the event card: proposer meta on the left, ⋯ menu on the right */
+.sg-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:7px; }
+.sg-by{ font-size:.78rem; color:var(--faint); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .sg-foot{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:12px; }
-.vote-row{ display:flex; align-items:center; gap:6px; }
+.vote-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+/* symmetric pills: fixed min-width + tabular figures keep 👍/👎 aligned across every card */
 .vote{
   cursor:pointer; border:1px solid var(--border); background:var(--card-2); color:var(--text);
-  border-radius:var(--radius-pill); padding:6px 12px; font-size:.85rem; font-weight:600;
+  border-radius:var(--radius-pill); padding:4px 10px; font-size:.8rem; font-weight:600;
+  min-width:50px; text-align:center; font-variant-numeric:tabular-nums;
 }
 .vote.up.on{ background:var(--success-soft); border-color:var(--success); color:var(--success); }
 .vote.down.on{ background:var(--danger-soft); border-color:var(--danger); color:var(--danger); }
-.sg-by{ font-size:.76rem; color:var(--faint); margin-left:4px; }
-.sg-actions{ display:flex; align-items:center; gap:6px; }
-.sg-voters{ display:flex; flex-direction:column; gap:6px; margin-top:11px; padding-top:11px; border-top:1px solid var(--border); }
-.voter-line{ display:flex; align-items:center; flex-wrap:wrap; gap:6px; }
-.voter-emoji{ font-size:.85rem; flex:0 0 auto; }
-.voter-chip{
-  display:inline-flex; align-items:center; gap:6px;
-  background:var(--card-2); border-radius:var(--radius-pill); padding:3px 9px 3px 4px;
-  font-size:.74rem; color:var(--muted);
+
+/* who voted — tucked behind a tap/click so it never shifts the pills */
+.voters{ position:relative; }
+.voters > summary{ list-style:none; cursor:pointer; display:inline-flex; align-items:center; padding:2px 4px; border-radius:9px; }
+.voters > summary::-webkit-details-marker{ display:none; }
+.voters > summary:hover, .voters[open] > summary{ background:var(--card-2); }
+.voters-pop{
+  position:absolute; left:0; bottom:calc(100% + 6px); z-index:15; min-width:150px; max-width:250px;
+  background:var(--card); border:1px solid var(--border); border-radius:12px;
+  box-shadow:var(--shadow); padding:9px 10px; display:flex; flex-direction:column; gap:7px;
 }
+.vp-line{ display:flex; align-items:flex-start; gap:7px; font-size:.8rem; }
+.vp-dir{ flex:0 0 auto; line-height:20px; }
+.vp-people{ display:flex; flex-wrap:wrap; gap:5px 9px; }
+.vp-person{ display:inline-flex; align-items:center; gap:5px; color:var(--muted); white-space:nowrap; }
+.vp-person .avatar{ width:18px; height:18px; font-size:.58rem; }
+
+.ava-stack{ display:inline-flex; align-items:center; }
+.ava-stack .avatar{ width:19px; height:19px; font-size:.6rem; margin-left:-6px; border:2px solid var(--card); }
+.ava-stack .avatar:first-child{ margin-left:0; }
+.ava-more{ margin-left:4px; font-size:.7rem; font-weight:700; color:var(--faint); }
 
 /* Att göra / to-do list */
 .todo{

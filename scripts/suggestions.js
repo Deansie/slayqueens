@@ -38,39 +38,59 @@ function suggestionCard(s){
   const by = state.profilesById[s.created_by];
   const { up, down, mine } = votesFor(s.id);
   const canDelete = (me && s.created_by === me.id) || isParent();
-  const voterLine = (emoji, list) => list.length
-    ? `<div class="voter-line"><span class="voter-emoji">${emoji}</span>${list.map(p =>
-        `<span class="voter-chip">${avatarHtml(profileColor(p), p.name)}${escapeHtml(capital(p.name))}</span>`).join('')}</div>`
+  const upList = votersFor(s.id, 1), downList = votersFor(s.id, -1);
+  const allVoters = upList.concat(downList);
+  const mini = (p) => avatarHtml(profileColor(p), p.name);
+  // Who voted is revealed on tap (mobile) / click (desktop), kept out of the vote row so the
+  // 👍/👎 pills stay in the exact same spot on every card.
+  const namesLine = (emoji, list) => list.length
+    ? `<div class="vp-line"><span class="vp-dir">${emoji}</span><span class="vp-people">${
+        list.map(p => `<span class="vp-person">${mini(p)}${escapeHtml(capital(p.name))}</span>`).join('')
+      }</span></div>`
     : '';
-  const voters = voterLine('👍', votersFor(s.id, 1)) + voterLine('👎', votersFor(s.id, -1));
+  const votersReveal = allVoters.length ? `
+        <details class="voters">
+          <summary aria-label="Visa vilka som röstat"><span class="ava-stack">${
+            allVoters.slice(0, 3).map(mini).join('')
+          }${allVoters.length > 3 ? `<span class="ava-more">+${allVoters.length - 3}</span>` : ''}</span></summary>
+          <div class="voters-pop">${namesLine('👍', upList)}${namesLine('👎', downList)}</div>
+        </details>` : '';
   const el = document.createElement('div');
   el.className = 'suggestion';
   el.innerHTML = `
+    <div class="sg-top">
+      <span class="sg-by">av ${escapeHtml(by ? capital(by.name) : '—')} · ${escapeHtml(fmtWhen(s.created_at))}</span>
+      ${canDelete ? `
+      <details class="ev-menu">
+        <summary aria-label="Fler val">⋯</summary>
+        <div class="ev-menu-pop">
+          ${isParent() ? `<button type="button" data-promote="${s.id}">📅 Lägg i kalender</button>` : ''}
+          <button type="button" data-delsg="${s.id}" class="danger">🗑 Ta bort</button>
+        </div>
+      </details>` : ''}
+    </div>
     <div class="sg-title">${escapeHtml(s.title)}</div>
     ${s.notes ? `<div class="sg-notes">${escapeHtml(s.notes)}</div>` : ''}
     <div class="sg-foot">
       <div class="vote-row">
         <button class="vote up${mine === 1 ? ' on' : ''}" data-vote="1" data-id="${s.id}" type="button">👍 ${up}</button>
         <button class="vote down${mine === -1 ? ' on' : ''}" data-vote="-1" data-id="${s.id}" type="button">👎 ${down}</button>
-        <span class="sg-by">av ${escapeHtml(by ? capital(by.name) : '—')} · ${escapeHtml(fmtWhen(s.created_at))}</span>
+        ${votersReveal}
       </div>
-      <div class="sg-actions">
-        ${chatButton('suggestion', s.id)}
-        ${isParent() ? `<button class="btn ghost sm" data-promote="${s.id}" type="button">Lägg i kalender</button>` : ''}
-        ${canDelete ? `<button class="icon-btn" data-delsg="${s.id}" aria-label="Ta bort">🗑</button>` : ''}
-      </div>
-    </div>
-    ${voters ? `<div class="sg-voters">${voters}</div>` : ''}`;
+      ${chatButton('suggestion', s.id)}
+    </div>`;
   return el;
 }
 
 function onSuggestionClick(e){
   const voteBtn = e.target.closest('[data-vote]');
   if(voteBtn){ castVote(voteBtn.dataset.id, Number(voteBtn.dataset.vote)); return; }
+  // Promote / delete live in each card's ⋯ menu — collapse it once one is picked.
+  const menu = e.target.closest('.ev-menu');
   const promoteBtn = e.target.closest('[data-promote]');
-  if(promoteBtn){ promoteSuggestion((state.suggestions || []).find(s => s.id === promoteBtn.dataset.promote)); return; }
+  if(promoteBtn){ if(menu) menu.open = false; promoteSuggestion((state.suggestions || []).find(s => s.id === promoteBtn.dataset.promote)); return; }
   const delBtn = e.target.closest('[data-delsg]');
-  if(delBtn){ deleteSuggestion((state.suggestions || []).find(s => s.id === delBtn.dataset.delsg)); }
+  if(delBtn){ if(menu) menu.open = false; deleteSuggestion((state.suggestions || []).find(s => s.id === delBtn.dataset.delsg)); }
 }
 
 async function castVote(id, vote){
