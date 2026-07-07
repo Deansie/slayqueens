@@ -21,7 +21,7 @@
 
 /* App shell — content scrolls; nav + fab are fixed over it */
 .app{
-  max-width:660px;
+  max-width:var(--app-max);
   margin:0 auto;
   min-height:100dvh;
   padding:calc(16px + env(safe-area-inset-top)) calc(18px + env(safe-area-inset-right))
@@ -103,7 +103,9 @@
 /* Floating "add" button */
 .fab{
   position:fixed; z-index:21;
-  right:calc(16px + env(safe-area-inset-right));
+  /* dock to the content column's right edge on desktop; falls back to the
+     plain 16px viewport inset once the column fills the screen (mobile) */
+  right:max(calc(16px + env(safe-area-inset-right)), calc(50% - var(--app-max) / 2 + 16px));
   bottom:calc(var(--nav-h) + 18px + env(safe-area-inset-bottom));
   display:inline-flex; align-items:center; gap:7px;
   padding:13px 20px 13px 17px; border:0; cursor:pointer;
@@ -121,7 +123,9 @@
 .menu-pop{
   position:fixed; z-index:40;
   top:calc(env(safe-area-inset-top) + 64px);
-  right:calc(16px + env(safe-area-inset-right));
+  /* align under the profile pill at the content column's right edge (desktop),
+     falling back to the plain 16px viewport inset on mobile */
+  right:max(calc(16px + env(safe-area-inset-right)), calc(50% - var(--app-max) / 2 + 16px));
   width:min(248px, 82vw);
   background:var(--card); border:1px solid var(--border);
   border-radius:var(--radius-sm); box-shadow:var(--shadow);

@@ -43,6 +43,7 @@
   --shadow:0 1px 2px rgba(30,22,8,.05), 0 12px 30px rgba(30,22,8,.08);
   --shadow-sm:0 1px 2px rgba(30,22,8,.07);
   --nav-h:64px;
+  --app-max:660px;   /* content column width; fixed overlays dock to its edges */
 
   font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
   font-size:16px;

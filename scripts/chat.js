@@ -122,6 +122,9 @@ function renderChatCounts(){
 
 async function sendChatMessage(){
   if(!chatContext || !chatParentId) return;
+  // guard here (not just via the DB) so a demo image isn't uploaded to Storage before the
+  // blocked message insert
+  if(isDemo()){ toast('', 'Detta är en demo, inget sparas'); return; }
   const input = $('chatInput');
   const body = input.value.trim();
   if(!body && !chatImageBlob) return;              // nothing to send

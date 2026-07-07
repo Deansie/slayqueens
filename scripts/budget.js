@@ -475,6 +475,13 @@ window.Budget = (function(){
   // fetch + merge the shared doc (called on open and on realtime)
   async function load(){
     init();
+    if(isDemo()){                        // read-only showcase: use bundled fixtures, never the DB
+      // DEMO_DATA is a top-level `const` (a global lexical binding, NOT a window property),
+      // so reference it by bare name — `window.DEMO_DATA` would be undefined here.
+      if(typeof DEMO_DATA !== 'undefined' && DEMO_DATA.budget) mergeCloud(JSON.parse(JSON.stringify(DEMO_DATA.budget)));
+      render();
+      return;
+    }
     if(!sb || !isParent()) return;
     try{
       const { data, error } = await sb.from('budget').select('data').eq('id', true).maybeSingle();
@@ -488,6 +495,7 @@ window.Budget = (function(){
   let pushing = false, pushQueued = false;
   async function pushBudget(){
     if(!sb || !isParent()) return;
+    if(isDemo()) return;                 // read-only demo: never persist (edits stay local, reset on reload)
     if(pushing){ pushQueued = true; return; }
     pushing = true;
     try{

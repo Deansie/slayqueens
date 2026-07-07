@@ -205,6 +205,14 @@ textarea{ resize:vertical; }
 }
 .config-banner code{ background:var(--card-2); padding:1px 5px; border-radius:5px; }
 
+/* Read-only demo notice */
+.demo-banner{
+  margin:0 auto 12px; max-width:max-content;
+  background:var(--gold-soft); color:var(--accent-ink);
+  border:1px solid var(--gold-line); border-radius:var(--radius-pill);
+  padding:7px 16px; font-size:.82rem; font-weight:600; text-align:center;
+}
+
 /* Role visibility */
 body.is-kid .parent-only{ display:none !important; }
 

@@ -32,3 +32,5 @@ async function signOut(){
 }
 
 function isParent(){ return !!(me && me.role === 'parent'); }
+// The read-only showcase account. The DB enforces read-only; this just drives the UI.
+function isDemo(){ return !!(me && me.is_demo); }

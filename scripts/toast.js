@@ -1,8 +1,17 @@
 'use strict';
 // Lightweight toast: toast('ok'|'warn'|'', message). Tap to dismiss.
+// In the read-only demo, a blocked write comes back as a generic "Kunde inte …" warning (the
+// DB rejects it). Rewrite those to a clear demo message. Genuinely client-side failures
+// (image read, geolocation, initial load) keep their own text.
+const DEMO_KEEP = new Set(['Kunde inte läsa bilden', 'Kunde inte hämta plats', 'Kunde inte ladda appen']);
+
 function toast(kind, msg, ms){
   const wrap = $('toasts');
   if(!wrap) return;
+  if(kind === 'warn' && typeof isDemo === 'function' && isDemo()
+     && /^(Kunde inte|Något gick fel)/.test(msg) && !DEMO_KEEP.has(msg)){
+    kind = ''; msg = 'Detta är en demo, inget sparas';
+  }
   const el = document.createElement('div');
   el.className = 'toast' + (kind ? ' ' + kind : '');
   el.textContent = msg;

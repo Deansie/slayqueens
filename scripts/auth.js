@@ -36,6 +36,8 @@ async function enterApp(){
     const av = $('meAvatar');
     if(av){ av.textContent = initialOf(me.name); av.style.background = profileColor(me); }
     $('meName').textContent = capital(me.name);
+    const demoBar = $('demoBanner');
+    if(demoBar) demoBar.hidden = !isDemo();
     await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes()]);
     renderHeader();
     renderCalendar();
@@ -54,4 +56,34 @@ async function enterApp(){
     console.warn('enterApp', err);
     toast('warn', 'Kunde inte ladda appen');
   }
+}
+
+// Read-only showcase: load bundled fixtures into state and render, without ever touching
+// Supabase. Writes still route through sb (unauthenticated → denied) and surface the demo
+// toast; nothing can change the real database.
+function enterDemo(){
+  session = null;
+  Object.assign(state, DEMO_DATA.state);
+  state.profilesById = {};
+  for(const p of state.profiles) state.profilesById[p.id] = p;
+  me = state.profilesById[DEMO_DATA.meId];
+  me.is_demo = true;
+  applyRole();
+  const av = $('meAvatar');
+  if(av){ av.textContent = initialOf(me.name); av.style.background = profileColor(me); }
+  $('meName').textContent = capital(me.name);
+  const demoBar = $('demoBanner');
+  if(demoBar) demoBar.hidden = false;
+  renderHeader();
+  renderCalendar();
+  renderTasks();
+  renderCredits();
+  renderSuggestions();
+  renderTodos();
+  renderMatsedel();
+  if(window.Budget){ Budget.init(); Budget.load(); }
+  initWeather();
+  showApp();
+  switchView('calendar');
+  $('loginEmail').value = ''; $('loginPassword').value = '';
 }

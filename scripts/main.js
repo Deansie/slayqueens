@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Login / logout
   $('loginForm').addEventListener('submit', handleLogin);
+  $('demoBtn').addEventListener('click', enterDemo);   // read-only showcase, no account needed
 
   // Profile menu (opens from the "me" pill)
   $('meChip').addEventListener('click', (e) => { e.stopPropagation(); toggleProfileMenu(); });
