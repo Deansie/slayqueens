@@ -120,12 +120,6 @@ body.dragging-active .budget .inp{ pointer-events:none; }
 }
 .budget .row-del:hover{ background:var(--danger-soft); color:var(--danger); }
 
-.budget .item-bar{ display:flex; align-items:center; gap:8px; margin:5px 4px 2px; }
-.budget .ib-track{ flex:1; height:5px; border-radius:var(--radius-pill); background:var(--track); overflow:hidden; }
-.budget .ib-fill{ height:100%; border-radius:var(--radius-pill); background:var(--accent); opacity:.5; transition:width .3s; }
-.budget .ib-fill.big{ opacity:.85; }
-.budget .ib-pct{ font-size:.72rem; color:var(--faint); min-width:34px; text-align:right; font-variant-numeric:tabular-nums; }
-
 .budget .empty{ padding:14px 6px; color:var(--faint); font-size:.9rem; }
 .budget .add-row{ padding:6px 0 10px; display:flex; gap:8px; flex-wrap:wrap; }
 .budget .name-cell{ display:flex; align-items:center; gap:2px; min-width:0; }
@@ -147,6 +141,6 @@ body.dragging-active .budget .inp{ pointer-events:none; }
 .budget.locked .add-row,
 .budget.locked .add-sub,
 .budget.locked .mchip.add,
-.budget.locked .mc-del{ display:none; }
+.budget.locked .mchip.active .mc-del{ display:none; }   /* out-specify .budget .mchip.active .mc-del */
 .budget.locked .row{ grid-template-columns:1fr 132px; }
 .budget.locked .inp{ pointer-events:none; background:transparent; border-color:transparent; cursor:default; }

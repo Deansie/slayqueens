@@ -18,7 +18,7 @@ window.Budget = (function(){
   // ---- state ----
   let bs = freshDoc();
   let inited = false;
-  let editMode = !matchMedia('(max-width:920px)').matches; // editable on desktop, locked on phones
+  let editMode = false; // start read-only (locked); press "Redigera" to edit
   let pendingFocus = null;
 
   function freshDoc(){
@@ -139,26 +139,19 @@ window.Budget = (function(){
 
   function renderRows(){
     const m = curMonth();
-    const totalExp = sumArr(m.expenses);
-    fillSection('incomeRows', m.income, 'income', 0);
-    fillSection('expenseRows', m.expenses, 'expense', totalExp);
+    fillSection('incomeRows', m.income, 'income');
+    fillSection('expenseRows', m.expenses, 'expense');
   }
-  function fillSection(containerId, list, type, totalExp){
+  function fillSection(containerId, list, type){
     const c = $(containerId); c.innerHTML = '';
     if(!list.length){
       const e = document.createElement('div'); e.className = 'empty';
       e.textContent = type === 'income' ? 'Inga intäkter ännu.' : 'Inga utgifter ännu.';
       c.appendChild(e); return;
     }
-    list.forEach(item => c.appendChild(createRow(type, item, list, totalExp)));
+    list.forEach(item => c.appendChild(createRow(type, item, list)));
   }
 
-  function setBar(fill, label, val, total){
-    const pct = total > 0 ? (val/total*100) : 0;
-    fill.style.width = pct.toFixed(1) + '%';
-    fill.classList.toggle('big', pct >= 33);
-    label.textContent = Math.round(pct) + '%';
-  }
   function maybeFocus(item, input){
     if(pendingFocus && item === pendingFocus){ pendingFocus = null; requestAnimationFrame(() => input.focus()); }
   }
@@ -170,11 +163,11 @@ window.Budget = (function(){
     pendingFocus = it; markDirty(); render();
   }
 
-  function createRow(type, item, arr, totalExp, isChild){
-    return isGroup(item) ? createGroup(type, item, arr, totalExp) : createLeaf(type, item, arr, totalExp, isChild);
+  function createRow(type, item, arr){
+    return isGroup(item) ? createGroup(type, item, arr) : createLeaf(type, item, arr);
   }
 
-  function createLeaf(type, item, arr, totalExp, isChild){
+  function createLeaf(type, item, arr, isChild){
     const wrap = document.createElement('div'); wrap.className = 'item';
     wrap._item = item; wrap._arr = arr; wrap._type = type;
     const row = document.createElement('div'); row.className = 'row';
@@ -212,11 +205,10 @@ window.Budget = (function(){
 
     row.append(handle, name, amtWrap, del);
     wrap.appendChild(row);
-    if(type === 'expense' && !isChild) wrap.appendChild(buildBar(wrap, itemAmount(item), totalExp));
     return wrap;
   }
 
-  function createGroup(type, item, arr, totalExp){
+  function createGroup(type, item, arr){
     if(!Array.isArray(item.children)) item.children = [];
     const wrap = document.createElement('div'); wrap.className = 'item group';
     if(item.collapsed) wrap.classList.add('collapsed');
@@ -259,10 +251,9 @@ window.Budget = (function(){
 
     row.append(handle, nameCell, total, del);
     wrap.appendChild(row);
-    if(type === 'expense') wrap.appendChild(buildBar(wrap, itemAmount(item), totalExp));
 
     const kids = document.createElement('div'); kids.className = 'group-children';
-    item.children.forEach(child => kids.appendChild(createLeaf(type, child, item.children, totalExp, true)));
+    item.children.forEach(child => kids.appendChild(createLeaf(type, child, item.children, true)));
     wrap.appendChild(kids);
 
     const addWrap = document.createElement('div'); addWrap.className = 'add-sub';
@@ -276,18 +267,6 @@ window.Budget = (function(){
     addWrap.appendChild(addBtn);
     wrap.appendChild(addWrap);
     return wrap;
-  }
-
-  function buildBar(wrap, val, total){
-    const bar = document.createElement('div'); bar.className = 'item-bar';
-    const track = document.createElement('div'); track.className = 'ib-track';
-    const fill = document.createElement('div'); fill.className = 'ib-fill';
-    track.appendChild(fill);
-    const pctLabel = document.createElement('span'); pctLabel.className = 'ib-pct';
-    bar.append(track, pctLabel);
-    wrap._barFill = fill; wrap._barPct = pctLabel;
-    setBar(fill, pctLabel, val, total);
-    return bar;
   }
 
   function attachDrag(handle, wrap){
@@ -332,14 +311,7 @@ window.Budget = (function(){
     document.querySelectorAll('#incomeRows .item.group, #expenseRows .item.group').forEach(g => {
       if(g._totalEl && g._item) g._totalEl.textContent = fmtMoney(itemAmount(g._item));
     });
-    renderTotals(); updateBars();
-  }
-  function updateBars(){
-    const total = sumArr(curMonth().expenses);
-    $('expenseRows').querySelectorAll('.item').forEach(el => {
-      if(!el._barFill || !el._barPct || !el._item) return;
-      setBar(el._barFill, el._barPct, itemAmount(el._item), total);
-    });
+    renderTotals();
   }
 
   function renderTotals(){

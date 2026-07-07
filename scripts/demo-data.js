@@ -12,6 +12,7 @@ const DEMO_DATA = (function(){
   const day  = (d) => { const x = new Date(now); x.setDate(now.getDate() + d); return `${x.getFullYear()}-${pad(x.getMonth()+1)}-${pad(x.getDate())}`; };
   const week = (i) => { const x = new Date(now); x.setDate(now.getDate() - ((now.getDay()+6)%7) + i); return `${x.getFullYear()}-${pad(x.getMonth()+1)}-${pad(x.getDate())}`; };
   const month = (o) => { const x = new Date(now.getFullYear(), now.getMonth() + o, 1); return `${x.getFullYear()}-${pad(x.getMonth()+1)}`; };
+  const grp = (name, children) => ({ name, collapsed:false, children });   // budget group (matches the app's model)
 
   const P = { johan:'demo-johan', anna:'demo-anna', nils:'demo-nils', ella:'demo-ella' };
 
@@ -102,16 +103,31 @@ const DEMO_DATA = (function(){
     months: {
       [month(0)]: {
         updatedAt: Date.now(),
-        income: [ { name:'Lön Johan', amount:24000 }, { name:'Lön Anna', amount:14000 }, { name:'Barnbidrag', amount:2500 } ],
+        income: [
+          grp('Arbetslön', [ { name:'Johan', amount:24000 }, { name:'Anna', amount:14000 } ]),
+          grp('Bidrag',    [ { name:'Barnbidrag', amount:2500 } ])
+        ],
         expenses: [
-          { name:'Lån', collapsed:false, children:[ { name:'Bolån', amount:9500 }, { name:'Billån', amount:3200 } ] },
-          { name:'Mat', amount:8000 }, { name:'El', amount:1650 }, { name:'Försäkringar', amount:2100 }, { name:'Sparande', amount:5000 }
+          grp('Boende',   [ { name:'Bredband', amount:449 }, { name:'El', amount:1650 }, { name:'Försäkringar', amount:2100 } ]),
+          grp('Levande',  [ { name:'Mat', amount:8000 }, { name:'Bränsle', amount:1800 }, { name:'Kläder', amount:900 } ]),
+          grp('Lån',      [ { name:'Bolån', amount:9500 }, { name:'Billån', amount:3200 } ]),
+          grp('Sparande', [ { name:'Buffert', amount:3000 }, { name:'Fonder', amount:2000 } ]),
+          grp('Övrigt',   [ { name:'Telefoner', amount:700 }, { name:'Månadspeng', amount:600 } ])
         ]
       },
       [month(-1)]: {
         updatedAt: Date.now() - 86400000 * 30,
-        income: [ { name:'Lön Johan', amount:24000 }, { name:'Lön Anna', amount:14000 } ],
-        expenses: [ { name:'Mat', amount:8600 }, { name:'El', amount:1900 }, { name:'Bolån', amount:9500 } ]
+        income: [
+          grp('Arbetslön', [ { name:'Johan', amount:24000 }, { name:'Anna', amount:14000 } ]),
+          grp('Bidrag',    [ { name:'Barnbidrag', amount:2500 } ])
+        ],
+        expenses: [
+          grp('Boende',   [ { name:'Bredband', amount:449 }, { name:'El', amount:1900 }, { name:'Försäkringar', amount:2100 } ]),
+          grp('Levande',  [ { name:'Mat', amount:9200 }, { name:'Bränsle', amount:2200 }, { name:'Kläder', amount:1400 } ]),
+          grp('Lån',      [ { name:'Bolån', amount:9500 }, { name:'Billån', amount:3200 } ]),
+          grp('Sparande', [ { name:'Buffert', amount:1000 } ]),
+          grp('Övrigt',   [ { name:'Telefoner', amount:700 }, { name:'Månadspeng', amount:600 }, { name:'Semester', amount:3500 } ])
+        ]
       }
     }
   };
