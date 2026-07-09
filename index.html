@@ -33,6 +33,7 @@
 <link rel="stylesheet" href="styles/components.css" />
 <link rel="stylesheet" href="styles/budget.css" />
 <link rel="stylesheet" href="styles/matsedel.css" />
+<link rel="stylesheet" href="styles/shopping.css" />
 <link rel="stylesheet" href="styles/overlays.css" />
 <link rel="stylesheet" href="styles/responsive.css" />
 </head>
@@ -97,10 +98,18 @@
       <div class="event-list" id="eventList"></div>
     </section>
 
-    <!-- Att göra (to-do list) -->
+    <!-- Att göra: a to-do list and an Inköp board, switched with a segmented control -->
     <section class="view" id="view-todos" hidden>
-      <h2 class="view-title serif">Att göra</h2>
-      <div id="todoList"></div>
+      <div class="seg" id="todoSeg" role="tablist" aria-label="Välj lista">
+        <button class="seg-btn active" data-todotab="todos" type="button" role="tab" aria-selected="true">Att göra</button>
+        <button class="seg-btn" data-todotab="shopping" type="button" role="tab" aria-selected="false">Inköp</button>
+      </div>
+      <div id="todoPane">
+        <div id="todoList"></div>
+      </div>
+      <div id="shoppingPane" hidden>
+        <div id="shoppingBoard"></div>
+      </div>
     </section>
 
     <!-- Jobb (chore board) -->
@@ -340,6 +349,44 @@
   </form>
 </dialog>
 
+<!-- Inköp: new category (parent) ------------------------------------- -->
+<dialog id="shopTopicDialog">
+  <form method="dialog" class="dlg-body" id="shopTopicForm">
+    <h3 id="shopTopicDlgTitle" class="serif">Ny kategori</h3>
+    <div class="dlg-field">
+      <label for="shopTopicTitle">Namn</label>
+      <input id="shopTopicTitle" type="text" required maxlength="40" placeholder="T.ex. Kläder" />
+    </div>
+    <div class="dlg-field">
+      <label for="shopTopicOwner">För vem</label>
+      <select id="shopTopicOwner"></select>
+    </div>
+    <div class="dlg-field">
+      <label>Ikon</label>
+      <div class="shop-emoji-picks" id="shopEmojiPicks"></div>
+    </div>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="shopTopicCancel" type="button">Avbryt</button>
+      <button class="btn" value="ok" id="shopTopicSave" type="submit">Spara</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Inköp: add item (anyone) ----------------------------------------- -->
+<dialog id="shopItemDialog">
+  <form method="dialog" class="dlg-body" id="shopItemForm">
+    <h3 id="shopItemDlgTitle" class="serif">Lägg till</h3>
+    <div class="dlg-field">
+      <label for="shopItemTitle">Vad saknas?</label>
+      <input id="shopItemTitle" type="text" required maxlength="80" placeholder="T.ex. Strumpor" />
+    </div>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="shopItemCancel" type="button">Avbryt</button>
+      <button class="btn" value="ok" id="shopItemSave" type="submit">Lägg till</button>
+    </div>
+  </form>
+</dialog>
+
 <!-- Budget: new month dialog ----------------------------------------- -->
 <dialog id="budgetMonthDialog">
   <form method="dialog" class="dlg-body" id="budgetMonthForm">
@@ -474,6 +521,7 @@
 <script src="scripts/credits.js"></script>
 <script src="scripts/suggestions.js"></script>
 <script src="scripts/todos.js"></script>
+<script src="scripts/shopping.js"></script>
 <script src="scripts/chat.js"></script>
 <script src="scripts/profile.js"></script>
 <script src="scripts/budget.js"></script>

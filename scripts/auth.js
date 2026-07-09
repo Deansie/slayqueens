@@ -38,13 +38,14 @@ async function enterApp(){
     $('meName').textContent = capital(me.name);
     const demoBar = $('demoBanner');
     if(demoBar) demoBar.hidden = !isDemo();
-    await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes()]);
+    await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems()]);
     renderHeader();
     renderCalendar();
     renderTasks();
     renderCredits();
     renderSuggestions();
     renderTodos();
+    renderShopping();
     renderMatsedel();
     if(isParent() && window.Budget){ Budget.init(); Budget.load(); }
     subscribeRealtime(onRealtime);
@@ -80,6 +81,7 @@ function enterDemo(){
   renderCredits();
   renderSuggestions();
   renderTodos();
+  renderShopping();
   renderMatsedel();
   if(window.Budget){ Budget.init(); Budget.load(); }
   initWeather();

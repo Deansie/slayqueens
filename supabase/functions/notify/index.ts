@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
     const actor = await verifyActor(req);
     if (!actor) return json({ error: 'unauthorized' }, 401);
 
-    const { type, taskId, eventId, payoutId, suggestionId, toProfile, context, parentId } = await req.json();
+    const { type, taskId, eventId, payoutId, suggestionId, toProfile, context, parentId, topicId } = await req.json();
     let recipients: string[] = [];
     let title = 'Slayqueens';
     let body = '';
@@ -189,6 +189,17 @@ Deno.serve(async (req) => {
       recipients = await ids();
       title = 'Nytt förslag 💡';
       body = sg ? `${who?.name ?? 'Någon'}: ${sg.title}` : 'Ett nytt förslag lades till';
+
+    } else if (type === 'shopping_topic') {
+      // A new Inköp category assigned to a specific person — tell them to fill in what they
+      // need. Shared categories (no owner) don't nag the whole family.
+      const { data: t } = await admin.from('shopping_topics')
+        .select('title, emoji, owner_id').eq('id', topicId).single();
+      if (t?.owner_id) {
+        recipients = [t.owner_id];
+        title = 'Ny inköpslista 🛒';
+        body = `${t.emoji ? t.emoji + ' ' : ''}${t.title} — lägg till vad du behöver`;
+      }
 
     } else {
       return json({ error: 'unknown type' }, 400);

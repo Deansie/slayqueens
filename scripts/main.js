@@ -2,17 +2,31 @@
 // Startup, event wiring, view routing, FAB, profile menu, and shared dialogs.
 
 let currentView = 'calendar';
+// "Att göra" holds two sub-views (the to-do list and the Inköp board); remember which one.
+let todoTab = 'todos';
+try{ if(localStorage.getItem('slayqueens_todotab') === 'shopping') todoTab = 'shopping'; }catch(e){}
 
-// Which "+" action the floating button performs per view (null = no button here).
+// Which "+" action the floating button performs per view (null = no button here). The
+// "todos" view is dynamic — its action depends on the sub-tab — so it's resolved in
+// currentFabAction() rather than listed here.
 const FAB_ACTIONS = {
   calendar:    { label: 'Ny händelse', run: () => openEventDialog(null) },
-  todos:       { label: 'Att göra',    run: () => openTodoDialog() },
   tasks:       { label: 'Nytt jobb',   run: () => openJobDialog(null), parentOnly: true },
   suggestions: { label: 'Ny idé',      run: () => openSuggestionDialog() },
   matsedel:    { label: 'Önska',       run: () => openWishDialog() },
   budget:      null,
   credits:     null
 };
+
+// The FAB action for the current view (and, on "Att göra", the current sub-tab).
+function currentFabAction(){
+  if(currentView === 'todos'){
+    return todoTab === 'shopping'
+      ? { label: 'Ny kategori', run: () => openTopicDialog(), parentOnly: true }
+      : { label: 'Att göra',    run: () => openTodoDialog() };
+  }
+  return FAB_ACTIONS[currentView] || null;
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   // Bottom nav
@@ -21,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Floating add button
   $('fab').addEventListener('click', () => {
-    const cfg = FAB_ACTIONS[currentView];
+    const cfg = currentFabAction();
     if(cfg && cfg.run) cfg.run();
   });
 
@@ -84,6 +98,19 @@ document.addEventListener('DOMContentLoaded', () => {
   $('todoList').addEventListener('click', onTodoListClick);
   $('todoForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveTodo(); });
   $('todoCancel').addEventListener('click', () => $('todoDialog').close());
+
+  // Inköp (shopping-needs board inside "Att göra")
+  $('shoppingBoard').addEventListener('click', onShoppingClick);
+  $('shopEmojiPicks').addEventListener('click', onEmojiPickClick);
+  $('shopTopicForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveTopic(); });
+  $('shopTopicCancel').addEventListener('click', () => $('shopTopicDialog').close());
+  $('shopItemForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveItem(); });
+  $('shopItemCancel').addEventListener('click', () => $('shopItemDialog').close());
+  $('todoSeg').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-todotab]');
+    if(b) setTodoTab(b.dataset.todotab);
+  });
+  setTodoTab(todoTab);   // reflect the remembered sub-tab (panes + active segment)
 
   // Matsedel
   $('matsedelBody').addEventListener('click', onMatsedelClick);
@@ -162,10 +189,25 @@ function switchView(view){
 function updateFab(){
   const fab = $('fab');
   if(!fab) return;
-  const cfg = FAB_ACTIONS[currentView];
+  const cfg = currentFabAction();
   const show = !!cfg && (!cfg.parentOnly || isParent());
   fab.hidden = !show;
   if(show) $('fabLabel').textContent = cfg.label;
+}
+
+// Switch the "Att göra" view between the to-do list and the Inköp board.
+function setTodoTab(tab){
+  todoTab = tab === 'shopping' ? 'shopping' : 'todos';
+  try{ localStorage.setItem('slayqueens_todotab', todoTab); }catch(e){}
+  document.querySelectorAll('#todoSeg .seg-btn').forEach(b => {
+    const on = b.dataset.todotab === todoTab;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  const tp = $('todoPane'), ip = $('shoppingPane');
+  if(tp) tp.hidden = todoTab !== 'todos';
+  if(ip) ip.hidden = todoTab !== 'shopping';
+  updateFab();
 }
 
 // ---- profile menu ----
@@ -238,11 +280,14 @@ async function onRealtime(payload){
   else if(t === 'meals') await loadMeals();
   else if(t === 'meal_dishes') await loadMealDishes();
   else if(t === 'meal_wishes') await loadMealWishes();
+  else if(t === 'shopping_topics') await loadShopTopics();
+  else if(t === 'shopping_items') await loadShopItems();
   renderCalendar();
   renderTasks();
   renderCredits();
   renderSuggestions();
   renderTodos();
+  renderShopping();
   renderMatsedel();
   renderChat();
   if($('mealDishDialog').open) renderMealDishList();
@@ -251,12 +296,13 @@ async function onRealtime(payload){
 // Full reload + repaint, used when the app resumes and may have missed live updates.
 async function resync(){
   if(!sb || !session) return;
-  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes()]);
+  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems()]);
   renderCalendar();
   renderTasks();
   renderCredits();
   renderSuggestions();
   renderTodos();
+  renderShopping();
   renderMatsedel();
   renderChat();
   if(isParent() && window.Budget) Budget.load();

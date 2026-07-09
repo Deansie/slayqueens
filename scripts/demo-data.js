@@ -97,6 +97,22 @@ const DEMO_DATA = (function(){
     { id:'w2', title:'Hamburgare', created_by:P.ella, created_at:at(-2) }
   ];
 
+  const shopTopics = [
+    { id:'st-klader-nils', title:'Kläder',    emoji:'👕', owner_id:P.nils, created_by:P.anna,  created_at:at(-7) },
+    { id:'st-klader-ella', title:'Kläder',    emoji:'👕', owner_id:P.ella, created_by:P.anna,  created_at:at(-6) },
+    { id:'st-skola-nils',  title:'Skolsaker', emoji:'🎒', owner_id:P.nils, created_by:P.johan, created_at:at(-5) },
+    { id:'st-hem',         title:'Hemmet',    emoji:'🏠', owner_id:null,   created_by:P.anna,  created_at:at(-4) }
+  ];
+  const shopItems = [
+    { id:'si1', topic_id:'st-klader-nils', title:'Strumpor',             bought:false, created_by:P.nils,  created_at:at(-3), bought_at:null,  bought_by:null },
+    { id:'si2', topic_id:'st-klader-ella', title:'Vinterjacka',          bought:false, created_by:P.ella,  created_at:at(-2), bought_at:null,  bought_by:null },
+    { id:'si3', topic_id:'st-klader-nils', title:'Regnbyxor',            bought:true,  created_by:P.anna,  created_at:at(-6), bought_at:at(-1), bought_by:P.anna },
+    { id:'si4', topic_id:'st-skola-nils',  title:'Suddgummi',            bought:false, created_by:P.nils,  created_at:at(-2), bought_at:null,  bought_by:null },
+    { id:'si5', topic_id:'st-skola-nils',  title:'Linjal och passare',   bought:false, created_by:P.nils,  created_at:at(-1), bought_at:null,  bought_by:null },
+    { id:'si6', topic_id:'st-hem',         title:'Diskmedel',            bought:false, created_by:P.johan, created_at:at(-1), bought_at:null,  bought_by:null },
+    { id:'si7', topic_id:'st-hem',         title:'Glödlampa till hallen',bought:false, created_by:P.anna,  created_at:at(-2), bought_at:null,  bought_by:null }
+  ];
+
   const budget = {
     currentMonth: month(0),
     deletedMonths: {},
@@ -134,7 +150,7 @@ const DEMO_DATA = (function(){
 
   return {
     meId: P.johan,
-    state: { profiles, events, tasks, balances, ledger, payouts, templates, suggestions, votes, messages, todos, meals, mealDishes, mealWishes },
+    state: { profiles, events, tasks, balances, ledger, payouts, templates, suggestions, votes, messages, todos, meals, mealDishes, mealWishes, shopTopics, shopItems },
     budget
   };
 })();

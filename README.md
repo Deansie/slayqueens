@@ -19,8 +19,13 @@ or all-day, carry an optional note, and be marked **private** (hidden from the o
 still visible to parents). An event happening right now shows a *Pågår* badge. The header
 shows today's date, a count of today's and tomorrow's events, and the local weather.
 
-**Att göra.** Shared and personal to-do lists: a family checklist anyone can tick off, plus
-each person's own private to-dos.
+**Att göra.** A to-do list and a shopping board, switched with a toggle at the top of the
+page. The **to-do list** has a shared family checklist anyone can tick off, plus each person's
+own private to-dos. **Inköp** is a shopping-needs board: parents create categories ("Kläder",
+"Skolsaker"…) and assign each to a person or leave it shared. A category is private to whoever
+it's for, so a kid only sees the categories assigned to them (plus shared ones) and fills in
+what they need there; parents see everyone's — handy with several kids. Parents tick things off
+as they shop.
 
 **Jobb.** The chore board. Parents post jobs with a reward in kronor (and can save recurring
 ones as reusable templates). A kid picks a job, does it, and marks it done; a parent then
@@ -48,7 +53,7 @@ image attachments. The calendar shows a banner pointing to the newest comment so
 message never gets missed.
 
 **Notifications, weather, and themes.** Opt-in push notifications for new jobs, approvals,
-payouts, comments, and more. A weather widget whose location each device chooses. A light or
+payouts, comments, a new shopping list assigned to you, and more. A weather widget whose location each device chooses. A light or
 dark theme, and a personal colour per person shown as an avatar throughout the app.
 
 ## How it's built
@@ -104,6 +109,7 @@ In the **SQL editor**, run:
    2026-07-05_unified_chat_images.sql        (also creates the "chat" Storage bucket)
    2026-07-05b_budget.sql
    2026-07-06_matsedel.sql
+   2026-07-09_shopping.sql
    ```
 
    If the SQL editor refuses to create the Storage policies in the chat migration, create a
@@ -235,6 +241,7 @@ scripts/              Plain JS, loaded in order (classic scripts, not modules)
   credits.js          Poäng (balances, ledger, payouts)
   suggestions.js      Idéer (voting)
   todos.js            Att göra
+  shopping.js         Inköp (shopping-needs board)
   chat.js             Comment threads + image attachments
   profile.js          Personal colour + push toggle
   budget.js           Budget (parents only), Supabase-backed
