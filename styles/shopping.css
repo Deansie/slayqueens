@@ -17,10 +17,10 @@
   font-family:var(--serif); font-size:1.22rem; font-weight:600;
   letter-spacing:-.01em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
-.shop-del-topic{ margin-left:auto; }   /* push the delete button to the far right */
+.shop-topic-tools{ margin-left:auto; display:flex; align-items:center; gap:2px; flex:0 0 auto; }
 
 .shop-items{ display:flex; flex-direction:column; }
-.shop-empty{ color:var(--muted); font-size:.86rem; padding:5px 2px 8px; font-style:italic; }
+.shop-hint{ margin:-1px 0 10px; color:var(--muted); font-size:.82rem; line-height:1.4; }
 
 .shop-item{
   display:flex; align-items:center; gap:11px;

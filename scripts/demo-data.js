@@ -72,7 +72,9 @@ const DEMO_DATA = (function(){
   const messages = [
     { id:'m1', context:'event', parent_id:'ev-danmark', author_id:P.johan, body:'Bokade färjan till 08:00.', image_path:null, created_at:at(-1,20,0) },
     { id:'m2', context:'event', parent_id:'ev-danmark', author_id:P.anna,  body:'Kom ihåg passen och lite dansk valuta!', image_path:null, created_at:at(0,7,30) },
-    { id:'m3', context:'task',  parent_id:'t-ogras',    author_id:P.ella,  body:'Klart nu, får jag godkänt?', image_path:null, created_at:at(0,9,0) }
+    { id:'m3', context:'task',  parent_id:'t-ogras',    author_id:P.ella,  body:'Klart nu, får jag godkänt?', image_path:null, created_at:at(0,9,0) },
+    { id:'m4', context:'shopping', parent_id:'st-klader-nils', author_id:P.anna, body:'Vilken skostorlek har du nu?', image_path:null, created_at:at(-1,18,0) },
+    { id:'m5', context:'shopping', parent_id:'st-klader-nils', author_id:P.nils, body:'38 känns lite små, testa 39.', image_path:null, created_at:at(-1,18,25) }
   ];
 
   const todos = [

@@ -1,6 +1,7 @@
 'use strict';
-// One comment thread system reused for calendar events, jobs and suggestions. A thread is
-// identified by (context, parentId); messages live in the unified `messages` table and
+// One comment thread system reused for calendar events, jobs, suggestions and shopping
+// categories. A thread is identified by (context, parentId); messages live in the unified
+// `messages` table and
 // inherit the parent's visibility via RLS (private-event threads stay hidden). Optional
 // image attachments are downscaled hard in the browser and stored in the 'chat' Storage
 // bucket — only a short path is kept on the row, so the DB and realtime stay lean.
@@ -8,7 +9,7 @@
 const CHAT_IMG_MAX = 800;        // longest side in px after downscale
 const CHAT_IMG_QUALITY = 0.6;    // JPEG quality
 
-let chatContext = null;          // 'event' | 'task' | 'suggestion'
+let chatContext = null;          // 'event' | 'task' | 'suggestion' | 'shopping'
 let chatParentId = null;
 let chatImageBlob = null;        // pending (already downscaled) attachment, if any
 let chatAtBottom = true;         // true while the thread is pinned to the newest message
@@ -43,6 +44,10 @@ function onChatOpenClick(e){
 }
 
 function chatTitleFor(context, parentId){
+  if(context === 'shopping'){
+    const t = (state.shopTopics || []).find(x => x.id === parentId);
+    return t ? `${t.emoji ? t.emoji + ' ' : ''}${t.title}` : 'Kommentarer';
+  }
   const row = context === 'event'      ? (state.events || []).find(e => e.id === parentId)
             : context === 'task'       ? (state.tasks || []).find(t => t.id === parentId)
             : context === 'suggestion' ? (state.suggestions || []).find(s => s.id === parentId)
@@ -118,6 +123,7 @@ function renderChatCounts(){
   renderCalendar();
   renderTasks();
   renderSuggestions();
+  renderShopping();
 }
 
 async function sendChatMessage(){
@@ -235,6 +241,7 @@ function threadExists(context, parentId){
   return context === 'event'      ? (state.events || []).some(e => e.id === parentId)
        : context === 'task'       ? (state.tasks || []).some(t => t.id === parentId)
        : context === 'suggestion' ? (state.suggestions || []).some(s => s.id === parentId)
+       : context === 'shopping'   ? (state.shopTopics || []).some(t => t.id === parentId)
        : false;
 }
 // newest message from someone else, on a thread that still exists (and is visible to me)

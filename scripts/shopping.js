@@ -36,8 +36,7 @@ function topicCard(t){
   // still-needed first (oldest first), then bought (most recently bought first, dimmed)
   const open   = items.filter(i => !i.bought).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
   const bought = items.filter(i =>  i.bought).sort((a, b) => new Date(b.bought_at || b.created_at) - new Date(a.bought_at || a.created_at));
-  const rows = open.concat(bought).map(itemRow).join('')
-    || '<div class="shop-empty">Inget tillagt än.</div>';
+  const rows = open.concat(bought).map(itemRow).join('');
   const owner = t.owner_id ? state.profilesById[t.owner_id] : null;
   // parents see whose category it is (to manage assignments); a kid only ever sees their own +
   // shared categories, so a self-label would just be noise — show the chip to parents only.
@@ -49,8 +48,12 @@ function topicCard(t){
         <span class="shop-emoji" aria-hidden="true">${escapeHtml(t.emoji || '🛒')}</span>
         <h3 class="shop-topic-name">${escapeHtml(t.title)}</h3>
         ${ownerChip}
-        ${parent ? `<button class="icon-btn shop-del-topic" data-shop="deltopic" data-topic="${t.id}" aria-label="Ta bort kategori">🗑</button>` : ''}
+        <div class="shop-topic-tools">
+          ${chatButton('shopping', t.id)}
+          ${parent ? `<button class="icon-btn" data-shop="deltopic" data-topic="${t.id}" aria-label="Ta bort kategori">🗑</button>` : ''}
+        </div>
       </header>
+      ${t.owner_id ? '<p class="shop-hint">Lägg till det du saknar.</p>' : ''}
       <div class="shop-items">${rows}</div>
       <button class="shop-add" data-shop="additem" data-topic="${t.id}" type="button"><span aria-hidden="true">＋</span> Lägg till</button>
     </section>`;

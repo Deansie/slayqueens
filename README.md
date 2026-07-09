@@ -48,9 +48,9 @@ a day, and a wish clears itself once it's on the menu so they don't pile up.
 group related items (e.g. all loans under "Lån"), and see totals, a savings rate, and where
 the money goes. Kids never see it.
 
-**Comments and photos.** Events, jobs, and ideas each have a comment thread, with optional
-image attachments. The calendar shows a banner pointing to the newest comment so a new
-message never gets missed.
+**Comments and photos.** Events, jobs, ideas, and shopping categories each have a comment
+thread, with optional image attachments (handy for sorting out sizes and specifics). The
+calendar shows a banner pointing to the newest comment so a new message never gets missed.
 
 **Notifications, weather, and themes.** Opt-in push notifications for new jobs, approvals,
 payouts, comments, a new shopping list assigned to you, and more. A weather widget whose location each device chooses. A light or

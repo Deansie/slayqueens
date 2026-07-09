@@ -172,6 +172,14 @@ Deno.serve(async (req) => {
           recipients = [...set];
           threadTitle = sg.title;
         }
+      } else if (context === 'shopping') {
+        const { data: tp } = await admin.from('shopping_topics').select('title, emoji, owner_id').eq('id', parentId).single();
+        if (tp) {
+          if (tp.owner_id) set.add(tp.owner_id);                 // the kid the category is for
+          for (const pid of await ids('parent')) set.add(pid);   // parents field questions (sizes, etc.)
+          recipients = [...set];
+          threadTitle = `${tp.emoji ? tp.emoji + ' ' : ''}${tp.title}`;
+        }
       }
 
       const { data: msgs } = await admin.from('messages')

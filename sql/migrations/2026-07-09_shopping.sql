@@ -80,6 +80,24 @@ create policy "tick items in visible topics" on public.shopping_items
 create policy "delete own shopping item or parent" on public.shopping_items
   for delete using (created_by = auth.uid() or public.is_parent());
 
+-- Category chat: reuse the unified messages system with a new 'shopping' context whose thread
+-- visibility follows the category (can_see_shopping_topic). The messages table and the
+-- can_see_message_parent helper come from 2026-07-05_unified_chat_images.sql; extend both.
+alter table public.messages drop constraint if exists messages_context_check;
+alter table public.messages add constraint messages_context_check
+  check (context in ('event','task','suggestion','shopping'));
+
+create or replace function public.can_see_message_parent(p_context text, p_parent uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+  select auth.uid() is not null and case
+    when p_context = 'event'      then public.can_see_event(p_parent)
+    when p_context = 'task'       then exists (select 1 from public.tasks where id = p_parent)
+    when p_context = 'suggestion' then exists (select 1 from public.event_suggestions where id = p_parent)
+    when p_context = 'shopping'   then public.can_see_shopping_topic(p_parent)
+    else false
+  end;
+$$;
+
 -- Live sync for everyone (RLS still applies to what each person receives).
 do $$ begin
   if not exists (select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='shopping_topics') then
