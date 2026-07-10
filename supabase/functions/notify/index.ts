@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
     const actor = await verifyActor(req);
     if (!actor) return json({ error: 'unauthorized' }, 401);
 
-    const { type, taskId, eventId, payoutId, suggestionId, toProfile, context, parentId, topicId, requestId, amount, reason, redemptionId } = await req.json();
+    const { type, taskId, eventId, payoutId, suggestionId, toProfile, context, parentId, topicId, requestId, amount, reason, redemptionId, goalId } = await req.json();
     let recipients: string[] = [];
     let title = 'Slayqueens';
     let body = '';
@@ -270,6 +270,15 @@ Deno.serve(async (req) => {
         : { data: null };
       title = 'Belöning klar! 🎁';
       body = rw?.title ? `Du har löst in ${rw.emoji ? rw.emoji + ' ' : ''}${rw.title}` : 'Din belöning är klar';
+
+    } else if (type === 'goal_new' || type === 'goal_reached' || type === 'goal_fulfilled') {
+      // Family goals concern everyone — notify the whole family.
+      const { data: g } = await admin.from('point_goals').select('title, emoji').eq('id', goalId).single();
+      const label = g ? `${g.emoji ? g.emoji + ' ' : ''}${g.title}` : 'ett familjemål';
+      recipients = await ids();
+      if (type === 'goal_new') { title = 'Nytt familjemål 🎯'; body = `${label} — hjälps åt att spara ihop!`; }
+      else if (type === 'goal_reached') { title = 'Familjemål fullt! 🎉'; body = `${label} är ihopsparat!`; }
+      else { title = 'Ni löste in målet! 🎈'; body = label; }
 
     } else {
       return json({ error: 'unknown type' }, 400);

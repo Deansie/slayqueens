@@ -48,7 +48,14 @@ the whole tier, and the kid picks any reward inside it (glass, extra skärmtid, 
 playground…). Redeeming spends that many stars — the "cash in at Små now, or keep saving for a
 bigger tier" trade-off — and a lower tier stays open whenever the balance is at/above its
 threshold. Redeeming reserves the streck; a parent then marks it handed over or cancels it
-(refunding). Rewards can be flagged *delbar* for the planned Familjemål pooling.
+(refunding).
+
+**Familjemål.** Pooling (also in Belöningar). A parent turns a *delbar* reward into a shared family
+goal — the target is that reward's star cost — and the kids chip streck in together toward it, so
+several of them can join their points into something bigger (a trip to the tivoli, say). A progress
+bar and contributor chips show how far along it is; a kid can take their streck back out any time
+until it's full, and once the pot is complete a parent cashes it in (everyone gets the reward) or
+cancels it (everyone is refunded).
 
 **Poäng.** Pocket-money accounts. Every approved job adds to the kid's balance. Kids see their
 balance and history and can request a payout; parents see everyone's balances, approve

@@ -7,6 +7,7 @@
 const REWARD_EMOJI = ['🎁','🍦','🍭','🎮','🍿','🎬','🧸','🎡','🎢','🏊','🎨','⚽','🍔','🍕','🎂','📚','🛝','🐾'];
 let editingTier = null, editingReward = null;
 let tierEmoji = '🎁', rewardEmoji = '🎁';
+let contributingGoal = null;
 
 function bySort(a, b){ return (a.sort - b.sort) || (new Date(a.created_at) - new Date(b.created_at)); }
 function rewardById(id){ return (state.rewards || []).find(r => r.id === id); }
@@ -23,7 +24,7 @@ function rewardsKidHtml(){
   const pending = mine.length
     ? `<div class="section-title">Väntar på förälder</div><div class="redeem-list">${mine.map(kidRedeemRow).join('')}</div>`
     : '';
-  return `${markBalanceCard(me.id)}${pending}${shopHtml(false)}`;
+  return `${markBalanceCard(me.id)}${pending}${goalsHtml()}${shopHtml(false)}`;
 }
 function kidRedeemRow(r){
   const rw = rewardById(r.reward_id);
@@ -40,7 +41,58 @@ function rewardsParentHtml(){
   const queue = pending.length
     ? `<div class="section-title">Att lösa in</div><div class="redeem-list">${pending.map(parentRedeemRow).join('')}</div>`
     : '';
-  return `${queue}${shopHtml(true)}`;
+  return `${queue}${goalsHtml()}${shopHtml(true)}`;
+}
+
+// ---- Familjemål (pooled goals) ----
+function activeGoals(){ return (state.goals || []).filter(g => g.status === 'active' || g.status === 'reached'); }
+function goalProgress(id){ return (state.contributions || []).filter(c => c.goal_id === id).reduce((s, c) => s + c.marks, 0); }
+function myContribution(id){ return (state.contributions || []).filter(c => c.goal_id === id && c.profile_id === me.id).reduce((s, c) => s + c.marks, 0); }
+function goalForReward(rewardId){ return (state.goals || []).find(g => g.reward_id === rewardId && (g.status === 'active' || g.status === 'reached')); }
+
+function goalsHtml(){
+  const goals = activeGoals();
+  if(!goals.length) return '';
+  return `<div class="section-title">Familjemål</div><div class="goal-list">${goals.map(goalCard).join('')}</div>`;
+}
+function goalCard(g){
+  const prog = goalProgress(g.id);
+  const pct = Math.min(100, Math.round(prog / g.target_marks * 100));
+  const reached = prog >= g.target_marks;
+  let actions;
+  if(isParent()){
+    actions = `${reached ? `<button class="btn sm" data-goal="fulfill" data-id="${g.id}" type="button">Lös in</button>` : ''}`
+      + `<button class="btn ghost sm" data-goal="cancel" data-id="${g.id}" type="button">Avbryt</button>`;
+  } else {
+    const canGive = !reached && starsOf(markBalanceOf(me.id)) > 0;
+    actions = `${canGive ? `<button class="btn sm" data-goal="contribute" data-id="${g.id}" type="button">Bidra</button>` : ''}`
+      + `${myContribution(g.id) > 0 ? `<button class="btn ghost sm" data-goal="withdraw" data-id="${g.id}" type="button">Ta tillbaka</button>` : ''}`;
+  }
+  return `<div class="goal-card${reached ? ' reached' : ''}">
+      <div class="goal-head">
+        <span class="goal-emoji" aria-hidden="true">${escapeHtml(g.emoji || '🎯')}</span>
+        <span class="goal-title serif">${escapeHtml(g.title)}</span>
+        ${reached ? '<span class="goal-badge">Fullt! 🎉</span>' : ''}
+      </div>
+      <div class="goal-bar"><div class="goal-fill" style="width:${pct}%"></div></div>
+      <div class="goal-meta">
+        <span class="goal-count">${Math.round(prog / 10)} / ${Math.round(g.target_marks / 10)} ⭐</span>
+        ${contributorChips(g.id)}
+      </div>
+      ${actions ? `<div class="goal-actions">${actions}</div>` : ''}
+    </div>`;
+}
+function contributorChips(id){
+  const byProfile = {};
+  for(const c of (state.contributions || []).filter(x => x.goal_id === id)){
+    byProfile[c.profile_id] = (byProfile[c.profile_id] || 0) + c.marks;
+  }
+  const ids = Object.keys(byProfile);
+  if(!ids.length) return '';
+  return '<span class="goal-contribs">' + ids.map(pid => {
+    const p = state.profilesById[pid];
+    return `<span class="goal-contrib">${avatarHtml(profileColor(p), p ? p.name : '?')}<span class="gc-n">${Math.round(byProfile[pid] / 10)} ⭐</span></span>`;
+  }).join('') + '</span>';
 }
 function parentRedeemRow(r){
   const kid = state.profilesById[r.profile_id];
@@ -103,7 +155,12 @@ function rewardCard(r, manage, unlocked){
   const pool = r.poolable ? '<span class="pool-badge">delbar</span>' : '';
   let action = '';
   if(manage){
+    // a poolable reward with no active goal yet can be turned into a Familjemål
+    const startGoal = (r.poolable && !goalForReward(r.id))
+      ? `<button class="btn ghost sm" data-reward="startgoal" data-id="${r.id}" type="button">Starta mål</button>`
+      : '';
     action = `<span class="reward-tools">
+        ${startGoal}
         <button class="icon-btn" data-reward="editreward" data-id="${r.id}" aria-label="Redigera">✎</button>
         <button class="icon-btn" data-reward="delreward" data-id="${r.id}" aria-label="Ta bort">🗑</button>
       </span>`;
@@ -124,6 +181,8 @@ function tierStarsOf(rewardId){
 
 // ---- events ----
 function onRewardsClick(e){
+  const g = e.target.closest('[data-goal]');
+  if(g){ onGoalAction(g.dataset.goal, g.dataset.id); return; }
   const b = e.target.closest('[data-reward]');
   if(!b) return;
   const id = b.dataset.id, tier = b.dataset.tier;
@@ -137,7 +196,14 @@ function onRewardsClick(e){
     case 'newreward':  openRewardDialog(null, tier); break;
     case 'editreward': openRewardDialog(rewardById(id), null); break;
     case 'delreward':  deleteReward(rewardById(id)); break;
+    case 'startgoal':  createGoal(id); break;
   }
+}
+function onGoalAction(act, id){
+  if(act === 'contribute')   openContributeDialog(id);
+  else if(act === 'withdraw') withdrawGoal(id);
+  else if(act === 'fulfill')  fulfillGoal(id);
+  else if(act === 'cancel')   cancelGoal(id);
 }
 
 // ---- kid: redeem / cancel ----
@@ -180,6 +246,83 @@ async function fulfillRedemption(id){
     await loadRedemptions();
     renderRewards();
   }catch(err){ console.warn('fulfillRedemption', err); toast('warn', 'Kunde inte lösa in'); }
+}
+
+// ---- Familjemål (pooled goals) actions ----
+async function createGoal(rewardId){
+  try{
+    const { error } = await sb.rpc('create_goal', { p_reward: rewardId });
+    if(error) throw error;
+    toast('ok', 'Familjemål startat 🎯');
+    await loadGoals();
+    const g = goalForReward(rewardId);
+    if(g) notify('goal_new', { goalId: g.id });
+    renderRewards();
+  }catch(err){ console.warn('createGoal', err); toast('warn', 'Kunde inte starta mål'); }
+}
+
+function openContributeDialog(goalId){
+  const g = (state.goals || []).find(x => x.id === goalId);
+  if(!g) return;
+  contributingGoal = goalId;
+  const remainingStars = Math.max(0, Math.ceil((g.target_marks - goalProgress(goalId)) / 10));
+  const myStars = starsOf(markBalanceOf(me.id));
+  const maxStars = Math.max(1, Math.min(myStars, remainingStars));
+  $('goalDlgTitle').textContent = 'Bidra: ' + g.title;
+  $('goalDlgSub').textContent = `Du har ${myStars} ⭐. Målet behöver ${remainingStars} ⭐ till.`;
+  const inp = $('goalStars');
+  inp.max = maxStars;
+  inp.value = 1;
+  $('goalDialog').showModal();
+}
+async function saveContribution(){
+  if(!contributingGoal) return;
+  const stars = Math.round(Number($('goalStars').value) || 0);
+  if(stars <= 0){ toast('warn', 'Ange hur många stjärnor'); return; }
+  const goalId = contributingGoal;
+  try{
+    const { error } = await sb.rpc('contribute_goal', { p_goal: goalId, p_marks: stars * 10 });
+    if(error) throw error;
+    toast('ok', `Bidrog med ${stars} ⭐`);
+    await Promise.all([loadGoals(), loadContributions(), loadMarkLedger(), loadMarkBalances()]);
+    const g = (state.goals || []).find(x => x.id === goalId);
+    if(g && g.status === 'reached') notify('goal_reached', { goalId: g.id });
+    renderRewards();
+    renderRoutines();
+  }catch(err){ console.warn('saveContribution', err); toast('warn', 'Kunde inte bidra'); }
+}
+async function withdrawGoal(id){
+  if(!(await confirmDialog('Ta tillbaka dina streck från målet?', 'Ta tillbaka'))) return;
+  try{
+    const { error } = await sb.rpc('withdraw_goal', { p_goal: id });
+    if(error) throw error;
+    toast('ok', 'Återtaget');
+    await Promise.all([loadGoals(), loadContributions(), loadMarkLedger(), loadMarkBalances()]);
+    renderRewards();
+    renderRoutines();
+  }catch(err){ console.warn('withdrawGoal', err); toast('warn', 'Kunde inte ta tillbaka'); }
+}
+async function fulfillGoal(id){
+  if(!(await confirmDialog('Lös in familjemålet? Hela familjen får belöningen.', 'Lös in'))) return;
+  try{
+    const { error } = await sb.rpc('fulfill_goal', { p_goal: id });
+    if(error) throw error;
+    toast('ok', 'Inlöst 🎉');
+    notify('goal_fulfilled', { goalId: id });
+    await loadGoals();
+    renderRewards();
+  }catch(err){ console.warn('fulfillGoal', err); toast('warn', 'Kunde inte lösa in'); }
+}
+async function cancelGoal(id){
+  if(!(await confirmDialog('Avbryta målet? Alla får tillbaka sina streck.', 'Avbryt mål'))) return;
+  try{
+    const { error } = await sb.rpc('cancel_goal', { p_goal: id });
+    if(error) throw error;
+    toast('ok', 'Avbrutet — streck återbetalda');
+    await Promise.all([loadGoals(), loadContributions(), loadMarkLedger(), loadMarkBalances()]);
+    renderRewards();
+    renderRoutines();
+  }catch(err){ console.warn('cancelGoal', err); toast('warn', 'Kunde inte avbryta'); }
 }
 
 // ---- parent: tiers ----

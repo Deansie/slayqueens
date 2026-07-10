@@ -38,7 +38,7 @@ async function enterApp(){
     $('meName').textContent = capital(me.name);
     const demoBar = $('demoBanner');
     if(demoBar) demoBar.hidden = !isDemo();
-    await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions()]);
+    await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions(), loadGoals(), loadContributions()]);
     renderHeader();
     renderCalendar();
     renderTasks();

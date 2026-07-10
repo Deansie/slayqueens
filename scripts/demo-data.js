@@ -156,6 +156,14 @@ const DEMO_DATA = (function(){
   const redemptions = [
     { id:'rd1', profile_id:P.nils, reward_id:'rw-skarm', cost_marks:10, status:'pending', created_at:at(0) }
   ];
+  // A family goal the kids are pooling streck toward (Tivoli, 10 ⭐ = 100 streck).
+  const goals = [
+    { id:'g-tivoli', reward_id:'rw-tivoli', title:'Tivoli med familjen', emoji:'🎡', target_marks:100, status:'active', created_by:P.johan, created_at:at(-4) }
+  ];
+  const contributions = [
+    { id:'gc1', goal_id:'g-tivoli', profile_id:P.nils, marks:20, created_at:at(-3) },
+    { id:'gc2', goal_id:'g-tivoli', profile_id:P.ella, marks:10, created_at:at(-2) }
+  ];
 
   const budget = {
     currentMonth: month(0),
@@ -194,7 +202,7 @@ const DEMO_DATA = (function(){
 
   return {
     meId: P.johan,
-    state: { profiles, events, tasks, balances, ledger, payouts, templates, suggestions, votes, messages, todos, meals, mealDishes, mealWishes, shopTopics, shopItems, behaviors, markLedger, markBalances, markRequests, rewardTiers, rewards, redemptions },
+    state: { profiles, events, tasks, balances, ledger, payouts, templates, suggestions, votes, messages, todos, meals, mealDishes, mealWishes, shopTopics, shopItems, behaviors, markLedger, markBalances, markRequests, rewardTiers, rewards, redemptions, goals, contributions },
     budget
   };
 })();

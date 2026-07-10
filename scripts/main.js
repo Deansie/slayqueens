@@ -106,6 +106,8 @@ document.addEventListener('DOMContentLoaded', () => {
   $('rewardForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveReward(); });
   $('rewardCancel').addEventListener('click', () => $('rewardDialog').close());
   $('rewardEmojiPicks').addEventListener('click', onRewardEmojiClick);
+  $('goalForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveContribution(); });
+  $('goalCancel').addEventListener('click', () => $('goalDialog').close());
 
   // Credits
   $('creditsBody').addEventListener('click', onCreditsClick);
@@ -333,6 +335,8 @@ async function onRealtime(payload){
   else if(t === 'reward_tiers') await loadRewardTiers();
   else if(t === 'rewards') await loadRewards();
   else if(t === 'reward_redemptions') await loadRedemptions();
+  else if(t === 'point_goals') await loadGoals();
+  else if(t === 'goal_contributions') await loadContributions();
   renderCalendar();
   renderTasks();
   renderRoutines();
@@ -349,7 +353,7 @@ async function onRealtime(payload){
 // Full reload + repaint, used when the app resumes and may have missed live updates.
 async function resync(){
   if(!sb || !session) return;
-  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions()]);
+  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions(), loadGoals(), loadContributions()]);
   renderCalendar();
   renderTasks();
   renderRoutines();

@@ -393,6 +393,22 @@
   </form>
 </dialog>
 
+<!-- Familjemål: contribute (kid) ------------------------------------ -->
+<dialog id="goalDialog">
+  <form method="dialog" class="dlg-body" id="goalForm">
+    <h3 id="goalDlgTitle" class="serif">Bidra till målet</h3>
+    <p id="goalDlgSub" class="dlg-note"></p>
+    <div class="dlg-field">
+      <label for="goalStars">Stjärnor att bidra med ⭐</label>
+      <input id="goalStars" type="number" min="1" step="1" value="1" required />
+    </div>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="goalCancel" type="button">Avbryt</button>
+      <button class="btn" value="ok" id="goalSave" type="submit">Bidra</button>
+    </div>
+  </form>
+</dialog>
+
 <!-- Adjust dialog ---------------------------------------------------- -->
 <dialog id="adjustDialog">
   <form method="dialog" class="dlg-body" id="adjustForm">
