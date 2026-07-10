@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
     const actor = await verifyActor(req);
     if (!actor) return json({ error: 'unauthorized' }, 401);
 
-    const { type, taskId, eventId, payoutId, suggestionId, toProfile, context, parentId, topicId } = await req.json();
+    const { type, taskId, eventId, payoutId, suggestionId, toProfile, context, parentId, topicId, requestId, amount, reason } = await req.json();
     let recipients: string[] = [];
     let title = 'Slayqueens';
     let body = '';
@@ -208,6 +208,46 @@ Deno.serve(async (req) => {
         title = 'Ny inköpslista 🛒';
         body = `${t.emoji ? t.emoji + ' ' : ''}${t.title} — lägg till vad du behöver`;
       }
+
+    } else if (type === 'mark_request') {
+      // A kid ticked a routine and wants streck approved.
+      const { data: r } = await admin.from('mark_requests')
+        .select('profile_id, amount, behavior_id').eq('id', requestId).single();
+      const who = await profile(r?.profile_id);
+      const { data: b } = r?.behavior_id
+        ? await admin.from('behaviors').select('title').eq('id', r.behavior_id).single()
+        : { data: null };
+      recipients = await ids('parent');
+      title = 'Streck att godkänna ⭐';
+      body = r ? `${who?.name ?? 'Ett barn'} vill ha ${r.amount} streck · ${b?.title ?? 'Rutin'}` : 'En rutin väntar på godkännande';
+
+    } else if (type === 'mark_approved') {
+      const { data: r } = await admin.from('mark_requests')
+        .select('profile_id, amount, behavior_id').eq('id', requestId).single();
+      if (r?.profile_id) recipients = [r.profile_id];
+      const { data: b } = r?.behavior_id
+        ? await admin.from('behaviors').select('title').eq('id', r.behavior_id).single()
+        : { data: null };
+      title = 'Godkänt! ⭐';
+      body = r ? `Du fick ${r.amount} streck · ${b?.title ?? 'Rutin'}` : 'Din rutin godkändes';
+
+    } else if (type === 'mark_rejected') {
+      const { data: r } = await admin.from('mark_requests')
+        .select('profile_id, behavior_id').eq('id', requestId).single();
+      if (r?.profile_id) recipients = [r.profile_id];
+      const { data: b } = r?.behavior_id
+        ? await admin.from('behaviors').select('title').eq('id', r.behavior_id).single()
+        : { data: null };
+      title = 'Streck nekat';
+      body = b?.title ? `"${b.title}" godkändes inte den här gången` : 'Din rutin godkändes inte';
+
+    } else if (type === 'mark_bonus') {
+      // A parent awarded bonus streck directly.
+      const me = await profile(actor);
+      if (me?.role !== 'parent') return json({ error: 'forbidden' }, 403);
+      if (toProfile) recipients = [toProfile];
+      title = 'Du fick streck! 🌟';
+      body = `+${amount} streck${reason ? ' · ' + reason : ''}`;
 
     } else {
       return json({ error: 'unknown type' }, 400);

@@ -9,6 +9,31 @@ const MONTHS_LONG = ['januari','februari','mars','april','maj','juni','juli','au
 function pad(n){ return String(n).padStart(2, '0'); }
 function capital(s){ return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
 function fmtMoney(v){ return (Math.round(Number(v) || 0)).toLocaleString('sv-SE') + ' kr'; }
+
+// ---- Marks ("streck") & stars ("stjärnor") for the Rutiner reward system ----
+const MARKS_PER_STAR = 10;                                    // 10 streck = 1 stjärna
+function starsOf(marks){ return Math.floor((Number(marks) || 0) / MARKS_PER_STAR); }
+// A handful of stars as emoji; collapses to "⭐ ×N" once there are too many to skim.
+function starsDisplay(stars){
+  if(stars <= 0) return '';
+  return stars <= 6 ? '⭐'.repeat(stars) : '⭐ ×' + stars;
+}
+// Render a count as classic five-bar tally marks: four uprights + a diagonal for the fifth,
+// grouped in fives (as on a fridge chart). Callers pass small counts (progress toward the next
+// star, 0–10), so the SVG groups stay skimmable.
+function tallyMarks(n){
+  n = Math.max(0, Math.floor(Number(n) || 0));
+  if(!n) return '<span class="tally empty" aria-hidden="true"></span>';
+  const groups = [];
+  for(let left = n; left > 0; left -= 5) groups.push(Math.min(5, left));
+  const group = k => {
+    const bars = [];
+    for(let i = 0; i < Math.min(4, k); i++){ const x = 4 + i * 6; bars.push(`<line x1="${x}" y1="4" x2="${x}" y2="26"/>`); }
+    if(k === 5) bars.push('<line x1="1" y1="26" x2="27" y2="4"/>');   // the fifth strikes through the four
+    return `<svg class="tally-g" viewBox="0 0 30 30" aria-hidden="true">${bars.join('')}</svg>`;
+  };
+  return `<span class="tally">${groups.map(group).join('')}</span>`;
+}
 function fmtTime(d){ d = new Date(d); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; }
 function fmtDate(d){ d = new Date(d); return `${d.getDate()} ${MONTHS[d.getMonth()]}`; }
 // past-oriented relative date for history: "Idag" / "Igår" / "2 jul"

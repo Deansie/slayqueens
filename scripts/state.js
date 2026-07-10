@@ -1,6 +1,6 @@
 'use strict';
 // In-memory copy of the shared data, plus realtime subscriptions.
-const state = { profiles: [], profilesById: {}, events: [], tasks: [], balances: [], ledger: [], payouts: [], templates: [], suggestions: [], votes: [], messages: [], todos: [], meals: [], mealDishes: [], mealWishes: [], shopTopics: [], shopItems: [] };
+const state = { profiles: [], profilesById: {}, events: [], tasks: [], balances: [], ledger: [], payouts: [], templates: [], suggestions: [], votes: [], messages: [], todos: [], meals: [], mealDishes: [], mealWishes: [], shopTopics: [], shopItems: [], behaviors: [], markLedger: [], markBalances: [], markRequests: [] };
 
 async function loadProfiles(){
   const { data, error } = await sb.from('profiles').select('*').order('name');
@@ -100,6 +100,30 @@ async function loadShopItems(){
   state.shopItems = data || [];
 }
 
+async function loadBehaviors(){
+  const { data, error } = await sb.from('behaviors').select('*').order('sort').order('created_at');
+  if(error){ console.warn('loadBehaviors', error); return; }
+  state.behaviors = data || [];
+}
+
+async function loadMarkLedger(){
+  const { data, error } = await sb.from('mark_ledger').select('*').order('created_at', { ascending: false });
+  if(error){ console.warn('loadMarkLedger', error); return; }
+  state.markLedger = data || [];
+}
+
+async function loadMarkBalances(){
+  const { data, error } = await sb.from('mark_balances').select('*');
+  if(error){ console.warn('loadMarkBalances', error); return; }
+  state.markBalances = data || [];
+}
+
+async function loadMarkRequests(){
+  const { data, error } = await sb.from('mark_requests').select('*').order('created_at', { ascending: false });
+  if(error){ console.warn('loadMarkRequests', error); return; }
+  state.markRequests = data || [];
+}
+
 // Live updates: re-fetch + re-render whenever the shared tables change on any device.
 let realtimeChannel = null;
 function subscribeRealtime(onChange){
@@ -123,6 +147,9 @@ function subscribeRealtime(onChange){
     .on('postgres_changes', { event: '*', schema: 'public', table: 'meal_wishes' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'shopping_topics' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'shopping_items' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'behaviors' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'mark_ledger' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'mark_requests' }, onChange)
     .subscribe();
 }
 function unsubscribeRealtime(){

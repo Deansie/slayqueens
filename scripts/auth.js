@@ -38,10 +38,11 @@ async function enterApp(){
     $('meName').textContent = capital(me.name);
     const demoBar = $('demoBanner');
     if(demoBar) demoBar.hidden = !isDemo();
-    await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems()]);
+    await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests()]);
     renderHeader();
     renderCalendar();
     renderTasks();
+    renderRoutines();
     renderCredits();
     renderSuggestions();
     renderTodos();
@@ -78,6 +79,7 @@ function enterDemo(){
   renderHeader();
   renderCalendar();
   renderTasks();
+  renderRoutines();
   renderCredits();
   renderSuggestions();
   renderTodos();

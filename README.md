@@ -27,10 +27,20 @@ it's for, so a kid only sees the categories assigned to them (plus shared ones) 
 what they need there; parents see everyone's — handy with several kids. Parents tick things off
 as they shop.
 
-**Jobb.** The chore board. Parents post jobs with a reward in kronor (and can save recurring
+**Sysslor.** Two boards behind a segmented toggle: **Jobb** and **Rutiner**.
+
+*Jobb* is the chore board. Parents post jobs with a reward in kronor (and can save recurring
 ones as reusable templates). A kid picks a job, does it, and marks it done; a parent then
 approves it (which pays out the reward) or rejects it with a reason. Parents can also recall
 a job, or a kid can release one they no longer want.
+
+*Rutiner* rewards everyday good behaviour with *streck* (10 streck = 1 ⭐ stjärna) — a virtual
+currency, separate from the Jobb board's real money. Parents keep an editable library of
+routines a kid ticks off (bädda sängen, läxa i tid…) and bonuses a parent hands out for things
+like a whole day without sibling squabbles. Every streck is gated: a kid tapping a routine
+creates a request a parent approves, and only then do the streck land. Balances show as stars
+plus a five-bar tally of progress toward the next one. (A reward shop to spend streck in is
+planned.)
 
 **Poäng.** Pocket-money accounts. Every approved job adds to the kid's balance. Kids see their
 balance and history and can request a payout; parents see everyone's balances, approve
@@ -195,7 +205,7 @@ for the service worker, push, and geolocation). Then on each phone, open the sit
 
 ## Everyday use
 
-- The **bottom bar** switches between Kalender, Att göra, Jobb, Idéer, and Matsedel, the same
+- The **bottom bar** switches between Kalender, Att göra, Sysslor, Idéer, and Matsedel, the same
   five for everyone. The **＋** button adds something to the current view.
 - The **profile pill** (top-right) opens a menu with **Poäng** (your balance), **Budget**
   (parents only), **Profil & notiser** (colour + notifications), **Väderplats**, the
@@ -224,6 +234,7 @@ styles/               CSS, split by concern; design tokens for the dark + light 
   components.css      Cards, chips, avatars, lists, dialogs' contents
   budget.css          Budget view (scoped under .budget)
   matsedel.css        Veckans matsedel (menu-card layout)
+  routines.css        Sysslor → Rutiner (streck board + tally marks)
   overlays.css        Toasts and dialogs
   responsive.css      Phone breakpoints
 
@@ -237,7 +248,8 @@ scripts/              Plain JS, loaded in order (classic scripts, not modules)
   header.js           Date header + event counts
   weather.js          Weather widget + location picker (Open-Meteo)
   calendar.js         Kalender
-  tasks.js            Jobb (chore board)
+  tasks.js            Sysslor → Jobb (chore board)
+  routines.js         Sysslor → Rutiner (streck / behaviour rewards)
   credits.js          Poäng (balances, ledger, payouts)
   suggestions.js      Idéer (voting)
   todos.js            Att göra

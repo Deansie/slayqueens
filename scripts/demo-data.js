@@ -115,6 +115,30 @@ const DEMO_DATA = (function(){
     { id:'si7', topic_id:'st-hem',         title:'Glödlampa till hallen',bought:false, created_by:P.anna,  created_at:at(-2), bought_at:null,  bought_by:null }
   ];
 
+  // Rutiner: the behaviour library, the streck (marks) already earned, and a couple of pending
+  // "I did this routine" requests for the parent's approval queue.
+  const behaviors = [
+    { id:'bh-badda',   title:'Bädda sängen',                    marks:2,  kind:'routine', needs_approval:true, active:true },
+    { id:'bh-tallrik', title:'Ställa in tallriken',            marks:1,  kind:'routine', needs_approval:true, active:true },
+    { id:'bh-laxa',    title:'Läxa i tid',                      marks:5,  kind:'routine', needs_approval:true, active:true },
+    { id:'bh-tander',  title:'Borsta tänderna',                 marks:2,  kind:'routine', needs_approval:true, active:true },
+    { id:'bh-brak',    title:'Inget syskonbråk hela dagen',     marks:20, kind:'bonus',   needs_approval:true, active:true },
+    { id:'bh-hjalp',   title:'Hjälpa till utan att bli tillsagd', marks:10, kind:'bonus', needs_approval:true, active:true }
+  ];
+  const markLedger = [
+    { id:'mk1', profile_id:P.nils, amount:20, reason:'Inget syskonbråk hela dagen',        behavior_id:'bh-brak',    created_at:at(-2) },
+    { id:'mk2', profile_id:P.nils, amount:5,  reason:'Läxa i tid',                         behavior_id:'bh-laxa',    created_at:at(-3) },
+    { id:'mk3', profile_id:P.nils, amount:2,  reason:'Bädda sängen',                       behavior_id:'bh-badda',   created_at:at(-4) },
+    { id:'mk4', profile_id:P.ella, amount:10, reason:'Hjälpa till utan att bli tillsagd',  behavior_id:'bh-hjalp',   created_at:at(-2) },
+    { id:'mk5', profile_id:P.ella, amount:2,  reason:'Ställa in tallriken',                behavior_id:'bh-tallrik', created_at:at(-3) },
+    { id:'mk6', profile_id:P.ella, amount:1,  reason:'Borsta tänderna',                    behavior_id:'bh-tander',  created_at:at(-5) }
+  ];
+  const markBalances = [ { profile_id:P.nils, marks:27 }, { profile_id:P.ella, marks:13 } ];
+  const markRequests = [
+    { id:'mr1', profile_id:P.nils, behavior_id:'bh-badda', amount:2, status:'pending', created_at:at(0) },
+    { id:'mr2', profile_id:P.ella, behavior_id:'bh-laxa',  amount:5, status:'pending', created_at:at(0) }
+  ];
+
   const budget = {
     currentMonth: month(0),
     deletedMonths: {},
@@ -152,7 +176,7 @@ const DEMO_DATA = (function(){
 
   return {
     meId: P.johan,
-    state: { profiles, events, tasks, balances, ledger, payouts, templates, suggestions, votes, messages, todos, meals, mealDishes, mealWishes, shopTopics, shopItems },
+    state: { profiles, events, tasks, balances, ledger, payouts, templates, suggestions, votes, messages, todos, meals, mealDishes, mealWishes, shopTopics, shopItems, behaviors, markLedger, markBalances, markRequests },
     budget
   };
 })();

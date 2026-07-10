@@ -1,0 +1,95 @@
+/* ============================================================
+   Rutiner (streck) — the everyday behaviour reward board inside Sysslor.
+   Kids earn "streck" (marks); 10 streck = 1 "stjärna". Streck are drawn as
+   classic five-bar tally marks.
+   ============================================================ */
+
+/* ---- tally marks (four uprights + a diagonal for the fifth) ---- */
+.tally{ display:inline-flex; flex-wrap:wrap; align-items:center; gap:7px; }
+.tally.empty{ min-height:30px; }
+.tally-g{
+  width:30px; height:30px; flex:0 0 auto;
+  stroke:var(--accent); stroke-width:2.4; stroke-linecap:round;
+}
+
+/* ---- kid balance card ---- */
+.mark-card{
+  background:var(--card-hi); border:1px solid var(--gold-line);
+  border-radius:var(--radius); padding:18px 18px 15px; margin-bottom:16px;
+  box-shadow:var(--shadow-sm); text-align:center;
+}
+.mark-stars{ font-size:1.5rem; line-height:1.1; letter-spacing:2px; min-height:1.6rem; }
+.mark-nostar{ font-size:.9rem; color:var(--muted); letter-spacing:normal; }
+.mark-total{ margin-top:4px; color:var(--muted); font-size:.95rem; }
+.mark-total b{ color:var(--accent-ink); font-size:1.15rem; font-variant-numeric:tabular-nums; }
+.mark-progress{
+  margin-top:13px; padding-top:13px; border-top:1px solid var(--border);
+  display:flex; flex-direction:column; align-items:center; gap:7px;
+}
+.mark-progress-label{ font-size:.8rem; color:var(--faint); }
+
+/* ---- kid routine checklist ---- */
+.routine-list{ display:flex; flex-direction:column; gap:8px; }
+.routine-row{
+  display:flex; align-items:center; gap:12px;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:12px 14px;
+}
+.routine-row.pending{ opacity:.7; }
+.routine-info{ display:flex; flex-direction:column; gap:2px; flex:1; min-width:0; }
+.routine-title{ font-weight:600; }
+.routine-marks{ font-size:.8rem; color:var(--accent-ink); font-weight:600; }
+.routine-wait{ font-size:.82rem; color:var(--muted); white-space:nowrap; }
+
+/* ---- parent: approvals ---- */
+.approve-list{ display:flex; flex-direction:column; gap:8px; }
+.approve-item{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  background:var(--gold-soft); border:1px solid var(--gold-line);
+  border-radius:var(--radius-sm); padding:11px 13px;
+}
+.ai-who{ display:flex; align-items:center; gap:8px; font-weight:600; }
+.ai-what{ flex:1; min-width:0; font-size:.92rem; }
+.ai-marks{ color:var(--accent-ink); font-weight:700; }
+.ai-actions{ display:flex; gap:6px; flex:0 0 auto; }
+
+/* ---- parent: kid balances ---- */
+.mark-rows{ display:flex; flex-direction:column; gap:9px; }
+.mark-row{
+  display:flex; align-items:center; gap:10px;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:11px 13px;
+}
+.mr-name{ display:flex; align-items:center; gap:9px; font-weight:600; flex:1; min-width:0; }
+.mr-bal{ font-weight:700; color:var(--accent-ink); white-space:nowrap; font-variant-numeric:tabular-nums; }
+.mr-bal b{ font-size:1.05rem; }
+.mr-stars{ letter-spacing:1px; }
+.mr-actions{ flex:0 0 auto; }
+
+/* ---- parent: behaviour library ---- */
+.lib-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.behavior-list{ display:flex; flex-direction:column; gap:7px; }
+.behavior-row{
+  display:flex; align-items:center; gap:10px;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:10px 12px;
+}
+.bh-info{ display:flex; align-items:center; gap:9px; flex:1; min-width:0; }
+.bh-kind{
+  flex:0 0 auto; font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em;
+  padding:3px 8px; border-radius:var(--radius-pill);
+  background:var(--card-2); color:var(--muted);
+}
+.bh-kind.bonus{ background:var(--gold-soft); color:var(--accent-ink); }
+.bh-title{ font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.bh-marks{ color:var(--accent-ink); font-weight:700; font-variant-numeric:tabular-nums; }
+.bh-actions{ display:flex; gap:2px; flex:0 0 auto; }
+
+/* ---- bonus dialog quick-picks ---- */
+.bonus-picks{ display:flex; flex-wrap:wrap; gap:7px; }
+.bonus-pick{
+  cursor:pointer; border:1px solid var(--border); background:var(--card-2); color:var(--text);
+  border-radius:var(--radius-pill); padding:7px 12px; font-size:.85rem; font-weight:600;
+}
+.bonus-pick:hover{ border-color:var(--accent); }
+.bonus-pick .bp-marks{ color:var(--accent-ink); }

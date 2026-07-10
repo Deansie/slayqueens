@@ -34,6 +34,7 @@
 <link rel="stylesheet" href="styles/budget.css" />
 <link rel="stylesheet" href="styles/matsedel.css" />
 <link rel="stylesheet" href="styles/shopping.css" />
+<link rel="stylesheet" href="styles/routines.css" />
 <link rel="stylesheet" href="styles/overlays.css" />
 <link rel="stylesheet" href="styles/responsive.css" />
 </head>
@@ -112,10 +113,18 @@
       </div>
     </section>
 
-    <!-- Jobb (chore board) -->
+    <!-- Sysslor: the Jobb (money chore board) and Rutiner (streck reward board) -->
     <section class="view" id="view-tasks" hidden>
-      <h2 class="view-title serif">Jobb</h2>
-      <div id="taskBoard"></div>
+      <div class="seg" id="tasksSeg" role="tablist" aria-label="Välj vy">
+        <button class="seg-btn active" data-taskstab="jobs" type="button" role="tab" aria-selected="true">Jobb</button>
+        <button class="seg-btn" data-taskstab="routines" type="button" role="tab" aria-selected="false">Rutiner</button>
+      </div>
+      <div id="jobPane">
+        <div id="taskBoard"></div>
+      </div>
+      <div id="routinePane" hidden>
+        <div id="routineBoard"></div>
+      </div>
     </section>
 
     <!-- Idéer (suggestions) -->
@@ -156,9 +165,9 @@
       <svg class="tico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><path d="M8 12.2l2.7 2.7L16.4 9"/></svg>
       <span class="tlabel">Att göra</span>
     </button>
-    <button class="tab" data-view="tasks" type="button" role="tab" aria-label="Jobb">
+    <button class="tab" data-view="tasks" type="button" role="tab" aria-label="Sysslor">
       <svg class="tico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="7.5" width="18" height="12" rx="2.5"/><path d="M8.5 7.5V6a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v1.5M3 12.5h18"/></svg>
-      <span class="tlabel">Jobb</span>
+      <span class="tlabel">Sysslor</span>
     </button>
     <button class="tab" data-view="suggestions" type="button" role="tab" aria-label="Idéer">
       <svg class="tico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.2 18h5.6M10 21h4M12 3a6 6 0 0 0-3.6 10.8c.55.42.9 1 .98 1.7h5.24c.08-.7.43-1.28.98-1.7A6 6 0 0 0 12 3z"/></svg>
@@ -272,6 +281,59 @@
     <div class="dlg-actions">
       <button class="btn ghost" id="rejectCancel" type="button">Avbryt</button>
       <button class="btn danger" value="ok" id="rejectConfirm" type="submit">Neka</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Rutiner: new/edit behaviour (parent) ---------------------------- -->
+<dialog id="behaviorDialog">
+  <form method="dialog" class="dlg-body" id="behaviorForm">
+    <h3 id="behaviorDlgTitle" class="serif">Ny rutin</h3>
+    <div class="dlg-field">
+      <label for="behaviorTitle">Vad</label>
+      <input id="behaviorTitle" type="text" required maxlength="80" placeholder="T.ex. Bädda sängen" />
+    </div>
+    <div class="dlg-field">
+      <label for="behaviorMarks">Streck</label>
+      <input id="behaviorMarks" type="number" min="0" step="1" value="1" required />
+    </div>
+    <div class="dlg-field">
+      <label for="behaviorKind">Typ</label>
+      <select id="behaviorKind">
+        <option value="routine">Rutin — barnet bockar av</option>
+        <option value="bonus">Bonus — du delar ut</option>
+      </select>
+    </div>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="behaviorCancel" type="button">Avbryt</button>
+      <button class="btn" value="ok" id="behaviorSave" type="submit">Spara</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Rutiner: give bonus streck (parent) ------------------------------ -->
+<dialog id="bonusDialog">
+  <form method="dialog" class="dlg-body" id="bonusForm">
+    <h3 class="serif">Ge streck</h3>
+    <div class="dlg-field">
+      <label for="bonusProfile">Till vem</label>
+      <select id="bonusProfile"></select>
+    </div>
+    <div class="dlg-field" id="bonusQuickWrap" hidden>
+      <label>Snabbval</label>
+      <div class="bonus-picks" id="bonusPicks"></div>
+    </div>
+    <div class="dlg-field">
+      <label for="bonusReason">Anledning</label>
+      <input id="bonusReason" type="text" required maxlength="80" placeholder="T.ex. Inget syskonbråk idag" />
+    </div>
+    <div class="dlg-field">
+      <label for="bonusMarks">Streck</label>
+      <input id="bonusMarks" type="number" step="1" value="5" required />
+    </div>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="bonusCancel" type="button">Avbryt</button>
+      <button class="btn" value="ok" id="bonusSave" type="submit">Ge streck</button>
     </div>
   </form>
 </dialog>
@@ -518,6 +580,7 @@
 <script src="scripts/weather.js"></script>
 <script src="scripts/calendar.js"></script>
 <script src="scripts/tasks.js"></script>
+<script src="scripts/routines.js"></script>
 <script src="scripts/credits.js"></script>
 <script src="scripts/suggestions.js"></script>
 <script src="scripts/todos.js"></script>

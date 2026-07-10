@@ -5,25 +5,32 @@ let currentView = 'calendar';
 // "Att göra" holds two sub-views (the to-do list and the Inköp board); remember which one.
 let todoTab = 'todos';
 try{ if(localStorage.getItem('slayqueens_todotab') === 'shopping') todoTab = 'shopping'; }catch(e){}
+// "Sysslor" holds two sub-views too (the Jobb board and the Rutiner/streck board).
+let tasksTab = 'jobs';
+try{ if(localStorage.getItem('slayqueens_taskstab') === 'routines') tasksTab = 'routines'; }catch(e){}
 
 // Which "+" action the floating button performs per view (null = no button here). The
-// "todos" view is dynamic — its action depends on the sub-tab — so it's resolved in
-// currentFabAction() rather than listed here.
+// "todos" and "tasks" views are dynamic — their action depends on the sub-tab — so they're
+// resolved in currentFabAction() rather than listed here.
 const FAB_ACTIONS = {
   calendar:    { label: 'Ny händelse', run: () => openEventDialog(null) },
-  tasks:       { label: 'Nytt jobb',   run: () => openJobDialog(null), parentOnly: true },
   suggestions: { label: 'Ny idé',      run: () => openSuggestionDialog() },
   matsedel:    { label: 'Önska',       run: () => openWishDialog() },
   budget:      null,
   credits:     null
 };
 
-// The FAB action for the current view (and, on "Att göra", the current sub-tab).
+// The FAB action for the current view (and, on the two segmented views, the current sub-tab).
 function currentFabAction(){
   if(currentView === 'todos'){
     return todoTab === 'shopping'
       ? { label: 'Ny kategori', run: () => openTopicDialog(), parentOnly: true }
       : { label: 'Att göra',    run: () => openTodoDialog() };
+  }
+  if(currentView === 'tasks'){
+    return tasksTab === 'routines'
+      ? { label: 'Ny rutin', run: () => openBehaviorDialog(null), parentOnly: true }
+      : { label: 'Nytt jobb', run: () => openJobDialog(null),     parentOnly: true };
   }
   return FAB_ACTIONS[currentView] || null;
 }
@@ -71,12 +78,25 @@ document.addEventListener('DOMContentLoaded', () => {
   $('evCancel').addEventListener('click', () => $('eventDialog').close());
   $('evAllDay').addEventListener('change', toggleTime);
 
-  // Tasks
+  // Tasks (Jobb board)
   $('taskBoard').addEventListener('click', onTaskBoardClick);
   $('jobForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveJobFromDialog(); });
   $('jobCancel').addEventListener('click', () => $('jobDialog').close());
   $('rejectForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') confirmReject(); });
   $('rejectCancel').addEventListener('click', () => $('rejectDialog').close());
+  $('tasksSeg').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-taskstab]');
+    if(b) setTasksTab(b.dataset.taskstab);
+  });
+  setTasksTab(tasksTab);   // reflect the remembered sub-tab (panes + active segment)
+
+  // Rutiner (streck board)
+  $('routineBoard').addEventListener('click', onRoutineBoardClick);
+  $('behaviorForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveBehavior(); });
+  $('behaviorCancel').addEventListener('click', () => $('behaviorDialog').close());
+  $('bonusForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveBonus(); });
+  $('bonusCancel').addEventListener('click', () => $('bonusDialog').close());
+  $('bonusPicks').addEventListener('click', onBonusPickClick);
 
   // Credits
   $('creditsBody').addEventListener('click', onCreditsClick);
@@ -210,6 +230,21 @@ function setTodoTab(tab){
   updateFab();
 }
 
+// Switch the "Sysslor" view between the Jobb board and the Rutiner (streck) board.
+function setTasksTab(tab){
+  tasksTab = tab === 'routines' ? 'routines' : 'jobs';
+  try{ localStorage.setItem('slayqueens_taskstab', tasksTab); }catch(e){}
+  document.querySelectorAll('#tasksSeg .seg-btn').forEach(b => {
+    const on = b.dataset.taskstab === tasksTab;
+    b.classList.toggle('active', on);
+    b.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  const jp = $('jobPane'), rp = $('routinePane');
+  if(jp) jp.hidden = tasksTab !== 'jobs';
+  if(rp) rp.hidden = tasksTab !== 'routines';
+  updateFab();
+}
+
 // ---- profile menu ----
 function openProfileMenu(){
   const m = $('profileMenu');
@@ -282,8 +317,12 @@ async function onRealtime(payload){
   else if(t === 'meal_wishes') await loadMealWishes();
   else if(t === 'shopping_topics') await loadShopTopics();
   else if(t === 'shopping_items') await loadShopItems();
+  else if(t === 'behaviors') await loadBehaviors();
+  else if(t === 'mark_ledger'){ await loadMarkLedger(); await loadMarkBalances(); }
+  else if(t === 'mark_requests') await loadMarkRequests();
   renderCalendar();
   renderTasks();
+  renderRoutines();
   renderCredits();
   renderSuggestions();
   renderTodos();
@@ -296,9 +335,10 @@ async function onRealtime(payload){
 // Full reload + repaint, used when the app resumes and may have missed live updates.
 async function resync(){
   if(!sb || !session) return;
-  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems()]);
+  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests()]);
   renderCalendar();
   renderTasks();
+  renderRoutines();
   renderCredits();
   renderSuggestions();
   renderTodos();
