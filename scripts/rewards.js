@@ -29,9 +29,14 @@ function rewardsKidHtml(){
 function kidRedeemRow(r){
   const rw = rewardById(r.reward_id);
   return `<div class="redeem-item">
-      <span class="ri-what">${escapeHtml(rw ? (rw.emoji ? rw.emoji + ' ' : '') + rw.title : 'Belöning')} <span class="ri-cost">${Math.round(r.cost_marks / 10)} ⭐</span></span>
-      <span class="ri-status">Väntar…</span>
-      <button class="btn ghost sm" data-reward="cancel" data-id="${r.id}" type="button">Ångra</button>
+      <div class="ri-main">
+        <span class="ri-what">${escapeHtml(rw ? (rw.emoji ? rw.emoji + ' ' : '') + rw.title : 'Belöning')}</span>
+        <span class="ri-cost">${Math.round(r.cost_marks / 10)} ⭐</span>
+        <span class="ri-status">Väntar…</span>
+      </div>
+      <div class="ri-actions">
+        <button class="btn ghost sm" data-reward="cancel" data-id="${r.id}" type="button">Ångra</button>
+      </div>
     </div>`;
 }
 
@@ -98,12 +103,15 @@ function parentRedeemRow(r){
   const kid = state.profilesById[r.profile_id];
   const rw = rewardById(r.reward_id);
   return `<div class="redeem-item">
-      <span class="ri-who">${avatarHtml(profileColor(kid), kid ? kid.name : '?')}${escapeHtml(kid ? capital(kid.name) : '—')}</span>
-      <span class="ri-what">${escapeHtml(rw ? (rw.emoji ? rw.emoji + ' ' : '') + rw.title : 'Belöning')} <span class="ri-cost">${Math.round(r.cost_marks / 10)} ⭐</span></span>
-      <span class="ri-actions">
-        <button class="btn sm" data-reward="fulfill" data-id="${r.id}" type="button">Lämnad</button>
+      <div class="ri-main">
+        <span class="ri-who">${avatarHtml(profileColor(kid), kid ? kid.name : '?')}${escapeHtml(kid ? capital(kid.name) : '—')}</span>
+        <span class="ri-what">${escapeHtml(rw ? (rw.emoji ? rw.emoji + ' ' : '') + rw.title : 'Belöning')}</span>
+        <span class="ri-cost">${Math.round(r.cost_marks / 10)} ⭐</span>
+      </div>
+      <div class="ri-actions">
+        <button class="btn sm" data-reward="fulfill" data-id="${r.id}" type="button">Lämna ut</button>
         <button class="btn ghost sm" data-reward="cancel" data-id="${r.id}" type="button">Avbryt</button>
-      </span>
+      </div>
     </div>`;
 }
 

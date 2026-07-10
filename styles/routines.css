@@ -43,15 +43,17 @@
 
 /* ---- parent: approvals ---- */
 .approve-list{ display:flex; flex-direction:column; gap:8px; }
+/* Two rows: info line + right-aligned buttons line (mirrors the reward redemption rows). */
 .approve-item{
-  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  display:flex; flex-direction:column; gap:9px;
   background:var(--gold-soft); border:1px solid var(--gold-line);
   border-radius:var(--radius-sm); padding:11px 13px;
 }
-.ai-who{ display:flex; align-items:center; gap:8px; font-weight:600; }
+.ai-main{ display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+.ai-who{ display:flex; align-items:center; gap:7px; font-weight:600; flex:0 0 auto; }
 .ai-what{ flex:1; min-width:0; font-size:.92rem; }
-.ai-marks{ color:var(--accent-ink); font-weight:700; }
-.ai-actions{ display:flex; gap:6px; flex:0 0 auto; }
+.ai-marks{ color:var(--accent-ink); font-weight:700; flex:0 0 auto; }
+.ai-actions{ display:flex; gap:7px; justify-content:flex-end; }
 
 /* ---- parent: kid balances ---- */
 .mark-rows{ display:flex; flex-direction:column; gap:9px; }

@@ -80,12 +80,15 @@ function approveRow(r){
   const kid = state.profilesById[r.profile_id];
   const b = (state.behaviors || []).find(x => x.id === r.behavior_id);
   return `<div class="approve-item">
-      <span class="ai-who">${avatarHtml(profileColor(kid), kid ? kid.name : '?')}${escapeHtml(kid ? capital(kid.name) : '—')}</span>
-      <span class="ai-what">${escapeHtml(b ? b.title : 'Rutin')} <span class="ai-marks">+${r.amount}</span></span>
-      <span class="ai-actions">
+      <div class="ai-main">
+        <span class="ai-who">${avatarHtml(profileColor(kid), kid ? kid.name : '?')}${escapeHtml(kid ? capital(kid.name) : '—')}</span>
+        <span class="ai-what">${escapeHtml(b ? b.title : 'Rutin')}</span>
+        <span class="ai-marks">+${r.amount}</span>
+      </div>
+      <div class="ai-actions">
         <button class="btn sm" data-routine="approve" data-req="${r.id}" type="button">Godkänn</button>
         <button class="btn ghost sm" data-routine="reject" data-req="${r.id}" type="button">Neka</button>
-      </span>
+      </div>
     </div>`;
 }
 function kidBalanceRow(k){

@@ -4,17 +4,20 @@
    ============================================================ */
 
 /* ---- redemption queue (kid: my pending; parent: to fulfil) ---- */
+/* Two tidy rows: an info line, then a right-aligned buttons line — so the title, the ⭐ cost
+   and the actions never fight for one cramped row. */
 .redeem-list{ display:flex; flex-direction:column; gap:8px; }
 .redeem-item{
-  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  display:flex; flex-direction:column; gap:9px;
   background:var(--gold-soft); border:1px solid var(--gold-line);
   border-radius:var(--radius-sm); padding:11px 13px;
 }
-.ri-who{ display:flex; align-items:center; gap:8px; font-weight:600; }
+.ri-main{ display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+.ri-who{ display:flex; align-items:center; gap:7px; font-weight:600; flex:0 0 auto; }
 .ri-what{ flex:1; min-width:0; font-weight:600; }
-.ri-cost{ color:var(--accent-ink); font-weight:700; white-space:nowrap; }
-.ri-status{ font-size:.82rem; color:var(--muted); white-space:nowrap; }
-.ri-actions{ display:flex; gap:6px; flex:0 0 auto; }
+.ri-cost{ color:var(--accent-ink); font-weight:700; white-space:nowrap; flex:0 0 auto; }
+.ri-status{ font-size:.82rem; color:var(--muted); white-space:nowrap; flex:0 0 auto; }
+.ri-actions{ display:flex; gap:7px; justify-content:flex-end; }
 
 /* ---- shop, grouped by tier ---- */
 .reward-tier{ margin-bottom:18px; }
