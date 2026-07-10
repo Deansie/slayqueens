@@ -18,9 +18,19 @@
 
 /* ---- shop, grouped by tier ---- */
 .reward-tier{ margin-bottom:18px; }
-.reward-tier-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+.reward-tier-head{ display:flex; align-items:center; gap:9px; margin-bottom:10px; flex-wrap:wrap; }
 .reward-tier-name{ font-size:1.05rem; }
-.tier-tools{ display:flex; align-items:center; gap:4px; flex:0 0 auto; }
+.tier-cost{
+  font-size:.72rem; font-weight:700; white-space:nowrap;
+  padding:3px 9px; border-radius:var(--radius-pill);
+  background:var(--gold-soft); color:var(--accent-ink); border:1px solid var(--gold-line);
+}
+.tier-lock{ font-size:.78rem; color:var(--muted); white-space:nowrap; }
+.tier-tools{ display:flex; align-items:center; gap:4px; flex:0 0 auto; margin-left:auto; }
+/* A locked tier is browsable but muted, and its cards can't be redeemed. */
+.reward-tier.locked .reward-tier-name,
+.reward-tier.locked .reward-emoji,
+.reward-tier.locked .reward-name{ opacity:.6; }
 
 .reward-grid{ display:flex; flex-direction:column; gap:8px; }
 .reward-card{
@@ -32,8 +42,6 @@
 .reward-emoji{ font-size:1.4rem; flex:0 0 auto; line-height:1; }
 .reward-info{ display:flex; flex-direction:column; gap:2px; flex:1; min-width:0; }
 .reward-name{ font-weight:600; display:flex; align-items:center; gap:7px; }
-.reward-cost{ font-size:.85rem; color:var(--accent-ink); font-weight:700; }
-.reward-need{ font-size:.82rem; color:var(--muted); white-space:nowrap; flex:0 0 auto; }
 .reward-tools{ display:flex; gap:2px; flex:0 0 auto; }
 
 .pool-badge{

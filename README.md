@@ -42,10 +42,13 @@ creates a request a parent approves, and only then do the streck land. Balances 
 plus a five-bar tally of progress toward the next one.
 
 **Belöningar.** The reward shop where kids spend streck (reached from the profile menu). Parents
-build an editable set of tiers (Små / Mellan / Stora…) and rewards priced in stars — glass, extra
-skärmtid, a trip to the playground, up to big shared treats. A kid redeems a reward they can
-afford (which reserves the streck), and a parent marks it handed over or cancels it (refunding
-the streck). Rewards can be flagged *delbar* for the planned Familjemål pooling.
+build an editable set of tiers, each priced in stars — Små (1 ⭐), Mellan (2 ⭐), up to big shared
+treats (say 10 ⭐). The tier's cost is both its unlock threshold *and* the price: reaching it opens
+the whole tier, and the kid picks any reward inside it (glass, extra skärmtid, a trip to the
+playground…). Redeeming spends that many stars — the "cash in at Små now, or keep saving for a
+bigger tier" trade-off — and a lower tier stays open whenever the balance is at/above its
+threshold. Redeeming reserves the streck; a parent then marks it handed over or cancels it
+(refunding). Rewards can be flagged *delbar* for the planned Familjemål pooling.
 
 **Poäng.** Pocket-money accounts. Every approved job adds to the kid's balance. Kids see their
 balance and history and can request a payout; parents see everyone's balances, approve

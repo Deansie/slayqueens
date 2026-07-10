@@ -355,6 +355,10 @@
       <input id="tierTitle" type="text" required maxlength="40" placeholder="T.ex. Små belöningar" />
     </div>
     <div class="dlg-field">
+      <label for="tierStars">Kostar / låses upp vid (stjärnor ⭐)</label>
+      <input id="tierStars" type="number" min="1" step="1" value="1" required />
+    </div>
+    <div class="dlg-field">
       <label>Ikon</label>
       <div class="shop-emoji-picks" id="tierEmojiPicks"></div>
     </div>
@@ -374,11 +378,7 @@
       <input id="rewardTitle" type="text" required maxlength="60" placeholder="T.ex. Glass i affären" />
     </div>
     <div class="dlg-field">
-      <label for="rewardCost">Kostnad (stjärnor ⭐)</label>
-      <input id="rewardCost" type="number" min="1" step="1" value="5" required />
-    </div>
-    <div class="dlg-field">
-      <label for="rewardTier">Nivå</label>
+      <label for="rewardTier">Nivå (bestämmer kostnaden)</label>
       <select id="rewardTier"></select>
     </div>
     <div class="dlg-field">

@@ -55,26 +55,35 @@ function parentRedeemRow(r){
     </div>`;
 }
 
+// Tiers ordered cheapest-first (by their star cost), so the shop reads Små → Mellan → Stora.
+function byTierCost(a, b){ return (a.stars - b.stars) || bySort(a, b); }
+
 // ---- the shop (shared; `manage` adds parent edit controls) ----
 function shopHtml(manage){
-  const tiers = (state.rewardTiers || []).filter(t => t.active).slice().sort(bySort);
+  const tiers = (state.rewardTiers || []).filter(t => t.active).slice().sort(byTierCost);
   const rewards = (state.rewards || []).filter(r => r.active).slice().sort(bySort);
   const sections = tiers.map(t => tierSection(t, rewards.filter(r => r.tier_id === t.id), manage));
+  // Rewards whose tier was deleted are non-redeemable; only parents see them (to reassign).
   const orphan = rewards.filter(r => !r.tier_id || !tiers.some(t => t.id === r.tier_id));
-  if(orphan.length) sections.push(tierSection(null, orphan, manage));
+  if(manage && orphan.length) sections.push(tierSection(null, orphan, manage));
 
   const head = manage
     ? '<div class="section-title lib-head"><span>Butik</span><button class="btn ghost sm" data-reward="newtier" type="button">+ Ny nivå</button></div>'
     : '<div class="section-title">Butik</div>';
   const empty = (!tiers.length && !rewards.length)
     ? `<div class="placeholder mini"><p>${manage
-        ? 'Skapa en nivå (t.ex. Små belöningar) och lägg till belöningar barnen kan spara till.'
+        ? 'Skapa en nivå (t.ex. Små belöningar = 1 ⭐) och lägg till belöningar barnen kan spara till.'
         : 'Inga belöningar än — föräldrarna fyller butiken.'}</p></div>`
     : '';
   return head + empty + sections.join('');
 }
 function tierSection(t, list, manage){
-  const title = t ? `${t.emoji ? escapeHtml(t.emoji) + ' ' : ''}${escapeHtml(t.title)}` : 'Övrigt';
+  const label = t ? `${t.emoji ? escapeHtml(t.emoji) + ' ' : ''}${escapeHtml(t.title)}` : 'Övrigt (ingen nivå)';
+  // A tier is unlocked once the kid's stars reach its cost; parents always see everything.
+  const unlocked = manage || !t ? true : starsOf(markBalanceOf(me.id)) >= t.stars;
+  const need = (t && !manage) ? t.stars - starsOf(markBalanceOf(me.id)) : 0;
+  const cost = t ? `<span class="tier-cost">${t.stars} ⭐</span>` : '';
+  const lock = (!manage && t && !unlocked) ? `<span class="tier-lock">🔒 ${need} ⭐ till</span>` : '';
   const tools = (manage && t)
     ? `<span class="tier-tools">
         <button class="btn ghost sm" data-reward="newreward" data-tier="${t.id}" type="button">+ Belöning</button>
@@ -83,36 +92,34 @@ function tierSection(t, list, manage){
       </span>`
     : '';
   const cards = list.length
-    ? list.map(r => rewardCard(r, manage)).join('')
+    ? list.map(r => rewardCard(r, manage, unlocked)).join('')
     : (manage ? '<div class="placeholder mini"><p>Inga belöningar i den här nivån än.</p></div>' : '');
-  return `<section class="reward-tier">
-      <header class="reward-tier-head"><h3 class="reward-tier-name serif">${title}</h3>${tools}</header>
+  return `<section class="reward-tier${unlocked ? '' : ' locked'}">
+      <header class="reward-tier-head"><h3 class="reward-tier-name serif">${label}</h3>${cost}${lock}${tools}</header>
       <div class="reward-grid">${cards}</div>
     </section>`;
 }
-function rewardCard(r, manage){
+function rewardCard(r, manage, unlocked){
   const pool = r.poolable ? '<span class="pool-badge">delbar</span>' : '';
-  let action;
+  let action = '';
   if(manage){
     action = `<span class="reward-tools">
         <button class="icon-btn" data-reward="editreward" data-id="${r.id}" aria-label="Redigera">✎</button>
         <button class="icon-btn" data-reward="delreward" data-id="${r.id}" aria-label="Ta bort">🗑</button>
       </span>`;
-  } else {
-    const need = r.cost_stars - starsOf(markBalanceOf(me.id));
-    action = need <= 0
-      ? `<button class="btn sm" data-reward="redeem" data-id="${r.id}" type="button">Lös in</button>`
-      : `<span class="reward-need">${need} ⭐ till</span>`;
+  } else if(unlocked){
+    action = `<button class="btn sm" data-reward="redeem" data-id="${r.id}" type="button">Lös in</button>`;
   }
-  const locked = (!manage && r.cost_stars - starsOf(markBalanceOf(me.id)) > 0) ? ' locked' : '';
-  return `<div class="reward-card${locked}">
+  return `<div class="reward-card${(!manage && !unlocked) ? ' locked' : ''}">
       <span class="reward-emoji" aria-hidden="true">${escapeHtml(r.emoji || '🎁')}</span>
-      <span class="reward-info">
-        <span class="reward-name">${escapeHtml(r.title)}${pool}</span>
-        <span class="reward-cost">${r.cost_stars} ⭐</span>
-      </span>
+      <span class="reward-info"><span class="reward-name">${escapeHtml(r.title)}${pool}</span></span>
       ${action}
     </div>`;
+}
+function tierStarsOf(rewardId){
+  const rw = rewardById(rewardId);
+  const t = rw ? (state.rewardTiers || []).find(x => x.id === rw.tier_id) : null;
+  return t ? t.stars : null;
 }
 
 // ---- events ----
@@ -137,7 +144,9 @@ function onRewardsClick(e){
 async function requestRedemption(id){
   const rw = rewardById(id);
   if(!rw) return;
-  if(!(await confirmDialog(`Lös in "${rw.title}" för ${rw.cost_stars} ⭐?`, 'Lös in'))) return;
+  const stars = tierStarsOf(id);
+  if(stars == null){ toast('warn', 'Belöningen saknar nivå'); return; }
+  if(!(await confirmDialog(`Lös in "${rw.title}" för ${stars} ⭐?`, 'Lös in'))) return;
   try{
     const { error } = await sb.rpc('request_redemption', { p_reward: id });
     if(error) throw error;
@@ -179,6 +188,9 @@ function openTierDialog(t){
   tierEmoji = t && t.emoji ? t.emoji : '🎁';
   $('tierDlgTitle').textContent = t ? 'Redigera nivå' : 'Ny nivå';
   $('tierTitle').value = t ? t.title : '';
+  // Default a new tier's cost to one more than the current highest, so tiers ladder 1, 2, 3…
+  const maxStars = (state.rewardTiers || []).reduce((m, x) => Math.max(m, x.stars || 0), 0);
+  $('tierStars').value = t ? t.stars : (maxStars + 1);
   renderTierEmoji();
   $('tierDialog').showModal();
 }
@@ -195,13 +207,14 @@ function onTierEmojiClick(e){
 async function saveTier(){
   const title = $('tierTitle').value.trim();
   if(!title){ toast('warn', 'Skriv ett namn'); return; }
+  const stars = Math.max(1, Math.round(Number($('tierStars').value) || 1));
   try{
     let error;
     if(editingTier){
-      ({ error } = await sb.from('reward_tiers').update({ title, emoji: tierEmoji }).eq('id', editingTier.id));
+      ({ error } = await sb.from('reward_tiers').update({ title, emoji: tierEmoji, stars }).eq('id', editingTier.id));
     } else {
       const sort = (state.rewardTiers || []).length;
-      ({ error } = await sb.from('reward_tiers').insert({ title, emoji: tierEmoji, sort, created_by: me.id }));
+      ({ error } = await sb.from('reward_tiers').insert({ title, emoji: tierEmoji, stars, sort, created_by: me.id }));
     }
     if(error) throw error;
     toast('ok', editingTier ? 'Uppdaterad' : 'Nivå tillagd');
@@ -223,15 +236,15 @@ async function deleteTier(t){
 
 // ---- parent: rewards ----
 function openRewardDialog(r, tierId){
+  const tiers = (state.rewardTiers || []).slice().sort(byTierCost);
+  if(!tiers.length){ toast('warn', 'Skapa en nivå först'); return; }
   editingReward = r || null;
   rewardEmoji = r && r.emoji ? r.emoji : '🎁';
   $('rewardDlgTitle').textContent = r ? 'Redigera belöning' : 'Ny belöning';
   $('rewardTitle').value = r ? r.title : '';
-  $('rewardCost').value = r ? r.cost_stars : 5;
-  const tiers = (state.rewardTiers || []).slice().sort(bySort);
-  $('rewardTier').innerHTML = '<option value="">Övrigt</option>' +
-    tiers.map(t => `<option value="${t.id}">${escapeHtml((t.emoji ? t.emoji + ' ' : '') + t.title)}</option>`).join('');
-  $('rewardTier').value = r ? (r.tier_id || '') : (tierId || '');
+  $('rewardTier').innerHTML = tiers.map(t =>
+    `<option value="${t.id}">${escapeHtml((t.emoji ? t.emoji + ' ' : '') + t.title)} · ${t.stars} ⭐</option>`).join('');
+  $('rewardTier').value = (r && r.tier_id) || tierId || tiers[0].id;
   $('rewardPoolable').checked = r ? !!r.poolable : false;
   renderRewardEmoji();
   $('rewardDialog').showModal();
@@ -249,16 +262,16 @@ function onRewardEmojiClick(e){
 async function saveReward(){
   const title = $('rewardTitle').value.trim();
   if(!title){ toast('warn', 'Skriv vad belöningen är'); return; }
-  const cost_stars = Math.max(1, Math.round(Number($('rewardCost').value) || 1));
   const tier_id = $('rewardTier').value || null;
+  if(!tier_id){ toast('warn', 'Välj en nivå'); return; }
   const poolable = $('rewardPoolable').checked;
   try{
     let error;
     if(editingReward){
-      ({ error } = await sb.from('rewards').update({ title, emoji: rewardEmoji, cost_stars, tier_id, poolable }).eq('id', editingReward.id));
+      ({ error } = await sb.from('rewards').update({ title, emoji: rewardEmoji, tier_id, poolable }).eq('id', editingReward.id));
     } else {
       const sort = (state.rewards || []).filter(x => x.tier_id === tier_id).length;
-      ({ error } = await sb.from('rewards').insert({ title, emoji: rewardEmoji, cost_stars, tier_id, poolable, sort, created_by: me.id }));
+      ({ error } = await sb.from('rewards').insert({ title, emoji: rewardEmoji, tier_id, poolable, sort, created_by: me.id }));
     }
     if(error) throw error;
     toast('ok', editingReward ? 'Uppdaterad' : 'Belöning tillagd');

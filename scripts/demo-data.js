@@ -141,20 +141,20 @@ const DEMO_DATA = (function(){
 
   // Belöningsbutik: parent-made tiers, the rewards inside them, and one pending redemption.
   const rewardTiers = [
-    { id:'rt-sma',    title:'Små belöningar',      emoji:'🍦', sort:0, active:true },
-    { id:'rt-mellan', title:'Mellanbelöningar',    emoji:'🎢', sort:1, active:true },
-    { id:'rt-stora',  title:'Stora & gemensamma',  emoji:'🎡', sort:2, active:true }
+    { id:'rt-sma',    title:'Små belöningar',      emoji:'🍦', stars:1,  sort:0, active:true },
+    { id:'rt-mellan', title:'Mellanbelöningar',    emoji:'🎢', stars:2,  sort:1, active:true },
+    { id:'rt-stora',  title:'Stora & gemensamma',  emoji:'🎡', stars:10, sort:2, active:true }
   ];
   const rewards = [
-    { id:'rw-glass', tier_id:'rt-sma',    title:'Glass i affären',        emoji:'🍦', cost_stars:5,   poolable:false, active:true, sort:0 },
-    { id:'rw-skarm', tier_id:'rt-sma',    title:'30 min extra skärmtid',  emoji:'🎮', cost_stars:3,   poolable:false, active:true, sort:1 },
-    { id:'rw-film',  tier_id:'rt-sma',    title:'Välj fredagsfilmen',     emoji:'🎬', cost_stars:4,   poolable:false, active:true, sort:2 },
-    { id:'rw-lek',   tier_id:'rt-mellan', title:'Valfri lekplats',        emoji:'🛝', cost_stars:12,  poolable:false, active:true, sort:0 },
-    { id:'rw-bad',   tier_id:'rt-mellan', title:'Badhuset',               emoji:'🏊', cost_stars:15,  poolable:false, active:true, sort:1 },
-    { id:'rw-tivoli',tier_id:'rt-stora',  title:'Tivoli med familjen',    emoji:'🎡', cost_stars:100, poolable:true,  active:true, sort:0 }
+    { id:'rw-glass', tier_id:'rt-sma',    title:'Glass i affären',        emoji:'🍦', poolable:false, active:true, sort:0 },
+    { id:'rw-skarm', tier_id:'rt-sma',    title:'30 min extra skärmtid',  emoji:'🎮', poolable:false, active:true, sort:1 },
+    { id:'rw-film',  tier_id:'rt-sma',    title:'Välj fredagsfilmen',     emoji:'🎬', poolable:false, active:true, sort:2 },
+    { id:'rw-lek',   tier_id:'rt-mellan', title:'Valfri lekplats',        emoji:'🛝', poolable:false, active:true, sort:0 },
+    { id:'rw-bad',   tier_id:'rt-mellan', title:'Badhuset',               emoji:'🏊', poolable:false, active:true, sort:1 },
+    { id:'rw-tivoli',tier_id:'rt-stora',  title:'Tivoli med familjen',    emoji:'🎡', poolable:true,  active:true, sort:0 }
   ];
   const redemptions = [
-    { id:'rd1', profile_id:P.nils, reward_id:'rw-skarm', cost_marks:30, status:'pending', created_at:at(0) }
+    { id:'rd1', profile_id:P.nils, reward_id:'rw-skarm', cost_marks:10, status:'pending', created_at:at(0) }
   ];
 
   const budget = {
