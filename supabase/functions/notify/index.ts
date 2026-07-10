@@ -73,7 +73,7 @@ Deno.serve(async (req) => {
     const actor = await verifyActor(req);
     if (!actor) return json({ error: 'unauthorized' }, 401);
 
-    const { type, taskId, eventId, payoutId, suggestionId, toProfile, context, parentId, topicId, requestId, amount, reason } = await req.json();
+    const { type, taskId, eventId, payoutId, suggestionId, toProfile, context, parentId, topicId, requestId, amount, reason, redemptionId } = await req.json();
     let recipients: string[] = [];
     let title = 'Slayqueens';
     let body = '';
@@ -248,6 +248,28 @@ Deno.serve(async (req) => {
       if (toProfile) recipients = [toProfile];
       title = 'Du fick streck! 🌟';
       body = `+${amount} streck${reason ? ' · ' + reason : ''}`;
+
+    } else if (type === 'redemption_request') {
+      // A kid wants to redeem a reward.
+      const { data: red } = await admin.from('reward_redemptions')
+        .select('profile_id, reward_id, cost_marks').eq('id', redemptionId).single();
+      const who = await profile(red?.profile_id);
+      const { data: rw } = red?.reward_id
+        ? await admin.from('rewards').select('title, emoji').eq('id', red.reward_id).single()
+        : { data: null };
+      recipients = await ids('parent');
+      title = 'Inlösen ⭐';
+      body = red ? `${who?.name ?? 'Ett barn'} vill lösa in ${rw?.emoji ? rw.emoji + ' ' : ''}${rw?.title ?? 'en belöning'} (${Math.round(red.cost_marks / 10)} ⭐)` : 'En belöning väntar på inlösen';
+
+    } else if (type === 'redemption_fulfilled') {
+      const { data: red } = await admin.from('reward_redemptions')
+        .select('profile_id, reward_id').eq('id', redemptionId).single();
+      if (red?.profile_id) recipients = [red.profile_id];
+      const { data: rw } = red?.reward_id
+        ? await admin.from('rewards').select('title, emoji').eq('id', red.reward_id).single()
+        : { data: null };
+      title = 'Belöning klar! 🎁';
+      body = rw?.title ? `Du har löst in ${rw.emoji ? rw.emoji + ' ' : ''}${rw.title}` : 'Din belöning är klar';
 
     } else {
       return json({ error: 'unknown type' }, 400);

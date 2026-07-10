@@ -39,8 +39,13 @@ currency, separate from the Jobb board's real money. Parents keep an editable li
 routines a kid ticks off (bädda sängen, läxa i tid…) and bonuses a parent hands out for things
 like a whole day without sibling squabbles. Every streck is gated: a kid tapping a routine
 creates a request a parent approves, and only then do the streck land. Balances show as stars
-plus a five-bar tally of progress toward the next one. (A reward shop to spend streck in is
-planned.)
+plus a five-bar tally of progress toward the next one.
+
+**Belöningar.** The reward shop where kids spend streck (reached from the profile menu). Parents
+build an editable set of tiers (Små / Mellan / Stora…) and rewards priced in stars — glass, extra
+skärmtid, a trip to the playground, up to big shared treats. A kid redeems a reward they can
+afford (which reserves the streck), and a parent marks it handed over or cancels it (refunding
+the streck). Rewards can be flagged *delbar* for the planned Familjemål pooling.
 
 **Poäng.** Pocket-money accounts. Every approved job adds to the kid's balance. Kids see their
 balance and history and can request a payout; parents see everyone's balances, approve
@@ -207,9 +212,9 @@ for the service worker, push, and geolocation). Then on each phone, open the sit
 
 - The **bottom bar** switches between Kalender, Att göra, Sysslor, Idéer, and Matsedel, the same
   five for everyone. The **＋** button adds something to the current view.
-- The **profile pill** (top-right) opens a menu with **Poäng** (your balance), **Budget**
-  (parents only), **Profil & notiser** (colour + notifications), **Väderplats**, the
-  **theme** switch, and **log out**.
+- The **profile pill** (top-right) opens a menu with **Poäng** (your balance), **Belöningar**
+  (the reward shop), **Budget** (parents only), **Profil & notiser** (colour + notifications),
+  **Väderplats**, the **theme** switch, and **log out**.
 - **Weather location:** tap the weather in the header, or profile menu → **Väderplats**, then
   search a town or use your current location. It's saved per device.
 
@@ -235,6 +240,7 @@ styles/               CSS, split by concern; design tokens for the dark + light 
   budget.css          Budget view (scoped under .budget)
   matsedel.css        Veckans matsedel (menu-card layout)
   routines.css        Sysslor → Rutiner (streck board + tally marks)
+  rewards.css         Belöningar (reward shop)
   overlays.css        Toasts and dialogs
   responsive.css      Phone breakpoints
 
@@ -250,6 +256,7 @@ scripts/              Plain JS, loaded in order (classic scripts, not modules)
   calendar.js         Kalender
   tasks.js            Sysslor → Jobb (chore board)
   routines.js         Sysslor → Rutiner (streck / behaviour rewards)
+  rewards.js          Belöningar (reward shop: tiers, rewards, redemptions)
   credits.js          Poäng (balances, ledger, payouts)
   suggestions.js      Idéer (voting)
   todos.js            Att göra

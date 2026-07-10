@@ -139,6 +139,24 @@ const DEMO_DATA = (function(){
     { id:'mr2', profile_id:P.ella, behavior_id:'bh-laxa',  amount:5, status:'pending', created_at:at(0) }
   ];
 
+  // Belöningsbutik: parent-made tiers, the rewards inside them, and one pending redemption.
+  const rewardTiers = [
+    { id:'rt-sma',    title:'Små belöningar',      emoji:'🍦', sort:0, active:true },
+    { id:'rt-mellan', title:'Mellanbelöningar',    emoji:'🎢', sort:1, active:true },
+    { id:'rt-stora',  title:'Stora & gemensamma',  emoji:'🎡', sort:2, active:true }
+  ];
+  const rewards = [
+    { id:'rw-glass', tier_id:'rt-sma',    title:'Glass i affären',        emoji:'🍦', cost_stars:5,   poolable:false, active:true, sort:0 },
+    { id:'rw-skarm', tier_id:'rt-sma',    title:'30 min extra skärmtid',  emoji:'🎮', cost_stars:3,   poolable:false, active:true, sort:1 },
+    { id:'rw-film',  tier_id:'rt-sma',    title:'Välj fredagsfilmen',     emoji:'🎬', cost_stars:4,   poolable:false, active:true, sort:2 },
+    { id:'rw-lek',   tier_id:'rt-mellan', title:'Valfri lekplats',        emoji:'🛝', cost_stars:12,  poolable:false, active:true, sort:0 },
+    { id:'rw-bad',   tier_id:'rt-mellan', title:'Badhuset',               emoji:'🏊', cost_stars:15,  poolable:false, active:true, sort:1 },
+    { id:'rw-tivoli',tier_id:'rt-stora',  title:'Tivoli med familjen',    emoji:'🎡', cost_stars:100, poolable:true,  active:true, sort:0 }
+  ];
+  const redemptions = [
+    { id:'rd1', profile_id:P.nils, reward_id:'rw-skarm', cost_marks:30, status:'pending', created_at:at(0) }
+  ];
+
   const budget = {
     currentMonth: month(0),
     deletedMonths: {},
@@ -176,7 +194,7 @@ const DEMO_DATA = (function(){
 
   return {
     meId: P.johan,
-    state: { profiles, events, tasks, balances, ledger, payouts, templates, suggestions, votes, messages, todos, meals, mealDishes, mealWishes, shopTopics, shopItems, behaviors, markLedger, markBalances, markRequests },
+    state: { profiles, events, tasks, balances, ledger, payouts, templates, suggestions, votes, messages, todos, meals, mealDishes, mealWishes, shopTopics, shopItems, behaviors, markLedger, markBalances, markRequests, rewardTiers, rewards, redemptions },
     budget
   };
 })();

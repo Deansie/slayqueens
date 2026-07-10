@@ -1,6 +1,6 @@
 'use strict';
 // In-memory copy of the shared data, plus realtime subscriptions.
-const state = { profiles: [], profilesById: {}, events: [], tasks: [], balances: [], ledger: [], payouts: [], templates: [], suggestions: [], votes: [], messages: [], todos: [], meals: [], mealDishes: [], mealWishes: [], shopTopics: [], shopItems: [], behaviors: [], markLedger: [], markBalances: [], markRequests: [] };
+const state = { profiles: [], profilesById: {}, events: [], tasks: [], balances: [], ledger: [], payouts: [], templates: [], suggestions: [], votes: [], messages: [], todos: [], meals: [], mealDishes: [], mealWishes: [], shopTopics: [], shopItems: [], behaviors: [], markLedger: [], markBalances: [], markRequests: [], rewardTiers: [], rewards: [], redemptions: [] };
 
 async function loadProfiles(){
   const { data, error } = await sb.from('profiles').select('*').order('name');
@@ -124,6 +124,24 @@ async function loadMarkRequests(){
   state.markRequests = data || [];
 }
 
+async function loadRewardTiers(){
+  const { data, error } = await sb.from('reward_tiers').select('*').order('sort').order('created_at');
+  if(error){ console.warn('loadRewardTiers', error); return; }
+  state.rewardTiers = data || [];
+}
+
+async function loadRewards(){
+  const { data, error } = await sb.from('rewards').select('*').order('sort').order('created_at');
+  if(error){ console.warn('loadRewards', error); return; }
+  state.rewards = data || [];
+}
+
+async function loadRedemptions(){
+  const { data, error } = await sb.from('reward_redemptions').select('*').order('created_at', { ascending: false });
+  if(error){ console.warn('loadRedemptions', error); return; }
+  state.redemptions = data || [];
+}
+
 // Live updates: re-fetch + re-render whenever the shared tables change on any device.
 let realtimeChannel = null;
 function subscribeRealtime(onChange){
@@ -150,6 +168,9 @@ function subscribeRealtime(onChange){
     .on('postgres_changes', { event: '*', schema: 'public', table: 'behaviors' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'mark_ledger' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'mark_requests' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'reward_tiers' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'rewards' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'reward_redemptions' }, onChange)
     .subscribe();
 }
 function unsubscribeRealtime(){

@@ -98,6 +98,15 @@ document.addEventListener('DOMContentLoaded', () => {
   $('bonusCancel').addEventListener('click', () => $('bonusDialog').close());
   $('bonusPicks').addEventListener('click', onBonusPickClick);
 
+  // Belöningar (reward shop)
+  $('rewardsBody').addEventListener('click', onRewardsClick);
+  $('tierForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveTier(); });
+  $('tierCancel').addEventListener('click', () => $('tierDialog').close());
+  $('tierEmojiPicks').addEventListener('click', onTierEmojiClick);
+  $('rewardForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveReward(); });
+  $('rewardCancel').addEventListener('click', () => $('rewardDialog').close());
+  $('rewardEmojiPicks').addEventListener('click', onRewardEmojiClick);
+
   // Credits
   $('creditsBody').addEventListener('click', onCreditsClick);
   $('adjustForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveAdjust(); });
@@ -280,6 +289,7 @@ function onProfileMenuClick(e){
   const act = b.dataset.menu;
   closeProfileMenu();
   if(act === 'credits') switchView('credits');
+  else if(act === 'rewards') switchView('rewards');
   else if(act === 'budget') switchView('budget');
   else if(act === 'profile') openProfileDialog();
   else if(act === 'weather') openWeatherDialog();
@@ -320,9 +330,13 @@ async function onRealtime(payload){
   else if(t === 'behaviors') await loadBehaviors();
   else if(t === 'mark_ledger'){ await loadMarkLedger(); await loadMarkBalances(); }
   else if(t === 'mark_requests') await loadMarkRequests();
+  else if(t === 'reward_tiers') await loadRewardTiers();
+  else if(t === 'rewards') await loadRewards();
+  else if(t === 'reward_redemptions') await loadRedemptions();
   renderCalendar();
   renderTasks();
   renderRoutines();
+  renderRewards();
   renderCredits();
   renderSuggestions();
   renderTodos();
@@ -335,10 +349,11 @@ async function onRealtime(payload){
 // Full reload + repaint, used when the app resumes and may have missed live updates.
 async function resync(){
   if(!sb || !session) return;
-  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests()]);
+  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions()]);
   renderCalendar();
   renderTasks();
   renderRoutines();
+  renderRewards();
   renderCredits();
   renderSuggestions();
   renderTodos();

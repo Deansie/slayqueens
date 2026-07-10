@@ -35,6 +35,7 @@
 <link rel="stylesheet" href="styles/matsedel.css" />
 <link rel="stylesheet" href="styles/shopping.css" />
 <link rel="stylesheet" href="styles/routines.css" />
+<link rel="stylesheet" href="styles/rewards.css" />
 <link rel="stylesheet" href="styles/overlays.css" />
 <link rel="stylesheet" href="styles/responsive.css" />
 </head>
@@ -148,6 +149,12 @@
       <h2 class="view-title serif">Poäng</h2>
       <div id="creditsBody"></div>
     </section>
+
+    <!-- Belöningar (reward shop — reached from the profile menu) -->
+    <section class="view" id="view-rewards" hidden>
+      <h2 class="view-title serif">Belöningar</h2>
+      <div id="rewardsBody"></div>
+    </section>
   </main>
 
   <!-- Context-aware add button -->
@@ -183,6 +190,7 @@
   <div class="menu-pop" id="profileMenu" hidden role="menu" aria-label="Profilmeny">
     <div class="mp-bal" id="mpBal" hidden></div>
     <button class="mp-item" data-menu="credits" type="button" role="menuitem"><span class="mp-ico">⭐</span> Poäng</button>
+    <button class="mp-item" data-menu="rewards" type="button" role="menuitem"><span class="mp-ico">🎁</span> Belöningar</button>
     <button class="mp-item parent-only" data-menu="budget" type="button" role="menuitem"><span class="mp-ico">💰</span> Budget</button>
     <button class="mp-item" data-menu="profile" type="button" role="menuitem"><span class="mp-ico">🎨</span> Profil &amp; notiser</button>
     <button class="mp-item" data-menu="weather" type="button" role="menuitem"><span class="mp-ico">📍</span> Väderplats</button>
@@ -334,6 +342,53 @@
     <div class="dlg-actions">
       <button class="btn ghost" id="bonusCancel" type="button">Avbryt</button>
       <button class="btn" value="ok" id="bonusSave" type="submit">Ge streck</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Belöningar: new/edit tier (parent) ------------------------------ -->
+<dialog id="tierDialog">
+  <form method="dialog" class="dlg-body" id="tierForm">
+    <h3 id="tierDlgTitle" class="serif">Ny nivå</h3>
+    <div class="dlg-field">
+      <label for="tierTitle">Namn</label>
+      <input id="tierTitle" type="text" required maxlength="40" placeholder="T.ex. Små belöningar" />
+    </div>
+    <div class="dlg-field">
+      <label>Ikon</label>
+      <div class="shop-emoji-picks" id="tierEmojiPicks"></div>
+    </div>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="tierCancel" type="button">Avbryt</button>
+      <button class="btn" value="ok" id="tierSave" type="submit">Spara</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Belöningar: new/edit reward (parent) ---------------------------- -->
+<dialog id="rewardDialog">
+  <form method="dialog" class="dlg-body" id="rewardForm">
+    <h3 id="rewardDlgTitle" class="serif">Ny belöning</h3>
+    <div class="dlg-field">
+      <label for="rewardTitle">Vad</label>
+      <input id="rewardTitle" type="text" required maxlength="60" placeholder="T.ex. Glass i affären" />
+    </div>
+    <div class="dlg-field">
+      <label for="rewardCost">Kostnad (stjärnor ⭐)</label>
+      <input id="rewardCost" type="number" min="1" step="1" value="5" required />
+    </div>
+    <div class="dlg-field">
+      <label for="rewardTier">Nivå</label>
+      <select id="rewardTier"></select>
+    </div>
+    <div class="dlg-field">
+      <label>Ikon</label>
+      <div class="shop-emoji-picks" id="rewardEmojiPicks"></div>
+    </div>
+    <label class="dlg-check"><input type="checkbox" id="rewardPoolable" /> 👨‍👩‍👧 Delbar — barnen kan slå ihop streck till den (kommer snart)</label>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="rewardCancel" type="button">Avbryt</button>
+      <button class="btn" value="ok" id="rewardSave" type="submit">Spara</button>
     </div>
   </form>
 </dialog>
@@ -581,6 +636,7 @@
 <script src="scripts/calendar.js"></script>
 <script src="scripts/tasks.js"></script>
 <script src="scripts/routines.js"></script>
+<script src="scripts/rewards.js"></script>
 <script src="scripts/credits.js"></script>
 <script src="scripts/suggestions.js"></script>
 <script src="scripts/todos.js"></script>

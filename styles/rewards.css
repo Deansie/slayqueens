@@ -1,0 +1,43 @@
+/* ============================================================
+   Belöningsbutik — the reward shop where kids spend streck (stars).
+   Reached from the profile menu. Reuses .shop-emoji-pick(s) from shopping.css.
+   ============================================================ */
+
+/* ---- redemption queue (kid: my pending; parent: to fulfil) ---- */
+.redeem-list{ display:flex; flex-direction:column; gap:8px; }
+.redeem-item{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  background:var(--gold-soft); border:1px solid var(--gold-line);
+  border-radius:var(--radius-sm); padding:11px 13px;
+}
+.ri-who{ display:flex; align-items:center; gap:8px; font-weight:600; }
+.ri-what{ flex:1; min-width:0; font-weight:600; }
+.ri-cost{ color:var(--accent-ink); font-weight:700; white-space:nowrap; }
+.ri-status{ font-size:.82rem; color:var(--muted); white-space:nowrap; }
+.ri-actions{ display:flex; gap:6px; flex:0 0 auto; }
+
+/* ---- shop, grouped by tier ---- */
+.reward-tier{ margin-bottom:18px; }
+.reward-tier-head{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+.reward-tier-name{ font-size:1.05rem; }
+.tier-tools{ display:flex; align-items:center; gap:4px; flex:0 0 auto; }
+
+.reward-grid{ display:flex; flex-direction:column; gap:8px; }
+.reward-card{
+  display:flex; align-items:center; gap:12px;
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius-sm); padding:11px 13px;
+}
+.reward-card.locked{ opacity:.62; }
+.reward-emoji{ font-size:1.4rem; flex:0 0 auto; line-height:1; }
+.reward-info{ display:flex; flex-direction:column; gap:2px; flex:1; min-width:0; }
+.reward-name{ font-weight:600; display:flex; align-items:center; gap:7px; }
+.reward-cost{ font-size:.85rem; color:var(--accent-ink); font-weight:700; }
+.reward-need{ font-size:.82rem; color:var(--muted); white-space:nowrap; flex:0 0 auto; }
+.reward-tools{ display:flex; gap:2px; flex:0 0 auto; }
+
+.pool-badge{
+  font-size:.64rem; font-weight:700; text-transform:uppercase; letter-spacing:.04em;
+  padding:2px 7px; border-radius:var(--radius-pill);
+  background:var(--gold-soft); color:var(--accent-ink); border:1px solid var(--gold-line);
+}
