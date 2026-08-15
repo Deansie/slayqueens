@@ -1,74 +1,63 @@
-/* Dagens agenda — the landing screen. Calm, card-based summary of today. */
+/* Dagens agenda — the landing screen. One tidy card of hairline-separated groups. */
 
-.ag-block{ margin-bottom:10px; }
-.ag-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
-.ag-head .section-title{ padding-left:2px; }
-
-.ag-link{
-  border:0; background:transparent; cursor:pointer; padding:4px 2px;
-  color:var(--faint); font-weight:700; font-size:.76rem; letter-spacing:.02em;
-}
-.ag-link:hover{ color:var(--accent-ink); }
-
-.ag-empty{
-  color:var(--muted); font-size:.92rem; padding:14px 16px;
+.ag-card{
   background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+  box-shadow:var(--shadow-sm); margin-bottom:12px; overflow:hidden;
 }
-button.ag-tap{ width:100%; text-align:left; cursor:pointer; }
-button.ag-tap:hover{ border-color:var(--gold-line); color:var(--accent-ink); }
+.ag-group{ padding:13px 16px; }
+.ag-group + .ag-group{ border-top:1px solid var(--border); }
 
-/* Events */
-.ag-events{ display:flex; flex-direction:column; gap:8px; }
-.ag-ev{
-  display:flex; gap:14px; align-items:flex-start;
-  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
-  padding:13px 16px; box-shadow:var(--shadow-sm);
+/* Caption row: small uppercase label + optional link/count on the right */
+.ag-cap{
+  display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:9px;
+  font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--faint);
 }
-.ag-ev.is-ongoing{ border-color:var(--gold-line); background:var(--gold-soft); }
-.ag-ev-when{ flex:0 0 auto; display:flex; flex-direction:column; align-items:flex-start; gap:4px; min-width:52px; }
-.ag-ev-time{ font-size:1.05rem; font-weight:700; letter-spacing:-.01em; }
-.ag-ev-main{ min-width:0; flex:1 1 auto; }
-.ag-ev-title{ font-weight:600; margin-bottom:7px; word-break:break-word; }
-.ag-ev-tags{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+.ag-cap-link{
+  border:0; background:transparent; cursor:pointer; padding:0;
+  color:var(--faint); font-weight:700; font-size:.72rem; letter-spacing:.03em; text-transform:none;
+}
+.ag-cap-link:hover{ color:var(--accent-ink); }
 
-/* Dinner */
-.ag-dish{
-  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
-  padding:16px; font-size:1.35rem; font-weight:600; letter-spacing:-.01em;
-  box-shadow:var(--shadow-sm);
-}
-.ag-dish-note{ font-size:.85rem; font-weight:400; color:var(--muted); margin-top:5px; font-family:inherit; }
+.muted{ color:var(--muted); }
+.ag-caret{ flex:0 0 auto; color:var(--faint); font-size:1.15rem; margin-left:auto; }
 
-/* Approval queue (parent) + kid nudge share the pill-row look */
-.ag-approvals{ display:flex; flex-direction:column; gap:8px; }
-.ag-approve{
-  display:flex; align-items:center; gap:13px; width:100%; text-align:left; cursor:pointer;
-  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
-  padding:13px 16px; box-shadow:var(--shadow-sm); color:var(--text);
-}
-.ag-approve:hover{ border-color:var(--gold-line); }
-.ag-approve-ico{ font-size:1.3rem; flex:0 0 auto; line-height:1; }
-.ag-approve-txt{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:2px; font-size:.95rem; }
-.ag-approve-txt b{ font-weight:700; color:var(--accent-ink); }
-.ag-approve-sub{ font-size:.82rem; color:var(--muted); }
-.ag-approve-caret{ flex:0 0 auto; color:var(--faint); font-size:1.2rem; }
+/* Events — plain rows: time · title (with a category dot) · owner avatar */
+.ag-ev{ display:flex; align-items:center; gap:11px; padding:5px 0; }
+.ag-ev + .ag-ev{ border-top:1px solid var(--border); }
+.ag-ev-time{ flex:0 0 auto; min-width:52px; font-weight:700; font-size:.9rem; letter-spacing:-.01em; }
+.ag-ev.is-ongoing .ag-ev-time{ color:var(--accent-ink); }
+.ag-ev-title{ flex:1 1 auto; min-width:0; display:flex; align-items:center; gap:7px; font-weight:500; word-break:break-word; }
+.ag-cat-dot{ flex:0 0 auto; width:8px; height:8px; border-radius:50%; }
+.ag-ev-av{ flex:0 0 auto; display:inline-flex; }
 
-/* Today's cleaning (reuses .cl-task styling from cleaning.css, wrapped in a card) */
-.ag-clean{
-  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
-  padding:6px 16px; box-shadow:var(--shadow-sm);
-}
+/* Single-line rows (dinner) */
+.ag-line{ display:flex; align-items:center; gap:10px; width:100%; }
+.ag-line-ico{ flex:0 0 auto; font-size:1.15rem; line-height:1; }
+.ag-line-main{ flex:1 1 auto; min-width:0; font-size:1.02rem; }
+.ag-line-main b{ font-weight:600; letter-spacing:-.01em; }
+.ag-line-sub{ color:var(--muted); font-size:.85rem; font-weight:400; }
+button.ag-line-btn{ border:0; background:transparent; text-align:left; cursor:pointer; color:var(--text); padding:0; }
+button.ag-line-btn:hover .ag-line-main{ color:var(--accent-ink); }
 
-/* Tomorrow heads-up: weather line above the events */
-.ag-tmr-wx{
-  display:flex; align-items:center; gap:11px;
-  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
-  padding:12px 16px; box-shadow:var(--shadow-sm); margin-bottom:8px;
+/* Tappable rows (approvals, kid nudge) */
+.ag-row{
+  display:flex; align-items:center; gap:12px; width:100%; text-align:left; cursor:pointer;
+  border:0; background:transparent; color:var(--text); padding:6px 0;
 }
-.ag-tmr-emoji{ font-size:1.5rem; line-height:1; }
-.ag-tmr-temp{ font-size:1.2rem; font-weight:700; letter-spacing:-.01em; }
-.ag-tmr-min{ color:var(--muted); font-weight:600; font-size:.95rem; }
-.ag-tmr-desc{ color:var(--muted); font-size:.9rem; margin-left:auto; }
+.ag-row + .ag-row{ border-top:1px solid var(--border); }
+.ag-row:hover .ag-row-txt{ color:var(--accent-ink); }
+.ag-row-ico{ flex:0 0 auto; font-size:1.2rem; line-height:1; }
+.ag-row-txt{ flex:1 1 auto; min-width:0; font-size:.96rem; }
+.ag-row-txt b{ font-weight:700; color:var(--accent-ink); }
+
+/* Tomorrow weather line */
+.ag-wx{ display:flex; align-items:center; gap:10px; padding:2px 0 10px; }
+.ag-wx-emoji{ font-size:1.4rem; line-height:1; }
+.ag-wx-temp{ font-weight:700; font-size:1.05rem; letter-spacing:-.01em; }
+.ag-wx-min{ color:var(--muted); font-weight:600; font-size:.9rem; }
+.ag-wx-desc{ color:var(--muted); font-size:.88rem; margin-left:auto; }
+.ag-wx + .ag-ev,
+.ag-wx + .ag-line{ border-top:1px solid var(--border); padding-top:9px; }
 
 /* The header date doubles as the home button (tap → Dagens agenda) */
 .head-date[role="button"]{ cursor:pointer; }
