@@ -1,7 +1,7 @@
 'use strict';
 // Startup, event wiring, view routing, FAB, profile menu, and shared dialogs.
 
-let currentView = 'calendar';
+let currentView = 'today';
 // "Att göra" holds two sub-views (the to-do list and the Inköp board); remember which one.
 let todoTab = 'todos';
 try{ if(localStorage.getItem('slayqueens_todotab') === 'shopping') todoTab = 'shopping'; }catch(e){}
@@ -13,6 +13,7 @@ try{ if(localStorage.getItem('slayqueens_taskstab') === 'routines') tasksTab = '
 // "todos" and "tasks" views are dynamic — their action depends on the sub-tab — so they're
 // resolved in currentFabAction() rather than listed here.
 const FAB_ACTIONS = {
+  today:       null,
   calendar:    { label: 'Ny händelse', run: () => openEventDialog(null) },
   suggestions: { label: 'Ny idé',      run: () => openSuggestionDialog() },
   matsedel:    { label: 'Önska',       run: () => openWishDialog() },
@@ -39,6 +40,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // Bottom nav
   document.querySelectorAll('.tab').forEach(t =>
     t.addEventListener('click', () => switchView(t.dataset.view)));
+
+  // Header date → back to the agenda landing screen
+  $('homeBtn').addEventListener('click', () => switchView('today'));
+  $('homeBtn').addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); switchView('today'); }
+  });
+  $('todayBody').addEventListener('click', onTodayClick);
 
   // Floating add button
   $('fab').addEventListener('click', () => {
@@ -338,6 +346,7 @@ async function onRealtime(payload){
   else if(t === 'reward_redemptions') await loadRedemptions();
   else if(t === 'point_goals') await loadGoals();
   else if(t === 'goal_contributions') await loadContributions();
+  renderToday();
   renderCalendar();
   renderTasks();
   renderRoutines();
@@ -355,6 +364,7 @@ async function onRealtime(payload){
 async function resync(){
   if(!sb || !session) return;
   await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions(), loadGoals(), loadContributions()]);
+  renderToday();
   renderCalendar();
   renderTasks();
   renderRoutines();

@@ -187,7 +187,7 @@ async function saveMeal(){
       if(e3) console.warn('consume wish', e3); else await loadMealWishes();
     }
     toast('ok', fulfilled.length ? 'Sparad – önskemål uppfyllt' : 'Sparad');
-    await loadMeals(); renderMatsedel();
+    await loadMeals(); renderMatsedel(); renderToday();
   }catch(err){ console.warn('saveMeal', err); toast('warn', 'Kunde inte spara'); }
 }
 

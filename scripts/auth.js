@@ -40,6 +40,7 @@ async function enterApp(){
     if(demoBar) demoBar.hidden = !isDemo();
     await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions(), loadGoals(), loadContributions()]);
     renderHeader();
+    renderToday();
     renderCalendar();
     renderTasks();
     renderRoutines();
@@ -54,7 +55,7 @@ async function enterApp(){
     initPush();
     initWeather();
     showApp();
-    switchView('calendar');
+    switchView('today');
   }catch(err){
     console.warn('enterApp', err);
     toast('warn', 'Kunde inte ladda appen');
@@ -78,6 +79,7 @@ function enterDemo(){
   const demoBar = $('demoBanner');
   if(demoBar) demoBar.hidden = false;
   renderHeader();
+  renderToday();
   renderCalendar();
   renderTasks();
   renderRoutines();
@@ -90,6 +92,6 @@ function enterDemo(){
   if(window.Budget){ Budget.init(); Budget.load(); }
   initWeather();
   showApp();
-  switchView('calendar');
+  switchView('today');
   $('loginEmail').value = ''; $('loginPassword').value = '';
 }

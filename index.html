@@ -36,6 +36,7 @@
 <link rel="stylesheet" href="styles/shopping.css" />
 <link rel="stylesheet" href="styles/routines.css" />
 <link rel="stylesheet" href="styles/rewards.css" />
+<link rel="stylesheet" href="styles/today.css" />
 <link rel="stylesheet" href="styles/overlays.css" />
 <link rel="stylesheet" href="styles/responsive.css" />
 </head>
@@ -73,7 +74,7 @@
 <div id="appScreen" class="app" hidden>
   <div id="demoBanner" class="demo-banner" hidden>Demo · du kan titta runt, men inget sparas.</div>
   <header class="app-header">
-    <div class="head-date">
+    <div class="head-date" id="homeBtn" role="button" tabindex="0" aria-label="Till dagens agenda">
       <div class="hd-weekday serif" id="hdWeekday">—</div>
       <h1 class="hd-date serif" id="hdDate">—</h1>
       <div class="hd-sub" id="hdSub"></div>
@@ -93,8 +94,13 @@
   </header>
 
   <main class="view-wrap">
+    <!-- Dagens agenda (landing screen, not in the tab bar — reached via the crown) -->
+    <section class="view active" id="view-today">
+      <div id="todayBody"></div>
+    </section>
+
     <!-- Calendar -->
-    <section class="view active" id="view-calendar">
+    <section class="view" id="view-calendar" hidden>
       <div id="notisBar" hidden></div>
       <div class="cat-filter" id="catFilter"></div>
       <div class="event-list" id="eventList"></div>
@@ -651,6 +657,7 @@
 <script src="scripts/state.js"></script>
 <script src="scripts/auth.js"></script>
 <script src="scripts/header.js"></script>
+<script src="scripts/today.js"></script>
 <script src="scripts/weather.js"></script>
 <script src="scripts/calendar.js"></script>
 <script src="scripts/tasks.js"></script>

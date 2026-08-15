@@ -12,6 +12,11 @@ family finances, can't approve their own chores, and can't credit themselves.
 
 ## What it does
 
+**Dagens agenda.** The app opens on a calm summary of *today*: the day's events, tonight's
+dinner from Matsedel, and — for parents — a queue of what's waiting to be approved (jobb,
+rutiner, belöningar, utbetalningar). It's not in the tab bar; tap the date in the header from
+anywhere to come back to it.
+
 **Kalender.** The family's shared calendar. Upcoming events are grouped by day (*Idag*,
 *Imorgon*, then by weekday), each tagged with a category (Aktiviteter, Skola, Familj, Hälsa,
 Kalas, Annat) and with whose it is: a family member or the whole family. Events can be timed
@@ -220,6 +225,8 @@ for the service worker, push, and geolocation). Then on each phone, open the sit
 
 ## Everyday use
 
+- The app opens on **Dagens agenda**. Tap the **date** in the header to return to it from
+  anywhere.
 - The **bottom bar** switches between Kalender, Att göra, Sysslor, Idéer, and Matsedel, the same
   five for everyone. The **＋** button adds something to the current view.
 - The **profile pill** (top-right) opens a menu with **Poäng** (your balance), **Belöningar**
@@ -251,6 +258,7 @@ styles/               CSS, split by concern; design tokens for the dark + light 
   matsedel.css        Veckans matsedel (menu-card layout)
   routines.css        Sysslor → Rutiner (streck board + tally marks)
   rewards.css         Belöningar (reward shop)
+  today.css           Dagens agenda (landing screen)
   overlays.css        Toasts and dialogs
   responsive.css      Phone breakpoints
 
@@ -262,6 +270,7 @@ scripts/              Plain JS, loaded in order (classic scripts, not modules)
   state.js            In-memory data + realtime subscriptions
   auth.js             Login screen, role gating, app startup
   header.js           Date header + event counts
+  today.js            Dagens agenda (landing summary of today)
   weather.js          Weather widget + location picker (Open-Meteo)
   calendar.js         Kalender
   tasks.js            Sysslor → Jobb (chore board)
