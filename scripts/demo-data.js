@@ -90,6 +90,7 @@ const DEMO_DATA = (function(){
     { id:'me3', date:week(2), title:'Fläskfilé', note:'med klyftpotatis', created_by:P.anna },
     { id:'me4', date:week(3), title:'Fisk och potatis', note:null, created_by:P.anna },
     { id:'me5', date:week(4), title:'Hemmagjord pizza', note:null, created_by:P.johan },
+    { id:'me7', date:week(5), title:'Korv stroganoff', note:null, created_by:P.johan },
     { id:'me6', date:week(6), title:'Söndagsstek', note:null, created_by:P.anna }
   ];
   const mealDishes = ['Tacos','Pasta bolognese','Fläskfilé','Fisk och potatis','Söndagsstek','Hemmagjord pizza','Korv stroganoff','Köttbullar']
@@ -114,6 +115,28 @@ const DEMO_DATA = (function(){
     { id:'si6', topic_id:'st-hem',         title:'Diskmedel',            bought:false, created_by:P.johan, created_at:at(-1), bought_at:null,  bought_by:null },
     { id:'si7', topic_id:'st-hem',         title:'Glödlampa till hallen',bought:false, created_by:P.anna,  created_at:at(-2), bought_at:null,  bought_by:null }
   ];
+
+  // Städschema: a weekly cleaning plan pinned to weekdays (0 = Mon … 6 = Sun), shared — anyone
+  // ticks. A few are already done this week (cleaningDone, keyed to this week's Monday), so the
+  // agenda + board show a part-full progress bar and, depending on the day, some "släpar efter".
+  const cleaningTasks = [
+    { id:'cl-dammsug',  title:'Dammsuga vardagsrummet',  weekday:0, sort:0, created_by:P.anna,  created_at:at(-21) },
+    { id:'cl-koksbank', title:'Torka av köksbänkarna',   weekday:0, sort:1, created_by:P.anna,  created_at:at(-21) },
+    { id:'cl-kylskap',  title:'Rensa kylskåpet',         weekday:1, sort:0, created_by:P.johan, created_at:at(-21) },
+    { id:'cl-dammtork', title:'Dammtorka ytorna',        weekday:2, sort:0, created_by:P.anna,  created_at:at(-21) },
+    { id:'cl-badrum',   title:'Städa badrummet',         weekday:3, sort:0, created_by:P.johan, created_at:at(-21) },
+    { id:'cl-sopor',    title:'Sopor & återvinning',     weekday:4, sort:0, created_by:P.anna,  created_at:at(-21) },
+    { id:'cl-sang',     title:'Byta sängkläder',         weekday:5, sort:0, created_by:P.johan, created_at:at(-21) },
+    { id:'cl-golv',     title:'Moppa golven',            weekday:6, sort:0, created_by:P.anna,  created_at:at(-21) }
+  ];
+  const cleaningDone = [
+    { id:'cd1', task_id:'cl-dammsug',  week_start:week(0), done_by:P.nils,  done_at:at(-1) },
+    { id:'cd2', task_id:'cl-koksbank', week_start:week(0), done_by:P.anna,  done_at:at(-1) },
+    { id:'cd3', task_id:'cl-kylskap',  week_start:week(0), done_by:P.johan, done_at:at(0) }
+  ];
+
+  // Household settings: the daily cleaning-reminder time (parents edit it in the profile dialog).
+  const settings = { id:true, cleaning_reminder_enabled:true, cleaning_reminder_hour:8 };
 
   // Rutiner: the behaviour library, the streck (marks) already earned, and a couple of pending
   // "I did this routine" requests for the parent's approval queue.
@@ -202,7 +225,7 @@ const DEMO_DATA = (function(){
 
   return {
     meId: P.johan,
-    state: { profiles, events, tasks, balances, ledger, payouts, templates, suggestions, votes, messages, todos, meals, mealDishes, mealWishes, shopTopics, shopItems, behaviors, markLedger, markBalances, markRequests, rewardTiers, rewards, redemptions, goals, contributions },
+    state: { profiles, events, tasks, balances, ledger, payouts, templates, suggestions, votes, messages, todos, meals, mealDishes, mealWishes, shopTopics, shopItems, behaviors, markLedger, markBalances, markRequests, rewardTiers, rewards, redemptions, goals, contributions, cleaningTasks, cleaningDone, settings },
     budget
   };
 })();
