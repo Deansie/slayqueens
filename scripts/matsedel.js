@@ -103,9 +103,12 @@ function openMealDialog(k, meal){
   $('mealDlgTitle').textContent = `${capital(WEEKDAYS[d.getDay()])} ${d.getDate()} ${MONTHS[d.getMonth()]}`;
   $('mealTitle').value = meal ? (meal.title || '') : '';
   $('mealNote').value  = meal ? (meal.note  || '') : '';
-  fillPicks('mealDishPicks', 'mealDishWrap', (state.mealDishes || []).map(x => x.title));
-  fillPicks('mealWishPicks', 'mealWishWrap', (state.mealWishes || []).map(x => x.title));
-  $('mealSaveDish').checked = true;
+  const hasDishes = fillPicks('mealDishPicks', 'mealDishWrap', (state.mealDishes || []).map(x => x.title));
+  const hasWishes = fillPicks('mealWishPicks', 'mealWishWrap', (state.mealWishes || []).map(x => x.title));
+  // the earlier rätter/önskemål stay tucked behind a button so they don't fill the screen
+  setMealPicksOpen(false);
+  $('mealPickToggle').hidden = !(hasDishes || hasWishes);
+  $('mealSaveDish').checked = false;   // opt-in: only save to the library if the parent asks
   $('mealClear').hidden = !meal;       // nothing to clear on an empty day
   $('mealDialog').showModal();
 }
@@ -117,11 +120,19 @@ function fillPicks(picksId, wrapId, titles){
   if(uniq.length){
     picks.innerHTML = uniq.map(t => `<button type="button" class="ms-pick" data-pick="${escapeHtml(t)}">${escapeHtml(t)}</button>`).join('');
     wrap.hidden = false;
-  } else { picks.innerHTML = ''; wrap.hidden = true; }
+    return true;
+  }
+  picks.innerHTML = ''; wrap.hidden = true;
+  return false;
 }
+function setMealPicksOpen(open){
+  $('mealPicksPanel').hidden = !open;
+  $('mealPickToggle').textContent = open ? '▲ Dölj tidigare rätter' : '📋 Välj tidigare rätt';
+}
+function toggleMealPicks(){ setMealPicksOpen($('mealPicksPanel').hidden); }
 function onMealPickClick(e){
   const b = e.target.closest('[data-pick]');
-  if(b) $('mealTitle').value = b.dataset.pick;
+  if(b){ $('mealTitle').value = b.dataset.pick; setMealPicksOpen(false); }
 }
 
 async function saveMeal(){

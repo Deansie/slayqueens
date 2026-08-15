@@ -545,19 +545,22 @@
       <label for="mealTitle">Rätt</label>
       <input id="mealTitle" type="text" required maxlength="80" placeholder="T.ex. Tacos" />
     </div>
-    <div class="dlg-field" id="mealDishWrap" hidden>
-      <label>Våra rätter</label>
-      <div class="ms-picks" id="mealDishPicks"></div>
-    </div>
-    <div class="dlg-field" id="mealWishWrap" hidden>
-      <label>Barnens önskemål</label>
-      <div class="ms-picks" id="mealWishPicks"></div>
+    <button class="btn ghost sm" id="mealPickToggle" type="button" hidden>📋 Välj tidigare rätt</button>
+    <div id="mealPicksPanel" hidden>
+      <div class="dlg-field" id="mealDishWrap" hidden>
+        <label>Våra rätter</label>
+        <div class="ms-picks" id="mealDishPicks"></div>
+      </div>
+      <div class="dlg-field" id="mealWishWrap" hidden>
+        <label>Barnens önskemål</label>
+        <div class="ms-picks" id="mealWishPicks"></div>
+      </div>
     </div>
     <div class="dlg-field">
       <label for="mealNote">Notis (valfritt)</label>
       <input id="mealNote" type="text" maxlength="120" placeholder="T.ex. vegetariskt" />
     </div>
-    <label class="dlg-check"><input type="checkbox" id="mealSaveDish" checked /> Spara i Rätter</label>
+    <label class="dlg-check"><input type="checkbox" id="mealSaveDish" /> Spara i Rätter</label>
     <div class="dlg-actions">
       <button class="btn ghost" id="mealClear" type="button">Rensa dag</button>
       <button class="btn ghost" id="mealCancel" type="button">Avbryt</button>

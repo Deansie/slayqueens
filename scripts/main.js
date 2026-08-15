@@ -148,6 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('mealForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveMeal(); });
   $('mealCancel').addEventListener('click', () => $('mealDialog').close());
   $('mealClear').addEventListener('click', clearMeal);
+  $('mealPickToggle').addEventListener('click', toggleMealPicks);
   $('mealDishPicks').addEventListener('click', onMealPickClick);
   $('mealWishPicks').addEventListener('click', onMealPickClick);
   $('mealDishList').addEventListener('click', onMealDishListClick);
