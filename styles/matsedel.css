@@ -77,6 +77,13 @@
   border-radius:var(--radius-pill); padding:6px 12px; font-size:.82rem; cursor:pointer;
 }
 .ms-pick:hover{ border-color:var(--gold-line); color:var(--accent-ink); }
+.ms-pick{ display:inline-flex; align-items:center; gap:6px; }
+.ms-pick-x{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:16px; height:16px; border-radius:50%; font-size:.62rem; line-height:1;
+  color:var(--muted); background:color-mix(in srgb, var(--text) 8%, transparent);
+}
+.ms-pick-x:hover{ color:var(--danger); background:var(--danger-soft); }
 
 /* Dish library ("Rätter") list */
 .ms-lib-list{ display:flex; flex-direction:column; gap:8px; max-height:44vh; overflow-y:auto; }

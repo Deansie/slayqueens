@@ -103,22 +103,42 @@ function openMealDialog(k, meal){
   $('mealDlgTitle').textContent = `${capital(WEEKDAYS[d.getDay()])} ${d.getDate()} ${MONTHS[d.getMonth()]}`;
   $('mealTitle').value = meal ? (meal.title || '') : '';
   $('mealNote').value  = meal ? (meal.note  || '') : '';
-  const hasDishes = fillPicks('mealDishPicks', 'mealDishWrap', (state.mealDishes || []).map(x => x.title));
-  const hasWishes = fillPicks('mealWishPicks', 'mealWishWrap', (state.mealWishes || []).map(x => x.title));
   // the earlier rätter/önskemål stay tucked behind a button so they don't fill the screen
   setMealPicksOpen(false);
-  $('mealPickToggle').hidden = !(hasDishes || hasWishes);
+  refreshMealPicks();
   $('mealSaveDish').checked = false;   // opt-in: only save to the library if the parent asks
   $('mealClear').hidden = !meal;       // nothing to clear on an empty day
   $('mealDialog').showModal();
 }
 
-// tap-to-fill chips (used for both the dish library and the wishes)
-function fillPicks(picksId, wrapId, titles){
+// (re)fill both chip lists and toggle the button; returns whether there's anything to pick
+function refreshMealPicks(){
+  const hasDishes = fillPicks('mealDishPicks', 'mealDishWrap', state.mealDishes || [], true);
+  const hasWishes = fillPicks('mealWishPicks', 'mealWishWrap',
+    (state.mealWishes || []).map(w => ({ title: w.title })), false);
+  const any = hasDishes || hasWishes;
+  $('mealPickToggle').hidden = !any;
+  if(!any) setMealPicksOpen(false);
+  return any;
+}
+
+// tap-to-fill chips. Dish chips (deletable) carry an ✕ to remove them from the library.
+function fillPicks(picksId, wrapId, items, deletable){
   const wrap = $(wrapId), picks = $(picksId);
-  const uniq = [...new Set(titles.filter(Boolean))];
+  const seen = new Set(), uniq = [];
+  for(const it of items){
+    const t = (it.title || '').trim();
+    if(!t) continue;
+    const key = t.toLowerCase();
+    if(seen.has(key)) continue;
+    seen.add(key); uniq.push(it);
+  }
   if(uniq.length){
-    picks.innerHTML = uniq.map(t => `<button type="button" class="ms-pick" data-pick="${escapeHtml(t)}">${escapeHtml(t)}</button>`).join('');
+    picks.innerHTML = uniq.map(it => {
+      const del = deletable && it.id
+        ? `<span class="ms-pick-x" data-delpick="${it.id}" role="button" tabindex="0" aria-label="Ta bort rätt">✕</span>` : '';
+      return `<button type="button" class="ms-pick" data-pick="${escapeHtml(it.title)}">${escapeHtml(it.title)}${del}</button>`;
+    }).join('');
     wrap.hidden = false;
     return true;
   }
@@ -131,8 +151,18 @@ function setMealPicksOpen(open){
 }
 function toggleMealPicks(){ setMealPicksOpen($('mealPicksPanel').hidden); }
 function onMealPickClick(e){
+  const del = e.target.closest('[data-delpick]');
+  if(del){ e.preventDefault(); e.stopPropagation(); deleteMealDishFromPicker(del.dataset.delpick); return; }
   const b = e.target.closest('[data-pick]');
   if(b){ $('mealTitle').value = b.dataset.pick; setMealPicksOpen(false); }
+}
+async function deleteMealDishFromPicker(id){
+  try{
+    const { error } = await sb.from('meal_dishes').delete().eq('id', id);
+    if(error) throw error;
+    await loadMealDishes();
+    refreshMealPicks();  // re-render chips; keep the dialog open
+  }catch(err){ console.warn('deleteMealDishFromPicker', err); toast('warn', 'Kunde inte ta bort'); }
 }
 
 async function saveMeal(){
