@@ -309,9 +309,15 @@ Deno.serve(async (req) => {
       body = ct ? `${days[ct.weekday] ?? ''} · ${ct.title}` : 'En städuppgift lades till';
 
     } else if (type === 'cleaning_digest') {
-      // The daily pg_cron nudge: how much cleaning is due today / overdue this week. Parents only,
-      // and only sent when there's actually something outstanding.
+      // The hourly pg_cron nudge: how much cleaning is due today / overdue this week. Parents only,
+      // gated on the app-set time (Europe/Stockholm hour, DST-safe) and only sent when something's due.
       if (!isCron) return json({ error: 'forbidden' }, 403);
+      const { data: settings } = await admin.from('app_settings')
+        .select('cleaning_reminder_enabled, cleaning_reminder_hour').eq('id', true).single();
+      if (!settings || !settings.cleaning_reminder_enabled) return json({ sent: 0 });
+      const nowHour = Number(new Intl.DateTimeFormat('en-GB',
+        { timeZone: 'Europe/Stockholm', hour: '2-digit', hourCycle: 'h23' }).format(new Date()));
+      if (nowHour !== settings.cleaning_reminder_hour) return json({ sent: 0, skipped: 'off-hour' });
       const ymd = new Intl.DateTimeFormat('en-CA',
         { timeZone: 'Europe/Stockholm', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
       const base = new Date(ymd + 'T00:00:00Z');

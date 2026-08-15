@@ -127,6 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('profileForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveProfile(); });
   $('profileCancel').addEventListener('click', () => $('profileDialog').close());
   $('pushBtn').addEventListener('click', togglePush);
+  $('cleanRemOn').addEventListener('change', reflectReminderRow);
 
   // Suggestions
   $('suggestionList').addEventListener('click', onSuggestionClick);
@@ -355,6 +356,7 @@ async function onRealtime(payload){
   else if(t === 'goal_contributions') await loadContributions();
   else if(t === 'cleaning_tasks') await loadCleaningTasks();
   else if(t === 'cleaning_done') await loadCleaningDone();
+  else if(t === 'app_settings') await loadSettings();
   renderToday();
   renderCalendar();
   renderTasks();
@@ -373,7 +375,7 @@ async function onRealtime(payload){
 // Full reload + repaint, used when the app resumes and may have missed live updates.
 async function resync(){
   if(!sb || !session) return;
-  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions(), loadGoals(), loadContributions(), loadCleaningTasks(), loadCleaningDone()]);
+  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions(), loadGoals(), loadContributions(), loadCleaningTasks(), loadCleaningDone(), loadSettings()]);
   renderToday();
   renderCalendar();
   renderTasks();

@@ -1,6 +1,6 @@
 'use strict';
 // In-memory copy of the shared data, plus realtime subscriptions.
-const state = { profiles: [], profilesById: {}, events: [], tasks: [], balances: [], ledger: [], payouts: [], templates: [], suggestions: [], votes: [], messages: [], todos: [], meals: [], mealDishes: [], mealWishes: [], shopTopics: [], shopItems: [], behaviors: [], markLedger: [], markBalances: [], markRequests: [], rewardTiers: [], rewards: [], redemptions: [], goals: [], contributions: [], cleaningTasks: [], cleaningDone: [] };
+const state = { profiles: [], profilesById: {}, events: [], tasks: [], balances: [], ledger: [], payouts: [], templates: [], suggestions: [], votes: [], messages: [], todos: [], meals: [], mealDishes: [], mealWishes: [], shopTopics: [], shopItems: [], behaviors: [], markLedger: [], markBalances: [], markRequests: [], rewardTiers: [], rewards: [], redemptions: [], goals: [], contributions: [], cleaningTasks: [], cleaningDone: [], settings: { cleaning_reminder_enabled: true, cleaning_reminder_hour: 8 } };
 
 async function loadProfiles(){
   const { data, error } = await sb.from('profiles').select('*').order('name');
@@ -166,6 +166,12 @@ async function loadCleaningDone(){
   state.cleaningDone = data || [];
 }
 
+async function loadSettings(){
+  const { data, error } = await sb.from('app_settings').select('*').eq('id', true).single();
+  if(error){ console.warn('loadSettings', error); return; }
+  if(data) state.settings = data;
+}
+
 // Live updates: re-fetch + re-render whenever the shared tables change on any device.
 let realtimeChannel = null;
 function subscribeRealtime(onChange){
@@ -199,6 +205,7 @@ function subscribeRealtime(onChange){
     .on('postgres_changes', { event: '*', schema: 'public', table: 'goal_contributions' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'cleaning_tasks' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'cleaning_done' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, onChange)
     .subscribe();
 }
 function unsubscribeRealtime(){

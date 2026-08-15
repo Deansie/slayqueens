@@ -150,6 +150,7 @@ In the **SQL editor**, run:
    2026-07-10_shared_goals.sql
    2026-08-15_cleaning.sql
    2026-08-15_cleaning_reminder.sql   (needs a one-time Vault + secret setup — see below)
+   2026-08-15_reminder_settings.sql   (makes the reminder time editable in-app)
    ```
 
    If the SQL editor refuses to create the Storage policies in the chat migration, create a
@@ -251,8 +252,13 @@ function with a shared secret. It needs a one-time setup (see the header of
    npx supabase secrets set CRON_SECRET=SOME-LONG-RANDOM-STRING --project-ref YOUR-PROJECT-REF
    ```
 
-3. Run `sql/migrations/2026-08-15_cleaning_reminder.sql` to schedule the 06:00 UTC job, and
-   redeploy `notify` (below) so it knows the new types.
+3. Run `sql/migrations/2026-08-15_cleaning_reminder.sql`, then
+   `sql/migrations/2026-08-15_reminder_settings.sql` (the latter switches the job to run
+   **hourly** and creates the `app_settings` row), and redeploy `notify` (below).
+
+Parents then set the **time** — and turn the reminder on/off — from **profile menu → Profil &
+notiser → Daglig städpåminnelse**. The cron runs hourly and the function only sends at the chosen
+Europe/Stockholm hour, so changing the time never needs another migration.
 
 Whenever you change `supabase/functions/notify/index.ts`, redeploy it (still with `--no-verify-jwt`):
 

@@ -451,6 +451,13 @@
       <label>Notiser på den här enheten</label>
       <button class="btn ghost block" id="pushBtn" type="button">🔕 Av</button>
     </div>
+    <div class="dlg-field parent-only">
+      <label class="dlg-check"><input type="checkbox" id="cleanRemOn" /> 🧽 Daglig städpåminnelse</label>
+      <div class="reminder-time" id="cleanRemRow">
+        <label for="cleanRemHour">Skicka kl.</label>
+        <select id="cleanRemHour"></select>
+      </div>
+    </div>
     <div class="dlg-actions">
       <button class="btn ghost" id="profileCancel" type="button">Avbryt</button>
       <button class="btn" value="ok" id="profileSave" type="submit">Spara</button>
