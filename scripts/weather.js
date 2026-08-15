@@ -8,6 +8,24 @@
 
 const WEATHER_KEY = 'slayqueens_weather';
 
+// Tomorrow's forecast ({ code, max, min }), filled by initWeather for the agenda heads-up.
+let tomorrowWeather = null;
+
+// WMO weather codes → a matching emoji, for the agenda's "Imorgon" heads-up.
+function weatherEmoji(code){
+  if(code === 0 || code === 1) return '☀️';
+  if(code === 2) return '⛅';
+  if(code === 3) return '☁️';
+  if(code === 45 || code === 48) return '🌫️';
+  if(code >= 51 && code <= 57) return '🌦️';
+  if(code >= 61 && code <= 67) return '🌧️';
+  if(code >= 71 && code <= 77) return '❄️';
+  if(code >= 80 && code <= 82) return '🌧️';
+  if(code >= 85 && code <= 86) return '🌨️';
+  if(code >= 95) return '⛈️';
+  return '🌡️';
+}
+
 // WMO weather codes → short Swedish description.
 function weatherText(code){
   const map = {
@@ -43,10 +61,11 @@ async function initWeather(){
   const box = $('weather');
   if(!box) return;
   const loc = getWeatherLocation();
-  if(!loc || loc.off){ box.hidden = true; return; }
+  if(!loc || loc.off){ box.hidden = true; tomorrowWeather = null; refreshAgendaWeather(); return; }
   try{
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(loc.lat)}`
-      + `&longitude=${encodeURIComponent(loc.lon)}&current=temperature_2m,weather_code&timezone=auto`;
+      + `&longitude=${encodeURIComponent(loc.lon)}&current=temperature_2m,weather_code`
+      + `&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`;
     const r = await fetch(url);
     if(!r.ok) throw new Error('weather ' + r.status);
     const j = await r.json();
@@ -57,11 +76,28 @@ async function initWeather(){
     const locEl = $('wxLoc');
     if(locEl) locEl.textContent = loc.label || '';
     box.hidden = false;
+    // stash tomorrow's forecast for the agenda heads-up
+    tomorrowWeather = null;
+    const d = j && j.daily;
+    if(d && Array.isArray(d.time)){
+      const tmrKey = dateKey(new Date(Date.now() + 86400000));
+      let idx = d.time.indexOf(tmrKey);
+      if(idx === -1 && d.time.length > 1) idx = 1;   // fallback: day after today
+      if(idx >= 0 && d.temperature_2m_max[idx] != null){
+        tomorrowWeather = { code: d.weather_code[idx], max: d.temperature_2m_max[idx], min: d.temperature_2m_min[idx] };
+      }
+    }
+    refreshAgendaWeather();
   }catch(e){
     console.warn('weather', e);
     box.hidden = true;
+    tomorrowWeather = null;
+    refreshAgendaWeather();
   }
 }
+
+// Repaint the agenda so its "Imorgon" weather reflects the freshly-fetched forecast.
+function refreshAgendaWeather(){ if(typeof renderToday === 'function' && me) renderToday(); }
 
 // ---- location picker dialog ----
 let wxSearchTimer = null;

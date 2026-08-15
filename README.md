@@ -12,10 +12,11 @@ family finances, can't approve their own chores, and can't credit themselves.
 
 ## What it does
 
-**Dagens agenda.** The app opens on a calm summary of *today*: the day's events, tonight's
-dinner from Matsedel, and — for parents — a queue of what's waiting to be approved (jobb,
-rutiner, belöningar, utbetalningar). It's not in the tab bar; tap the date in the header from
-anywhere to come back to it.
+**Dagens agenda.** The app opens on a calm summary of *today*: the day's events, today's
+cleaning tasks (tickable right there), tonight's dinner from Matsedel, and — for parents — a
+queue of what's waiting to be approved (jobb, rutiner, belöningar, utbetalningar). It ends with
+an **Imorgon** heads-up: tomorrow's weather (high/low) and events. It's not in the tab bar; tap
+the date in the header from anywhere to come back to it.
 
 **Kalender.** The family's shared calendar. Upcoming events are grouped by day (*Idag*,
 *Imorgon*, then by weekday), each tagged with a category (Aktiviteter, Skola, Familj, Hälsa,
@@ -24,13 +25,16 @@ or all-day, carry an optional note, and be marked **private** (hidden from the o
 still visible to parents). An event happening right now shows a *Pågår* badge. The header
 shows today's date, a count of today's and tomorrow's events, and the local weather.
 
-**Att göra.** A to-do list and a shopping board, switched with a toggle at the top of the
-page. The **to-do list** has a shared family checklist anyone can tick off, plus each person's
-own private to-dos. **Inköp** is a shopping-needs board: parents create categories ("Kläder",
-"Skolsaker"…) and assign each to a person or leave it shared. A category is private to whoever
-it's for, so a kid only sees the categories assigned to them (plus shared ones) and fills in
-what they need there; parents see everyone's — handy with several kids. Parents tick things off
-as they shop.
+**Att göra.** A to-do list, a shopping board, and a cleaning schedule, switched with a toggle at
+the top of the page. The **to-do list** has a shared family checklist anyone can tick off, plus
+each person's own private to-dos. **Inköp** is a shopping-needs board: parents create categories
+("Kläder", "Skolsaker"…) and assign each to a person or leave it shared. A category is private to
+whoever it's for, so a kid only sees the categories assigned to them (plus shared ones) and fills
+in what they need there; parents see everyone's — handy with several kids. Parents tick things off
+as they shop. **Städschema** is a recurring weekly cleaning schedule: parents pin chores to a
+weekday and the whole family ticks them off through the week. A progress bar and a nudge
+("2 uppgifter släpar efter — ta dem idag") encourage keeping up so nothing piles up for the
+weekend, and it resets automatically every Monday.
 
 **Sysslor.** Two boards behind a segmented toggle: **Jobb** and **Rutiner**.
 
@@ -140,6 +144,11 @@ In the **SQL editor**, run:
    2026-07-05b_budget.sql
    2026-07-06_matsedel.sql
    2026-07-09_shopping.sql
+   2026-07-10_marks.sql
+   2026-07-10_rewards.sql
+   2026-07-10_rewards_tier_cost.sql
+   2026-07-10_shared_goals.sql
+   2026-08-15_cleaning.sql
    ```
 
    If the SQL editor refuses to create the Storage policies in the chat migration, create a
@@ -256,6 +265,7 @@ styles/               CSS, split by concern; design tokens for the dark + light 
   components.css      Cards, chips, avatars, lists, dialogs' contents
   budget.css          Budget view (scoped under .budget)
   matsedel.css        Veckans matsedel (menu-card layout)
+  cleaning.css        Städschema (weekly cleaning schedule)
   routines.css        Sysslor → Rutiner (streck board + tally marks)
   rewards.css         Belöningar (reward shop)
   today.css           Dagens agenda (landing screen)
@@ -280,6 +290,7 @@ scripts/              Plain JS, loaded in order (classic scripts, not modules)
   suggestions.js      Idéer (voting)
   todos.js            Att göra
   shopping.js         Inköp (shopping-needs board)
+  cleaning.js         Städschema (weekly cleaning schedule)
   chat.js             Comment threads + image attachments
   profile.js          Personal colour + push toggle
   budget.js           Budget (parents only), Supabase-backed

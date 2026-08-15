@@ -9,8 +9,10 @@ function renderToday(){
 
   box.innerHTML = `
     ${agendaEvents()}
+    ${agendaCleaning()}
     ${agendaDinner()}
-    ${isParent() ? agendaApprovals() : agendaKidNudge()}`;
+    ${isParent() ? agendaApprovals() : agendaKidNudge()}
+    ${agendaTomorrow()}`;
 }
 
 // ---- today's events ----
@@ -132,8 +134,80 @@ function agendaKidNudge(){
     </section>`;
 }
 
+// ---- today's cleaning (Städschema) — parents only; kids aren't nudged about cleaning ----
+function agendaCleaning(){
+  if(!isParent()) return '';
+  const tasks = state.cleaningTasks || [];
+  if(!tasks.length) return '';                 // no schedule set up → hide the section
+  const todayIdx = todayWeekdayIdx();
+  const todays  = tasks.filter(t => t.weekday === todayIdx);
+  const overdue = tasks.filter(t => t.weekday < todayIdx && !cleaningDoneRow(t.id));
+  const relevant = todays.concat(overdue);
+  const total = tasks.length;
+  const done = tasks.filter(t => cleaningDoneRow(t.id)).length;
+
+  const body = relevant.length
+    ? `<div class="ag-clean">${relevant.map(agendaCleanRow).join('')}</div>`
+    : `<div class="ag-empty">Inget städ idag ✓</div>`;
+
+  return `
+    <section class="ag-block">
+      <div class="ag-head">
+        <h2 class="section-title">Städning idag</h2>
+        <button class="ag-link" type="button" data-go="cleaning">${done}/${total} ›</button>
+      </div>
+      ${body}
+    </section>`;
+}
+
+function agendaCleanRow(t){
+  const isDone = !!cleaningDoneRow(t.id);
+  const overdue = t.weekday < todayWeekdayIdx() && !isDone;
+  return `
+    <div class="cl-task${isDone ? ' done' : ''}${overdue ? ' overdue' : ''}">
+      <button class="cl-check" data-clean="${t.id}" type="button" role="checkbox" aria-checked="${isDone}" aria-label="Klarmarkera">${isDone ? '✓' : ''}</button>
+      <div class="cl-task-main">
+        <div class="cl-task-title">${escapeHtml(t.title)}</div>
+        ${overdue ? '<div class="cl-task-meta late">Släpar efter</div>' : ''}
+      </div>
+    </div>`;
+}
+
+// ---- tomorrow heads-up: weather + events ----
+function agendaTomorrow(){
+  const tmr = new Date(); tmr.setDate(tmr.getDate() + 1);
+  const tKey = dateKey(tmr);
+  const evs = (state.events || [])
+    .filter(e => dateKey(e.starts_at) === tKey)
+    .sort((a, b) => {
+      if(a.all_day !== b.all_day) return a.all_day ? -1 : 1;
+      return new Date(a.starts_at) - new Date(b.starts_at);
+    });
+
+  const wx = (typeof tomorrowWeather !== 'undefined') ? tomorrowWeather : null;
+  const wxHtml = wx ? `
+    <div class="ag-tmr-wx">
+      <span class="ag-tmr-emoji" aria-hidden="true">${weatherEmoji(wx.code)}</span>
+      <span class="ag-tmr-temp serif">${Math.round(wx.max)}°<span class="ag-tmr-min">/ ${Math.round(wx.min)}°</span></span>
+      <span class="ag-tmr-desc">${escapeHtml(weatherText(wx.code))}</span>
+    </div>` : '';
+
+  const evHtml = evs.length
+    ? evs.map(agendaEventRow).join('')
+    : `<div class="ag-empty">Inga händelser imorgon</div>`;
+
+  return `
+    <section class="ag-block">
+      <div class="ag-head"><h2 class="section-title">Imorgon · ${escapeHtml(capital(WEEKDAYS[tmr.getDay()]))}</h2></div>
+      ${wxHtml}
+      <div class="ag-events">${evHtml}</div>
+    </section>`;
+}
+
 // ---- navigation ----
 function onTodayClick(e){
+  const clean = e.target.closest('[data-clean]');
+  if(clean){ toggleCleaningDone(clean.dataset.clean); return; }
   const b = e.target.closest('[data-go]');
   if(!b) return;
   switch(b.dataset.go){
@@ -142,6 +216,7 @@ function onTodayClick(e){
     case 'routines': switchView('tasks'); setTasksTab('routines'); break;
     case 'rewards':  switchView('rewards'); break;
     case 'credits':  switchView('credits'); break;
+    case 'cleaning': switchView('todos'); setTodoTab('cleaning'); break;
     case 'meal':     if(isParent()) openMealDialog(todayKey(), mealForDate(todayKey())); break;
   }
 }

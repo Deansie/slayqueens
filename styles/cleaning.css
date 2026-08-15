@@ -1,0 +1,53 @@
+/* Städschema — weekly cleaning schedule inside "Att göra". */
+
+/* Progress / encouragement card */
+.cl-progress{
+  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+  padding:15px 16px; margin-bottom:14px; box-shadow:var(--shadow-sm);
+}
+.cl-progress-top{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+.cl-progress-count{ font-size:.98rem; }
+.cl-progress-count b{ color:var(--accent-ink); font-weight:700; font-size:1.1rem; }
+.cl-progress-week{ color:var(--faint); font-weight:700; font-size:.8rem; }
+.cl-bar{
+  height:8px; border-radius:999px; background:var(--card-2);
+  overflow:hidden; margin:10px 0 9px;
+}
+.cl-bar-fill{ height:100%; background:var(--gold); border-radius:999px; transition:width .3s ease; }
+.cl-nudge{ font-size:.86rem; color:var(--muted); }
+.cl-nudge.good{ color:var(--accent-ink); font-weight:600; }
+.cl-nudge.late{ color:var(--danger); font-weight:600; }
+
+/* Week grid: one block per weekday */
+.cl-week{ display:flex; flex-direction:column; gap:10px; }
+.cl-day{
+  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+  padding:11px 14px 13px; box-shadow:var(--shadow-sm);
+}
+.cl-day.is-past{ opacity:.9; }
+.cl-day.is-today{ border-color:var(--gold-line); background:var(--gold-soft); }
+.cl-day-head{ display:flex; align-items:center; gap:9px; margin-bottom:8px; }
+.cl-day-name{ font-size:1.05rem; font-weight:600; letter-spacing:-.01em; }
+.cl-today-badge{
+  font-size:.66rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em;
+  color:var(--accent-ink); background:var(--accent-soft);
+  border:1px solid var(--gold-line); border-radius:999px; padding:2px 8px;
+}
+.cl-day-empty{ color:var(--faint); font-size:.85rem; padding:2px 2px 3px; }
+
+/* Task row */
+.cl-task{ display:flex; align-items:flex-start; gap:11px; padding:7px 0; }
+.cl-task + .cl-task{ border-top:1px solid var(--border); }
+.cl-check{
+  flex:0 0 auto; width:24px; height:24px; margin-top:1px;
+  border:1.6px solid var(--gold-line); border-radius:8px; background:transparent;
+  color:#fff; font-size:.85rem; line-height:1; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+}
+.cl-task.done .cl-check{ background:var(--gold); border-color:var(--gold); }
+.cl-task-main{ min-width:0; flex:1 1 auto; }
+.cl-task-title{ font-weight:500; word-break:break-word; }
+.cl-task.done .cl-task-title{ text-decoration:line-through; color:var(--muted); }
+.cl-task-meta{ font-size:.78rem; color:var(--faint); margin-top:2px; }
+.cl-task-meta.late{ color:var(--danger); }
+.cl-task.overdue .cl-check{ border-color:var(--danger); }

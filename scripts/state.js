@@ -1,6 +1,6 @@
 'use strict';
 // In-memory copy of the shared data, plus realtime subscriptions.
-const state = { profiles: [], profilesById: {}, events: [], tasks: [], balances: [], ledger: [], payouts: [], templates: [], suggestions: [], votes: [], messages: [], todos: [], meals: [], mealDishes: [], mealWishes: [], shopTopics: [], shopItems: [], behaviors: [], markLedger: [], markBalances: [], markRequests: [], rewardTiers: [], rewards: [], redemptions: [], goals: [], contributions: [] };
+const state = { profiles: [], profilesById: {}, events: [], tasks: [], balances: [], ledger: [], payouts: [], templates: [], suggestions: [], votes: [], messages: [], todos: [], meals: [], mealDishes: [], mealWishes: [], shopTopics: [], shopItems: [], behaviors: [], markLedger: [], markBalances: [], markRequests: [], rewardTiers: [], rewards: [], redemptions: [], goals: [], contributions: [], cleaningTasks: [], cleaningDone: [] };
 
 async function loadProfiles(){
   const { data, error } = await sb.from('profiles').select('*').order('name');
@@ -154,6 +154,18 @@ async function loadContributions(){
   state.contributions = data || [];
 }
 
+async function loadCleaningTasks(){
+  const { data, error } = await sb.from('cleaning_tasks').select('*').order('weekday').order('sort').order('created_at');
+  if(error){ console.warn('loadCleaningTasks', error); return; }
+  state.cleaningTasks = data || [];
+}
+
+async function loadCleaningDone(){
+  const { data, error } = await sb.from('cleaning_done').select('*');
+  if(error){ console.warn('loadCleaningDone', error); return; }
+  state.cleaningDone = data || [];
+}
+
 // Live updates: re-fetch + re-render whenever the shared tables change on any device.
 let realtimeChannel = null;
 function subscribeRealtime(onChange){
@@ -185,6 +197,8 @@ function subscribeRealtime(onChange){
     .on('postgres_changes', { event: '*', schema: 'public', table: 'reward_redemptions' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'point_goals' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'goal_contributions' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'cleaning_tasks' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'cleaning_done' }, onChange)
     .subscribe();
 }
 function unsubscribeRealtime(){

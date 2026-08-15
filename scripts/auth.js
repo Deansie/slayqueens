@@ -38,7 +38,7 @@ async function enterApp(){
     $('meName').textContent = capital(me.name);
     const demoBar = $('demoBanner');
     if(demoBar) demoBar.hidden = !isDemo();
-    await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions(), loadGoals(), loadContributions()]);
+    await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions(), loadGoals(), loadContributions(), loadCleaningTasks(), loadCleaningDone()]);
     renderHeader();
     renderToday();
     renderCalendar();
@@ -49,6 +49,7 @@ async function enterApp(){
     renderSuggestions();
     renderTodos();
     renderShopping();
+    renderCleaning();
     renderMatsedel();
     if(isParent() && window.Budget){ Budget.init(); Budget.load(); }
     subscribeRealtime(onRealtime);
@@ -88,6 +89,7 @@ function enterDemo(){
   renderSuggestions();
   renderTodos();
   renderShopping();
+  renderCleaning();
   renderMatsedel();
   if(window.Budget){ Budget.init(); Budget.load(); }
   initWeather();

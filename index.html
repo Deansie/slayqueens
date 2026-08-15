@@ -34,6 +34,7 @@
 <link rel="stylesheet" href="styles/budget.css" />
 <link rel="stylesheet" href="styles/matsedel.css" />
 <link rel="stylesheet" href="styles/shopping.css" />
+<link rel="stylesheet" href="styles/cleaning.css" />
 <link rel="stylesheet" href="styles/routines.css" />
 <link rel="stylesheet" href="styles/rewards.css" />
 <link rel="stylesheet" href="styles/today.css" />
@@ -111,12 +112,16 @@
       <div class="seg" id="todoSeg" role="tablist" aria-label="Välj lista">
         <button class="seg-btn active" data-todotab="todos" type="button" role="tab" aria-selected="true">Att göra</button>
         <button class="seg-btn" data-todotab="shopping" type="button" role="tab" aria-selected="false">Inköp</button>
+        <button class="seg-btn" data-todotab="cleaning" type="button" role="tab" aria-selected="false">Städschema</button>
       </div>
       <div id="todoPane">
         <div id="todoList"></div>
       </div>
       <div id="shoppingPane" hidden>
         <div id="shoppingBoard"></div>
+      </div>
+      <div id="cleaningPane" hidden>
+        <div id="cleaningBoard"></div>
       </div>
     </section>
 
@@ -608,6 +613,26 @@
   </form>
 </dialog>
 
+<!-- Städschema task editor (parent) ---------------------------------- -->
+<dialog id="cleaningDialog">
+  <form method="dialog" class="dlg-body" id="cleaningForm">
+    <h3 id="cleaningDlgTitle" class="serif">Ny städuppgift</h3>
+    <div class="dlg-field">
+      <label for="cleaningTitle">Vad</label>
+      <input id="cleaningTitle" type="text" required maxlength="80" placeholder="T.ex. Dammsuga vardagsrummet" />
+    </div>
+    <div class="dlg-field">
+      <label for="cleaningWeekday">Dag</label>
+      <select id="cleaningWeekday"></select>
+    </div>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="cleaningDelete" type="button" hidden>Ta bort</button>
+      <button class="btn ghost" id="cleaningCancel" type="button">Avbryt</button>
+      <button class="btn" value="ok" id="cleaningSave" type="submit">Spara</button>
+    </div>
+  </form>
+</dialog>
+
 <!-- Weather location picker ------------------------------------------ -->
 <dialog id="weatherDialog">
   <form method="dialog" class="dlg-body" id="weatherForm">
@@ -667,6 +692,7 @@
 <script src="scripts/suggestions.js"></script>
 <script src="scripts/todos.js"></script>
 <script src="scripts/shopping.js"></script>
+<script src="scripts/cleaning.js"></script>
 <script src="scripts/chat.js"></script>
 <script src="scripts/profile.js"></script>
 <script src="scripts/budget.js"></script>

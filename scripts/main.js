@@ -2,9 +2,9 @@
 // Startup, event wiring, view routing, FAB, profile menu, and shared dialogs.
 
 let currentView = 'today';
-// "Att göra" holds two sub-views (the to-do list and the Inköp board); remember which one.
+// "Att göra" holds three sub-views (the to-do list, the Inköp board, the Städschema); remember which.
 let todoTab = 'todos';
-try{ if(localStorage.getItem('slayqueens_todotab') === 'shopping') todoTab = 'shopping'; }catch(e){}
+try{ const s = localStorage.getItem('slayqueens_todotab'); if(s === 'shopping' || s === 'cleaning') todoTab = s; }catch(e){}
 // "Sysslor" holds two sub-views too (the Jobb board and the Rutiner/streck board).
 let tasksTab = 'jobs';
 try{ if(localStorage.getItem('slayqueens_taskstab') === 'routines') tasksTab = 'routines'; }catch(e){}
@@ -24,9 +24,9 @@ const FAB_ACTIONS = {
 // The FAB action for the current view (and, on the two segmented views, the current sub-tab).
 function currentFabAction(){
   if(currentView === 'todos'){
-    return todoTab === 'shopping'
-      ? { label: 'Ny kategori', run: () => openTopicDialog(), parentOnly: true }
-      : { label: 'Att göra',    run: () => openTodoDialog() };
+    if(todoTab === 'shopping') return { label: 'Ny kategori',    run: () => openTopicDialog(),        parentOnly: true };
+    if(todoTab === 'cleaning') return { label: 'Ny städuppgift', run: () => openCleaningDialog(null), parentOnly: true };
+    return { label: 'Att göra', run: () => openTodoDialog() };
   }
   if(currentView === 'tasks'){
     return tasksTab === 'routines'
@@ -151,6 +151,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   setTodoTab(todoTab);   // reflect the remembered sub-tab (panes + active segment)
 
+  // Städschema (cleaning schedule inside "Att göra")
+  $('cleaningBoard').addEventListener('click', onCleaningClick);
+  $('cleaningForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveCleaning(); });
+  $('cleaningCancel').addEventListener('click', () => $('cleaningDialog').close());
+  $('cleaningDelete').addEventListener('click', deleteCleaning);
+
   // Matsedel
   $('matsedelBody').addEventListener('click', onMatsedelClick);
   $('mealForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveMeal(); });
@@ -235,18 +241,19 @@ function updateFab(){
   if(show) $('fabLabel').textContent = cfg.label;
 }
 
-// Switch the "Att göra" view between the to-do list and the Inköp board.
+// Switch the "Att göra" view between the to-do list, the Inköp board, and the Städschema.
 function setTodoTab(tab){
-  todoTab = tab === 'shopping' ? 'shopping' : 'todos';
+  todoTab = (tab === 'shopping' || tab === 'cleaning') ? tab : 'todos';
   try{ localStorage.setItem('slayqueens_todotab', todoTab); }catch(e){}
   document.querySelectorAll('#todoSeg .seg-btn').forEach(b => {
     const on = b.dataset.todotab === todoTab;
     b.classList.toggle('active', on);
     b.setAttribute('aria-selected', on ? 'true' : 'false');
   });
-  const tp = $('todoPane'), ip = $('shoppingPane');
+  const tp = $('todoPane'), ip = $('shoppingPane'), cp = $('cleaningPane');
   if(tp) tp.hidden = todoTab !== 'todos';
   if(ip) ip.hidden = todoTab !== 'shopping';
+  if(cp) cp.hidden = todoTab !== 'cleaning';
   updateFab();
 }
 
@@ -346,6 +353,8 @@ async function onRealtime(payload){
   else if(t === 'reward_redemptions') await loadRedemptions();
   else if(t === 'point_goals') await loadGoals();
   else if(t === 'goal_contributions') await loadContributions();
+  else if(t === 'cleaning_tasks') await loadCleaningTasks();
+  else if(t === 'cleaning_done') await loadCleaningDone();
   renderToday();
   renderCalendar();
   renderTasks();
@@ -355,6 +364,7 @@ async function onRealtime(payload){
   renderSuggestions();
   renderTodos();
   renderShopping();
+  renderCleaning();
   renderMatsedel();
   renderChat();
   if($('mealDishDialog').open) renderMealDishList();
@@ -363,7 +373,7 @@ async function onRealtime(payload){
 // Full reload + repaint, used when the app resumes and may have missed live updates.
 async function resync(){
   if(!sb || !session) return;
-  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions(), loadGoals(), loadContributions()]);
+  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions(), loadGoals(), loadContributions(), loadCleaningTasks(), loadCleaningDone()]);
   renderToday();
   renderCalendar();
   renderTasks();
@@ -373,6 +383,7 @@ async function resync(){
   renderSuggestions();
   renderTodos();
   renderShopping();
+  renderCleaning();
   renderMatsedel();
   renderChat();
   if(isParent() && window.Budget) Budget.load();

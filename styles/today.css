@@ -53,6 +53,23 @@ button.ag-tap:hover{ border-color:var(--gold-line); color:var(--accent-ink); }
 .ag-approve-sub{ font-size:.82rem; color:var(--muted); }
 .ag-approve-caret{ flex:0 0 auto; color:var(--faint); font-size:1.2rem; }
 
+/* Today's cleaning (reuses .cl-task styling from cleaning.css, wrapped in a card) */
+.ag-clean{
+  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+  padding:6px 16px; box-shadow:var(--shadow-sm);
+}
+
+/* Tomorrow heads-up: weather line above the events */
+.ag-tmr-wx{
+  display:flex; align-items:center; gap:11px;
+  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+  padding:12px 16px; box-shadow:var(--shadow-sm); margin-bottom:8px;
+}
+.ag-tmr-emoji{ font-size:1.5rem; line-height:1; }
+.ag-tmr-temp{ font-size:1.2rem; font-weight:700; letter-spacing:-.01em; }
+.ag-tmr-min{ color:var(--muted); font-weight:600; font-size:.95rem; }
+.ag-tmr-desc{ color:var(--muted); font-size:.9rem; margin-left:auto; }
+
 /* The header date doubles as the home button (tap → Dagens agenda) */
 .head-date[role="button"]{ cursor:pointer; }
 .head-date[role="button"]:focus-visible{ outline:2px solid var(--gold-line); outline-offset:4px; border-radius:8px; }
