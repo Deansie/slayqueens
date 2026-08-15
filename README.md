@@ -149,6 +149,7 @@ In the **SQL editor**, run:
    2026-07-10_rewards_tier_cost.sql
    2026-07-10_shared_goals.sql
    2026-08-15_cleaning.sql
+   2026-08-15_cleaning_reminder.sql   (needs a one-time Vault + secret setup — see below)
    ```
 
    If the SQL editor refuses to create the Storage policies in the chat migration, create a
@@ -225,6 +226,39 @@ are what protect your data, not hiding this key. Never put the `service_role` ke
 
 Each person then turns notifications on per device from **profile menu → Profil & notiser**.
 On iPhone this only works once the app is **installed to the home screen** (iOS 16.4+).
+
+Notifications are sent for: new jobs and every step of their approval, streck/rutin requests and
+outcomes, reward redemptions, payout requests/outcomes, family goals, new calendar events (to the
+family, or to the person an event is added for), new **Att göra** items and **Inköp** items, new
+**Idéer**, new **Städschema** tasks, comment replies, and a **daily cleaning reminder** to parents.
+
+#### Daily cleaning reminder (optional)
+
+The daily "what's due today / overdue" cleaning push is driven by **pg_cron** calling the `notify`
+function with a shared secret. It needs a one-time setup (see the header of
+`sql/migrations/2026-08-15_cleaning_reminder.sql`):
+
+1. Store the function base URL and a random secret in **Vault** (SQL editor):
+
+   ```sql
+   select vault.create_secret('https://YOUR-PROJECT-REF.functions.supabase.co', 'edge_functions_url');
+   select vault.create_secret('SOME-LONG-RANDOM-STRING',                        'cron_secret');
+   ```
+
+2. Give the function the **same** secret so it can verify the cron call:
+
+   ```sh
+   npx supabase secrets set CRON_SECRET=SOME-LONG-RANDOM-STRING --project-ref YOUR-PROJECT-REF
+   ```
+
+3. Run `sql/migrations/2026-08-15_cleaning_reminder.sql` to schedule the 06:00 UTC job, and
+   redeploy `notify` (below) so it knows the new types.
+
+Whenever you change `supabase/functions/notify/index.ts`, redeploy it (still with `--no-verify-jwt`):
+
+```sh
+npx supabase functions deploy notify --project-ref YOUR-PROJECT-REF --no-verify-jwt
+```
 
 ### 6. Host it and install it
 

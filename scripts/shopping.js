@@ -151,9 +151,12 @@ async function saveItem(){
   if(!title){ toast('warn', 'Skriv vad som saknas'); return; }
   if(!addItemTopicId) return;
   try{
-    const { error } = await sb.from('shopping_items').insert({ topic_id: addItemTopicId, title, created_by: me.id });
+    const { data, error } = await sb.from('shopping_items')
+      .insert({ topic_id: addItemTopicId, title, created_by: me.id })
+      .select('id').single();
     if(error) throw error;
     toast('ok', 'Tillagd');
+    if(data) notify('shopping_item', { itemId: data.id });
     await loadShopItems();
     renderShopping();
   }catch(err){ console.warn('saveItem', err); toast('warn', 'Kunde inte spara'); }

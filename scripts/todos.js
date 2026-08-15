@@ -81,10 +81,12 @@ async function saveTodo(){
   if(!title){ toast('warn', 'Skriv vad som ska göras'); return; }
   const priv = $('todoPrivate').checked;
   try{
-    const { error } = await sb.from('todos')
-      .insert({ title, private: priv, owner_id: priv ? me.id : null, created_by: me.id });
+    const { data, error } = await sb.from('todos')
+      .insert({ title, private: priv, owner_id: priv ? me.id : null, created_by: me.id })
+      .select('id').single();
     if(error) throw error;
     toast('ok', 'Tillagd');
+    if(!priv && data) notify('todo_new', { todoId: data.id });   // shared list → tell the family
     await loadTodos();
     renderTodos();
   }catch(err){ console.warn('saveTodo', err); toast('warn', 'Kunde inte spara'); }

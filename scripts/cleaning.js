@@ -133,8 +133,10 @@ async function saveCleaning(){
       const { error } = await sb.from('cleaning_tasks').update({ title, weekday }).eq('id', editingCleaningId);
       if(error) throw error;
     } else {
-      const { error } = await sb.from('cleaning_tasks').insert({ title, weekday, created_by: me.id });
+      const { data, error } = await sb.from('cleaning_tasks')
+        .insert({ title, weekday, created_by: me.id }).select('id').single();
       if(error) throw error;
+      if(data) notify('cleaning_new', { cleaningId: data.id });   // announce to parents
     }
     toast('ok', 'Sparad');
     await loadCleaningTasks();

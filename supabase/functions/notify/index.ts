@@ -70,10 +70,14 @@ Deno.serve(async (req) => {
     new Response(JSON.stringify(obj), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 
   try {
-    const actor = await verifyActor(req);
-    if (!actor) return json({ error: 'unauthorized' }, 401);
+    // Two callers: a logged-in user (verified by their ES256 JWT) or the daily pg_cron job
+    // (authenticated by a shared secret header, since it has no user token).
+    const cronSecret = req.headers.get('x-cron-secret');
+    const isCron = !!cronSecret && cronSecret === Deno.env.get('CRON_SECRET');
+    const actor = isCron ? null : await verifyActor(req);
+    if (!isCron && !actor) return json({ error: 'unauthorized' }, 401);
 
-    const { type, taskId, eventId, payoutId, suggestionId, toProfile, context, parentId, topicId, requestId, amount, reason, redemptionId, goalId } = await req.json();
+    const { type, taskId, eventId, payoutId, suggestionId, toProfile, context, parentId, topicId, requestId, amount, reason, redemptionId, goalId, todoId, itemId, cleaningId } = await req.json();
     let recipients: string[] = [];
     let title = 'Slayqueens';
     let body = '';
@@ -270,6 +274,67 @@ Deno.serve(async (req) => {
         : { data: null };
       title = 'Belöning klar! 🎁';
       body = rw?.title ? `Du har löst in ${rw.emoji ? rw.emoji + ' ' : ''}${rw.title}` : 'Din belöning är klar';
+
+    } else if (type === 'todo_new') {
+      // Something added to the shared "Att göra" list — tell the family. Private to-dos
+      // (owner-only) don't notify anyone.
+      const { data: td } = await admin.from('todos').select('title, private, created_by').eq('id', todoId).single();
+      if (td && !td.private) {
+        const who = await profile(td.created_by ?? actor);
+        recipients = await ids();
+        title = 'Ny att göra 📝';
+        body = `${who?.name ?? 'Någon'}: ${td.title}`;
+      }
+
+    } else if (type === 'shopping_item') {
+      // Something added to an Inköp category — tell the parents (they do the shopping) plus
+      // the person the category is for.
+      const { data: it } = await admin.from('shopping_items').select('title, topic_id').eq('id', itemId).single();
+      if (it) {
+        const { data: tp } = await admin.from('shopping_topics').select('title, emoji, owner_id').eq('id', it.topic_id).single();
+        const set = new Set<string>(await ids('parent'));
+        if (tp?.owner_id) set.add(tp.owner_id);
+        recipients = [...set];
+        const label = tp ? `${tp.emoji ? tp.emoji + ' ' : ''}${tp.title}` : 'inköpslistan';
+        title = 'Inköp 🛒';
+        body = `${it.title} — ${label}`;
+      }
+
+    } else if (type === 'cleaning_new') {
+      // A new cleaning task added to the schedule — parents only (kids aren't nudged on cleaning).
+      const { data: ct } = await admin.from('cleaning_tasks').select('title, weekday').eq('id', cleaningId).single();
+      const days = ['Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag', 'Söndag'];
+      recipients = await ids('parent');
+      title = 'Ny städuppgift 🧽';
+      body = ct ? `${days[ct.weekday] ?? ''} · ${ct.title}` : 'En städuppgift lades till';
+
+    } else if (type === 'cleaning_digest') {
+      // The daily pg_cron nudge: how much cleaning is due today / overdue this week. Parents only,
+      // and only sent when there's actually something outstanding.
+      if (!isCron) return json({ error: 'forbidden' }, 403);
+      const ymd = new Intl.DateTimeFormat('en-CA',
+        { timeZone: 'Europe/Stockholm', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+      const base = new Date(ymd + 'T00:00:00Z');
+      const todayIdx = (base.getUTCDay() + 6) % 7;                       // Mon=0 … Sun=6
+      const monday = new Date(base); monday.setUTCDate(base.getUTCDate() - todayIdx);
+      const weekStart = monday.toISOString().slice(0, 10);
+
+      const { data: tasks } = await admin.from('cleaning_tasks').select('id, weekday');
+      const { data: doneRows } = await admin.from('cleaning_done').select('task_id').eq('week_start', weekStart);
+      const done = new Set((doneRows ?? []).map((r: { task_id: string }) => r.task_id));
+      let todayCount = 0, overdue = 0;
+      for (const t of tasks ?? []) {
+        if (done.has(t.id)) continue;
+        if (t.weekday === todayIdx) todayCount++;
+        else if (t.weekday < todayIdx) overdue++;
+      }
+      if (todayCount + overdue === 0) return json({ sent: 0 });
+      recipients = await ids('parent');
+      title = '🧽 Städning idag';
+      const parts: string[] = [];
+      if (todayCount) parts.push(`${todayCount} ${todayCount === 1 ? 'uppgift' : 'uppgifter'} idag`);
+      if (overdue) parts.push(`${overdue} släpar efter`);
+      body = parts.join(' · ');
 
     } else if (type === 'goal_new' || type === 'goal_reached' || type === 'goal_fulfilled') {
       // Family goals concern everyone — notify the whole family.
