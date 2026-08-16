@@ -107,9 +107,24 @@ function weekHasMeals(key){
 // lands on the week that's coming — not the one that just ended.
 let menuMonday = null;
 
+// The weeks we actually hold menus for — skolmaten only publishes about two weeks ahead, so
+// paging is bounded by the fetched data rather than running off into empty weeks.
+function menuWeekBounds(){
+  const dates = (state.schoolMeals || []).map(m => m.date).sort();
+  if(!dates.length) return null;
+  return { first: mondayOfDate(dates[0]), last: mondayOfDate(dates[dates.length - 1]) };
+}
+function clampMonday(d){
+  const b = menuWeekBounds();
+  if(!b) return d;
+  if(d < b.first) return b.first;
+  if(d > b.last) return b.last;
+  return d;
+}
+
 function openSchoolMenu(key){
   const from = key || (typeof nextSchoolDate === 'function' && nextSchoolDate()) || todayKey();
-  menuMonday = mondayOfDate(from);
+  menuMonday = clampMonday(mondayOfDate(from));
   renderSchoolMenu();
   $('schoolMenuDialog').showModal();
 }
@@ -118,7 +133,7 @@ function shiftSchoolMenu(deltaWeeks){
   if(!menuMonday) return;
   const d = new Date(menuMonday);
   d.setDate(d.getDate() + deltaWeeks * 7);
-  menuMonday = d;
+  menuMonday = clampMonday(d);
   renderSchoolMenu();
 }
 
@@ -139,6 +154,11 @@ function renderSchoolMenu(){
   $('schoolMenuTitle').textContent = `v.${isoWeek(mon)}`;
   $('schoolMenuRange').textContent = weekRangeLabel(mon);
   $('schoolMenuBody').innerHTML = rows.join('');
+
+  // Grey out the arrows at the edges of what's been published.
+  const b = menuWeekBounds();
+  $('schoolMenuPrev').disabled = !b || mon <= b.first;
+  $('schoolMenuNext').disabled = !b || mon >= b.last;
 }
 
 // ---- management view (profile menu → Skola) ----

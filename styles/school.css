@@ -54,7 +54,8 @@
   border:1px solid var(--border); background:var(--card-2); color:var(--text);
   font-size:1.3rem; line-height:1; display:grid; place-items:center;
 }
-.smenu-nav:hover{ border-color:var(--gold-line); color:var(--accent-ink); }
+.smenu-nav:hover:not(:disabled){ border-color:var(--gold-line); color:var(--accent-ink); }
+.smenu-nav:disabled{ opacity:.3; cursor:default; }
 .smenu{ display:flex; flex-direction:column; }
 .smenu-day{ padding:9px 0; }
 .smenu-day + .smenu-day{ border-top:1px solid var(--border); }
