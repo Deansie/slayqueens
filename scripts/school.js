@@ -102,9 +102,29 @@ function weekHasMeals(key){
   return false;
 }
 
-// Full week behind the tap on the lunch row. `dateKey` picks which week to show.
+// Full week behind the tap on the lunch row, with ‹ › to page between weeks. Opens on the week
+// of the day the agenda is showing (the next school day), so a tap on a Saturday or Sunday
+// lands on the week that's coming — not the one that just ended.
+let menuMonday = null;
+
 function openSchoolMenu(key){
-  const mon = mondayOfDate(key || todayKey());
+  const from = key || (typeof nextSchoolDate === 'function' && nextSchoolDate()) || todayKey();
+  menuMonday = mondayOfDate(from);
+  renderSchoolMenu();
+  $('schoolMenuDialog').showModal();
+}
+
+function shiftSchoolMenu(deltaWeeks){
+  if(!menuMonday) return;
+  const d = new Date(menuMonday);
+  d.setDate(d.getDate() + deltaWeeks * 7);
+  menuMonday = d;
+  renderSchoolMenu();
+}
+
+function renderSchoolMenu(){
+  const mon = menuMonday;
+  if(!mon) return;
   const rows = [];
   for(let i = 0; i < 5; i++){                     // Mån–Fre; school lunch is a weekday thing
     const d = new Date(mon); d.setDate(d.getDate() + i);
@@ -116,9 +136,9 @@ function openSchoolMenu(key){
         <div class="smenu-day-dish${line ? '' : ' muted'}">${line ? escapeHtml(line) : 'Ingen meny'}</div>
       </div>`);
   }
-  $('schoolMenuTitle').textContent = `Skollunch · v.${isoWeek(mon)}`;
+  $('schoolMenuTitle').textContent = `v.${isoWeek(mon)}`;
+  $('schoolMenuRange').textContent = weekRangeLabel(mon);
   $('schoolMenuBody').innerHTML = rows.join('');
-  $('schoolMenuDialog').showModal();
 }
 
 // ---- management view (profile menu → Skola) ----

@@ -168,6 +168,8 @@ document.addEventListener('DOMContentLoaded', () => {
   $('overrideDelete').addEventListener('click', deleteOverride);
   $('overrideNoSchool').addEventListener('change', reflectOverrideNoSchool);
   $('schoolMenuClose').addEventListener('click', () => $('schoolMenuDialog').close());
+  $('schoolMenuPrev').addEventListener('click', () => shiftSchoolMenu(-1));
+  $('schoolMenuNext').addEventListener('click', () => shiftSchoolMenu(1));
 
   // Matsedel
   $('matsedelBody').addEventListener('click', onMatsedelClick);

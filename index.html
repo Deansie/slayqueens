@@ -677,7 +677,14 @@
 <!-- Skola: the week's school lunch (opened from the agenda's Skollunch row) -->
 <dialog id="schoolMenuDialog">
   <form method="dialog" class="dlg-body">
-    <h3 id="schoolMenuTitle" class="serif">Skollunch</h3>
+    <div class="smenu-head">
+      <button class="smenu-nav" id="schoolMenuPrev" type="button" aria-label="Föregående vecka">‹</button>
+      <div class="smenu-head-mid">
+        <h3 id="schoolMenuTitle" class="serif">Skollunch</h3>
+        <div class="smenu-range" id="schoolMenuRange"></div>
+      </div>
+      <button class="smenu-nav" id="schoolMenuNext" type="button" aria-label="Nästa vecka">›</button>
+    </div>
     <div id="schoolMenuBody" class="smenu"></div>
     <div class="dlg-actions">
       <button class="btn" id="schoolMenuClose" type="button">Stäng</button>
