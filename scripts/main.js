@@ -167,6 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('overrideCancel').addEventListener('click', () => $('overrideDialog').close());
   $('overrideDelete').addEventListener('click', deleteOverride);
   $('overrideNoSchool').addEventListener('change', reflectOverrideNoSchool);
+  $('schoolMenuClose').addEventListener('click', () => $('schoolMenuDialog').close());
 
   // Matsedel
   $('matsedelBody').addEventListener('click', onMatsedelClick);
@@ -369,6 +370,7 @@ async function onRealtime(payload){
   else if(t === 'cleaning_done') await loadCleaningDone();
   else if(t === 'school_weekly') await loadSchoolWeekly();
   else if(t === 'school_overrides') await loadSchoolOverrides();
+  else if(t === 'school_meals') await loadSchoolMeals();
   else if(t === 'app_settings') await loadSettings();
   renderHeader();
   renderToday();
@@ -390,7 +392,7 @@ async function onRealtime(payload){
 // Full reload + repaint, used when the app resumes and may have missed live updates.
 async function resync(){
   if(!sb || !session) return;
-  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions(), loadGoals(), loadContributions(), loadCleaningTasks(), loadCleaningDone(), loadSchoolWeekly(), loadSchoolOverrides(), loadSettings()]);
+  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions(), loadGoals(), loadContributions(), loadCleaningTasks(), loadCleaningDone(), loadSchoolWeekly(), loadSchoolOverrides(), loadSchoolMeals(), loadSettings()]);
   renderHeader();
   renderToday();
   renderSchool();

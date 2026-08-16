@@ -209,7 +209,7 @@
     <div class="mp-bal" id="mpBal" hidden></div>
     <button class="mp-item" data-menu="credits" type="button" role="menuitem"><span class="mp-ico">⭐</span> Poäng</button>
     <button class="mp-item" data-menu="rewards" type="button" role="menuitem"><span class="mp-ico">🎁</span> Belöningar</button>
-    <button class="mp-item parent-only" data-menu="school" type="button" role="menuitem"><span class="mp-ico">🎓</span> Skola</button>
+    <button class="mp-item" data-menu="school" type="button" role="menuitem"><span class="mp-ico">🎓</span> Skola</button>
     <button class="mp-item parent-only" data-menu="budget" type="button" role="menuitem"><span class="mp-ico">💰</span> Budget</button>
     <button class="mp-item" data-menu="profile" type="button" role="menuitem"><span class="mp-ico">🎨</span> Profil &amp; notiser</button>
     <button class="mp-item" data-menu="weather" type="button" role="menuitem"><span class="mp-ico">📍</span> Väderplats</button>
@@ -670,6 +670,17 @@
       <button class="btn ghost" id="schoolDayDelete" type="button" hidden>Ta bort</button>
       <button class="btn ghost" id="schoolDayCancel" type="button">Avbryt</button>
       <button class="btn" value="ok" id="schoolDaySave" type="submit">Spara</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Skola: the week's school lunch (opened from the agenda's Skollunch row) -->
+<dialog id="schoolMenuDialog">
+  <form method="dialog" class="dlg-body">
+    <h3 id="schoolMenuTitle" class="serif">Skollunch</h3>
+    <div id="schoolMenuBody" class="smenu"></div>
+    <div class="dlg-actions">
+      <button class="btn" id="schoolMenuClose" type="button">Stäng</button>
     </div>
   </form>
 </dialog>

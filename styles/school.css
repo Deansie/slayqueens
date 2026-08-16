@@ -16,7 +16,8 @@
   border:0; background:transparent; color:var(--text); padding:10px 0; font:inherit;
 }
 .school-day + .school-day{ border-top:1px solid var(--border); }
-.school-day:hover .school-day-name{ color:var(--accent-ink); }
+.school-day:not(.is-static):hover .school-day-name{ color:var(--accent-ink); }
+.school-day.is-static, .school-over.is-static{ cursor:default; }
 .school-day-name{ flex:0 0 84px; font-weight:600; }
 .school-day-time{ flex:0 0 auto; font-weight:700; letter-spacing:-.01em; color:var(--muted); }
 .school-day-empty{ flex:0 0 auto; color:var(--faint); font-size:.9rem; }
@@ -42,3 +43,13 @@
 .school-over-date{ flex:0 0 auto; font-weight:700; min-width:64px; }
 .school-over-txt{ flex:1 1 auto; min-width:0; color:var(--muted); }
 .school-over-none{ color:var(--faint); font-size:.88rem; padding:4px 0 2px; }
+
+/* The week's school lunch (dialog) */
+.smenu{ display:flex; flex-direction:column; }
+.smenu-day{ padding:9px 0; }
+.smenu-day + .smenu-day{ border-top:1px solid var(--border); }
+.smenu-day-name{ font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--faint); margin-bottom:2px; }
+.smenu-day-dish{ font-weight:600; word-break:break-word; }
+.smenu-day-dish.muted{ color:var(--faint); font-weight:400; }
+.smenu-day.is-today .smenu-day-name{ color:var(--accent-ink); }
+.smenu-day.is-today .smenu-day-dish{ color:var(--accent-ink); }

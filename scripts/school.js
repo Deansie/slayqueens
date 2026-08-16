@@ -77,23 +77,54 @@ function schoolSummaryOn(date){
 }
 function schoolSummaryToday(){ return schoolSummaryOn(new Date()); }
 
-// ---- management view (profile menu → Skola, parents only) ----
+// ---- school lunch (skolmaten.se, fetched server-side into `school_meals`) ----
+function schoolMealFor(key){
+  return (state.schoolMeals || []).find(m => m.date === key) || null;
+}
+// Monday of the week containing `date` (helpers' mondayOfWeek only covers the current week).
+function mondayOfDate(date){
+  const d = new Date(date); d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  return d;
+}
+// The dishes of a day as one readable line.
+function mealLine(meal){
+  return meal && meal.courses && meal.courses.length ? meal.courses.join(' · ') : '';
+}
+
+// Full week behind the tap on the lunch row. `dateKey` picks which week to show.
+function openSchoolMenu(key){
+  const mon = mondayOfDate(key || todayKey());
+  const rows = [];
+  for(let i = 0; i < 5; i++){                     // Mån–Fre; school lunch is a weekday thing
+    const d = new Date(mon); d.setDate(d.getDate() + i);
+    const k = dateKey(d);
+    const line = mealLine(schoolMealFor(k));
+    rows.push(`
+      <div class="smenu-day${k === todayKey() ? ' is-today' : ''}">
+        <div class="smenu-day-name">${SCHOOL_WEEKDAYS[i]}</div>
+        <div class="smenu-day-dish${line ? '' : ' muted'}">${line ? escapeHtml(line) : 'Ingen meny'}</div>
+      </div>`);
+  }
+  $('schoolMenuTitle').textContent = `Skollunch · v.${isoWeek(mon)}`;
+  $('schoolMenuBody').innerHTML = rows.join('');
+  $('schoolMenuDialog').showModal();
+}
+
+// ---- management view (profile menu → Skola) ----
+// Parents edit here; kids get the same overview read-only (they look up each other's times).
 function renderSchool(){
   const box = $('schoolBody');
   if(!box || !me) return;
   const list = kids();
-  if(!isParent()){
-    box.innerHTML = `<div class="placeholder"><div class="ph-emoji">🎓</div><h3>Skola</h3><p>Föräldrarna sköter skolschemat.</p></div>`;
-    return;
-  }
   if(!list.length){
     box.innerHTML = `<div class="placeholder"><div class="ph-emoji">🎓</div><h3>Inga barn än</h3><p>Skolscheman läggs upp per barn.</p></div>`;
     return;
   }
-  box.innerHTML = list.map(schoolKidCard).join('');
+  box.innerHTML = list.map(c => schoolKidCard(c, !isParent())).join('');
 }
 
-function schoolKidCard(child){
+function schoolKidCard(child, readOnly){
   const days = [];
   for(let wd = 0; wd < 7; wd++){
     const base = (state.schoolWeekly || []).find(w => w.child_id === child.id && w.weekday === wd);
@@ -101,11 +132,15 @@ function schoolKidCard(child){
       ? `<span class="school-day-time">${escapeHtml(fmtSchoolTime(base.start_time))}–${escapeHtml(fmtSchoolTime(base.end_time))}</span>
          ${base.activity ? `<span class="school-chip">${escapeHtml(schoolActivityLabel(base.activity))}</span>` : ''}`
       : `<span class="school-day-empty">Ingen skola</span>`;
-    days.push(`
-      <button class="school-day" type="button" data-schoolday="${child.id}:${wd}">
-        <span class="school-day-name">${SCHOOL_WEEKDAYS[wd]}</span>
-        ${inner}
-      </button>`);
+    days.push(readOnly
+      ? `<div class="school-day is-static">
+           <span class="school-day-name">${SCHOOL_WEEKDAYS[wd]}</span>
+           ${inner}
+         </div>`
+      : `<button class="school-day" type="button" data-schoolday="${child.id}:${wd}">
+           <span class="school-day-name">${SCHOOL_WEEKDAYS[wd]}</span>
+           ${inner}
+         </button>`);
   }
   const overs = (state.schoolOverrides || [])
     .filter(o => o.child_id === child.id && o.date >= todayKey())
@@ -114,12 +149,11 @@ function schoolKidCard(child){
     const label = o.no_school
       ? 'Ingen skola'
       : `${o.start_time ? fmtSchoolTime(o.start_time) + '–' + fmtSchoolTime(o.end_time) : ''}${o.activity ? ' · ' + schoolActivityLabel(o.activity) : ''}`.trim() || 'Ändrad dag';
-    return `
-      <button class="school-over" type="button" data-schoolover="${o.id}">
-        <span class="school-over-date">${escapeHtml(fmtDate(o.date))}</span>
-        <span class="school-over-txt">${escapeHtml(label)}</span>
-        <span class="ag-caret" aria-hidden="true">✎</span>
-      </button>`;
+    const body = `<span class="school-over-date">${escapeHtml(fmtDate(o.date))}</span>
+        <span class="school-over-txt">${escapeHtml(label)}</span>`;
+    return readOnly
+      ? `<div class="school-over is-static">${body}</div>`
+      : `<button class="school-over" type="button" data-schoolover="${o.id}">${body}<span class="ag-caret" aria-hidden="true">✎</span></button>`;
   }).join('');
 
   return `
@@ -131,7 +165,7 @@ function schoolKidCard(child){
       <div class="school-week">${days.join('')}</div>
       <div class="school-over-head">
         <span>Avvikelser</span>
-        <button class="school-over-add" type="button" data-schooloveradd="${child.id}">+ Lägg till</button>
+        ${readOnly ? '' : `<button class="school-over-add" type="button" data-schooloveradd="${child.id}">+ Lägg till</button>`}
       </div>
       ${overRows || '<div class="school-over-none">Inga kommande avvikelser</div>'}
     </section>`;

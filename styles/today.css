@@ -30,9 +30,6 @@
 .ag-evc-when{ font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); }
 .ag-evc-cat{ display:inline-flex; align-items:center; gap:6px; font-size:.82rem; font-weight:600; color:var(--evc, var(--muted)); }
 .ag-cat-dot{ flex:0 0 auto; width:7px; height:7px; border-radius:50%; }
-.ag-evc-avs{ margin-left:auto; display:inline-flex; flex-direction:row-reverse; }
-.ag-evc-avs .avatar{ margin-left:-7px; box-shadow:0 0 0 2px var(--card); }
-.ag-evc-avs .avatar:last-child{ margin-left:0; }
 .ag-evc-title{ font-size:1.16rem; font-weight:700; letter-spacing:-.01em; line-height:1.2; word-break:break-word; }
 .ag-evc-sub{ margin-top:3px; color:var(--muted); font-size:.92rem; }
 .ag-now{
@@ -76,6 +73,18 @@
   margin-left:auto; flex:0 0 auto; padding:3px 10px; border-radius:var(--radius-pill);
   background:var(--gold-soft); color:var(--accent-ink); font-size:.8rem; font-weight:700;
 }
+
+/* School lunch row — tap opens the whole week */
+.ag-school-meal{
+  display:flex; align-items:center; gap:11px; width:100%; text-align:left; cursor:pointer;
+  border:0; border-top:1px solid var(--border); background:transparent; color:var(--text);
+  padding:11px 0 2px; margin-top:2px; font:inherit;
+}
+.ag-school-meal:hover .ag-school-meal-dish{ color:var(--accent-ink); }
+.ag-school-meal-ico{ flex:0 0 auto; font-size:1.15rem; line-height:1; }
+.ag-school-meal-main{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:1px; }
+.ag-school-meal-cap{ font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--faint); }
+.ag-school-meal-dish{ font-weight:600; word-break:break-word; }
 
 /* ---- tappable rows (cleaning uses cleaning.css .cl-*; approvals + kid nudge) ---- */
 .ag-row{

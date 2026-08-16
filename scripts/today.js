@@ -85,20 +85,10 @@ function eventCard(ev){
       <div class="ag-evc-top">
         <span class="ag-evc-when">${escapeHtml(when)}</span>
         <span class="ag-evc-cat"><span class="ag-cat-dot" style="background:${cat.color}"></span>${escapeHtml(cat.label)}</span>
-        <span class="ag-evc-avs">${eventAvatars(ev)}</span>
       </div>
       <div class="ag-evc-title">${ev.private ? '🔒 ' : ''}${escapeHtml(ev.title)}${ongoing ? '<span class="ag-now">Pågår</span>' : ''}</div>
       ${ev.notes ? `<div class="ag-evc-sub">${escapeHtml(ev.notes)}</div>` : ''}
     </div>`;
-}
-
-// Owned events show one avatar; family events (owner_id null) show a cluster of the whole family.
-function eventAvatars(ev){
-  if(ev.owner_id){
-    const p = state.profilesById[ev.owner_id];
-    return avatarHtml(p ? profileColor(p) : 'var(--faint)', p ? p.name : '?');
-  }
-  return (state.profiles || []).map(p => avatarHtml(profileColor(p), p.name)).join('');
 }
 
 // ---- Dagens båge (day-arc) ----
@@ -165,9 +155,10 @@ function dagensBageCard(){
 
 // ---- Skola panel (parents, school days) — implemented in school.js; silent until then ----
 // Shows today's school day; on a weekend/lov it looks ahead to the next school day instead of
-// hiding, so a schedule that's been set up is always visible from the landing screen.
+// hiding, so a schedule that's been set up is always visible from the landing screen. Shown to
+// everyone — the kids look up each other's times here too.
 function schoolSection(){
-  if(typeof nextSchoolDate !== 'function' || !isParent()) return '';
+  if(typeof nextSchoolDate !== 'function') return '';
   const when = nextSchoolDate();
   if(!when) return '';
   const rows = schoolOn(when);
@@ -182,9 +173,27 @@ function schoolSection(){
         ${isToday ? '' : `<span class="ag-school-next">${escapeHtml(relativeDay(when))}</span>`}
       </div>
       ${rows.map(schoolPanelRow).join('')}
+      ${schoolMealRow(dateKey(when))}
     </div>`;
   return agendaSection('Skola', navLink('school', `${rows.length} barn`), body);
 }
+// The day's school lunch, under the kids' rows. Tapping opens the whole week — that dialog is
+// the only way to see it, so the landing screen stays a single-day view.
+function schoolMealRow(key){
+  if(typeof schoolMealFor !== 'function') return '';
+  const line = mealLine(schoolMealFor(key));
+  if(!line) return '';
+  return `
+    <button class="ag-school-meal" type="button" data-schoolmenu="${escapeHtml(key)}">
+      <span class="ag-school-meal-ico" aria-hidden="true">🍽</span>
+      <span class="ag-school-meal-main">
+        <span class="ag-school-meal-cap">Skollunch</span>
+        <span class="ag-school-meal-dish">${escapeHtml(line)}</span>
+      </span>
+      <span class="ag-caret" aria-hidden="true">›</span>
+    </button>`;
+}
+
 function schoolPanelRow(r){
   const chip = r.day.activity
     ? `<span class="school-chip">${escapeHtml(schoolActivityLabel(r.day.activity))}</span>`
@@ -284,7 +293,6 @@ function agendaTomorrow(){
       ${wxHtml}
       <span class="ag-tm-main">
         <span class="ag-tm-status">${escapeHtml(status)}</span>
-        <button class="ag-tm-plan" type="button" data-go="newEvent">+ Planera dagen</button>
       </span>
     </div>`;
   return agendaSection('Imorgon', linkLabel(capital(WEEKDAYS[tmr.getDay()])), body);
@@ -292,6 +300,8 @@ function agendaTomorrow(){
 
 // ---- navigation ----
 function onTodayClick(e){
+  const menu = e.target.closest('[data-schoolmenu]');
+  if(menu){ openSchoolMenu(menu.dataset.schoolmenu); return; }
   const b = e.target.closest('[data-go]');
   if(!b) return;
   switch(b.dataset.go){
@@ -302,6 +312,5 @@ function onTodayClick(e){
     case 'rewards':  switchView('rewards'); break;
     case 'credits':  switchView('credits'); break;
     case 'meal':     if(isParent()) openMealDialog(todayKey(), mealForDate(todayKey())); break;
-    case 'newEvent': if(typeof openEventDialog === 'function') openEventDialog(null); break;
   }
 }
