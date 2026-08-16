@@ -85,6 +85,7 @@
 .ag-school-meal-main{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:1px; }
 .ag-school-meal-cap{ font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--faint); }
 .ag-school-meal-dish{ font-weight:600; word-break:break-word; }
+.ag-school-meal-dish.is-empty{ color:var(--faint); font-weight:400; }
 
 /* ---- tappable rows (cleaning uses cleaning.css .cl-*; approvals + kid nudge) ---- */
 .ag-row{

@@ -91,6 +91,16 @@ function mondayOfDate(date){
 function mealLine(meal){
   return meal && meal.courses && meal.courses.length ? meal.courses.join(' · ') : '';
 }
+// Is there any lunch at all in the Mon–Fri week containing `key`? Lets the agenda tell
+// "nothing served that day" apart from "no menu fetched yet".
+function weekHasMeals(key){
+  const mon = mondayOfDate(key);
+  for(let i = 0; i < 5; i++){
+    const d = new Date(mon); d.setDate(d.getDate() + i);
+    if(schoolMealFor(dateKey(d))) return true;
+  }
+  return false;
+}
 
 // Full week behind the tap on the lunch row. `dateKey` picks which week to show.
 function openSchoolMenu(key){

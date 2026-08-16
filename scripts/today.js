@@ -177,18 +177,19 @@ function schoolSection(){
     </div>`;
   return agendaSection('Skola', navLink('school', `${rows.length} barn`), body);
 }
-// The day's school lunch, under the kids' rows. Tapping opens the whole week — that dialog is
-// the only way to see it, so the landing screen stays a single-day view.
+// The school lunch for the day the panel is showing, under the kids' rows. Always rendered —
+// on a weekend or a lov there's no dish, but the row stays as the way in to the week's menu
+// (that dialog is the only place the full week lives, keeping the agenda a single-day view).
 function schoolMealRow(key){
   if(typeof schoolMealFor !== 'function') return '';
   const line = mealLine(schoolMealFor(key));
-  if(!line) return '';
+  const label = line || (weekHasMeals(key) ? 'Se veckans meny' : 'Ingen meny ännu');
   return `
     <button class="ag-school-meal" type="button" data-schoolmenu="${escapeHtml(key)}">
       <span class="ag-school-meal-ico" aria-hidden="true">🍽</span>
       <span class="ag-school-meal-main">
         <span class="ag-school-meal-cap">Skollunch</span>
-        <span class="ag-school-meal-dish">${escapeHtml(line)}</span>
+        <span class="ag-school-meal-dish${line ? '' : ' is-empty'}">${escapeHtml(label)}</span>
       </span>
       <span class="ag-caret" aria-hidden="true">›</span>
     </button>`;
