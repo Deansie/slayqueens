@@ -38,25 +38,6 @@
   text-transform:uppercase; letter-spacing:.05em;
 }
 
-/* ---- Dagens båge (day-arc) ---- */
-.ag-arc-card{
-  background:var(--card-hi); border:1px solid var(--border); border-radius:var(--radius);
-  box-shadow:var(--shadow-sm); padding:14px 18px 12px; margin-bottom:14px;
-}
-.ag-arc-head{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
-.ag-arc-cap{ font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--faint); }
-.ag-arc-note{ font-size:.92rem; font-weight:600; color:var(--muted); }
-.ag-arc-svg{ display:block; width:100%; height:auto; margin:2px 0; overflow:visible; }
-.ag-arc-path{ fill:none; stroke:var(--border-strong); stroke-width:2; }
-.ag-arc-end{ fill:var(--border-strong); }
-.ag-arc-dot{ fill:var(--card); stroke-width:3; }
-.ag-arc-dot.is-past{ opacity:.4; }
-.ag-arc-dot.is-focus{ stroke-width:3.5; }
-.ag-arc-time{ fill:var(--muted); font-size:12px; font-weight:700; }
-.ag-arc-now{ fill:var(--accent-ink); stroke:var(--card); stroke-width:3; }
-.ag-arc-nowlbl{ fill:var(--faint); font-size:10px; font-weight:700; letter-spacing:.1em; }
-.ag-arc-ends{ display:flex; justify-content:space-between; font-size:.78rem; font-weight:600; color:var(--faint); padding:0 20px; }
-
 /* ---- Skola panel ---- */
 .ag-school-sum{ display:flex; align-items:center; gap:9px; padding:2px 0 11px; color:var(--muted); font-size:.92rem; }
 .ag-school-sum b{ color:var(--text); font-weight:700; }

@@ -1,8 +1,8 @@
 'use strict';
 // Dagens agenda — the app's landing screen. A calm, sectioned overview of *today*: a school
-// panel (parents), the "Dagens båge" day-arc + today's events, the approval queue, dinner, and a
-// look-ahead "Imorgon" card. Each section is a serif header with a hairline rule and an optional
-// "›" link, followed by its card(s). Empty/positive states are omitted rather than shown as
+// panel, today's events, the approval queue, dinner, and a look-ahead "Imorgon" card. Each
+// section is a serif header with a hairline rule and an optional "›" link, followed by its
+// card(s). Empty/positive states are omitted rather than shown as
 // filler — the header already reports the counts. Städning deliberately lives only in its own
 // sub-tab (Att göra → Städschema), not here.
 // Reuses data already in `state`; reached again from anywhere via the header date.
@@ -17,8 +17,9 @@ function renderToday(){
   const school = schoolSection();
   if(school) out.push(school);
 
-  // 2) Idag — the day-arc, then today's events
-  out.push(agendaSection('Idag', navLink('calendar', 'Kalender'), dagensBageCard() + todayEventsHtml()));
+  // 2) Idag — today's events (omitted entirely on a day with nothing in the calendar)
+  const evsHtml = todayEventsHtml();
+  if(evsHtml) out.push(agendaSection('Idag', navLink('calendar', 'Kalender'), evsHtml));
 
   // 3) Att godkänna (parents, only when something is pending)
   const appr = approvalsSection();  if(appr) out.push(appr);
@@ -88,68 +89,6 @@ function eventCard(ev){
       </div>
       <div class="ag-evc-title">${ev.private ? '🔒 ' : ''}${escapeHtml(ev.title)}${ongoing ? '<span class="ag-now">Pågår</span>' : ''}</div>
       ${ev.notes ? `<div class="ag-evc-sub">${escapeHtml(ev.notes)}</div>` : ''}
-    </div>`;
-}
-
-// ---- Dagens båge (day-arc) ----
-// A shallow arc from morning to evening with a "NU" marker at the current time and a peak dot at
-// the next upcoming event today. Right caption reports the evening (a late event, or "fri").
-const ARC_DAY_START = 6;    // 06:00 → left end
-const ARC_DAY_END   = 22;   // 22:00 → right end
-function arcProgress(hours){
-  return Math.max(0, Math.min(1, (hours - ARC_DAY_START) / (ARC_DAY_END - ARC_DAY_START)));
-}
-function dagensBageCard(){
-  const W = 320, H = 108, padX = 26, baseY = 82, archH = 46;
-  const midX = W / 2, ctrlY = baseY - 2 * archH;
-  // progress p ∈ [0,1] → point on the quadratic arc (x is linear because the control x is the midpoint)
-  const px = p => padX + p * (W - 2 * padX);
-  const py = p => baseY - 4 * archH * (1 - p) * p;
-
-  const now = new Date();
-  const nowP = arcProgress(now.getHours() + now.getMinutes() / 60);
-
-  const timed = todaysEvents().filter(e => !e.all_day);
-  const next = timed.find(e => new Date(e.starts_at) > now);
-  // evening = a timed event starting at/after 17:00; drives the right-hand caption
-  const evening = timed.filter(e => new Date(e.starts_at).getHours() >= 17).pop();
-  // the event the arc labels: the next one coming up, else the day's last (so a finished day
-  // still reads as "this is what today held")
-  const focus = next || timed[timed.length - 1] || null;
-
-  // every timed event gets a dot along the arc; past ones are muted, the focus one is larger
-  const dots = timed.map(ev => {
-    const d = new Date(ev.starts_at);
-    const p = arcProgress(d.getHours() + d.getMinutes() / 60);
-    const cat = categoryOf(ev.category);
-    const isFocus = focus && ev.id === focus.id;
-    const past = d <= now;
-    const label = isFocus
-      ? `<text x="${px(p)}" y="${py(p) - 13}" class="ag-arc-time" text-anchor="middle">${fmtTime(ev.starts_at)}</text>`
-      : '';
-    return `${label}<circle cx="${px(p)}" cy="${py(p)}" r="${isFocus ? 7 : 5}" class="ag-arc-dot${isFocus ? ' is-focus' : ''}${past ? ' is-past' : ''}" style="stroke:${cat.color}"/>`;
-  }).join('');
-
-  let caption;
-  if(!timed.length) caption = 'Inget planerat';
-  else if(evening) caption = `${escapeHtml(evening.title)} kl ${new Date(evening.starts_at).getHours()}`;
-  else caption = 'Kvällen är fri';
-
-  return `
-    <div class="ag-arc-card">
-      <div class="ag-arc-head">
-        <span class="ag-arc-cap">Dagens båge</span>
-        <span class="ag-arc-note">${caption}</span>
-      </div>
-      <svg class="ag-arc-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="Dagens båge">
-        <path d="M ${px(0)} ${baseY} Q ${midX} ${ctrlY} ${px(1)} ${baseY}" class="ag-arc-path"/>
-        <circle cx="${px(1)}" cy="${baseY}" r="3" class="ag-arc-end"/>
-        <circle cx="${px(0)}" cy="${baseY}" r="3" class="ag-arc-end"/>
-        ${dots}
-        <circle cx="${px(nowP)}" cy="${py(nowP)}" r="6" class="ag-arc-now"/>
-        <text x="${px(nowP)}" y="${py(nowP) + 20}" class="ag-arc-nowlbl" text-anchor="middle">NU</text>
-      </svg>
-      <div class="ag-arc-ends"><span>Morgon</span><span>Kväll</span></div>
     </div>`;
 }
 
