@@ -1,6 +1,6 @@
 'use strict';
 // In-memory copy of the shared data, plus realtime subscriptions.
-const state = { profiles: [], profilesById: {}, events: [], tasks: [], balances: [], ledger: [], payouts: [], templates: [], suggestions: [], votes: [], messages: [], todos: [], meals: [], mealDishes: [], mealWishes: [], shopTopics: [], shopItems: [], behaviors: [], markLedger: [], markBalances: [], markRequests: [], rewardTiers: [], rewards: [], redemptions: [], goals: [], contributions: [], cleaningTasks: [], cleaningDone: [], settings: { cleaning_reminder_enabled: true, cleaning_reminder_hour: 8 } };
+const state = { profiles: [], profilesById: {}, events: [], tasks: [], balances: [], ledger: [], payouts: [], templates: [], suggestions: [], votes: [], messages: [], todos: [], meals: [], mealDishes: [], mealWishes: [], shopTopics: [], shopItems: [], behaviors: [], markLedger: [], markBalances: [], markRequests: [], rewardTiers: [], rewards: [], redemptions: [], goals: [], contributions: [], cleaningTasks: [], cleaningDone: [], schoolWeekly: [], schoolOverrides: [], settings: { cleaning_reminder_enabled: true, cleaning_reminder_hour: 8 } };
 
 async function loadProfiles(){
   const { data, error } = await sb.from('profiles').select('*').order('name');
@@ -166,6 +166,18 @@ async function loadCleaningDone(){
   state.cleaningDone = data || [];
 }
 
+async function loadSchoolWeekly(){
+  const { data, error } = await sb.from('school_weekly').select('*').order('child_id').order('weekday');
+  if(error){ console.warn('loadSchoolWeekly', error); return; }
+  state.schoolWeekly = data || [];
+}
+
+async function loadSchoolOverrides(){
+  const { data, error } = await sb.from('school_overrides').select('*').order('date');
+  if(error){ console.warn('loadSchoolOverrides', error); return; }
+  state.schoolOverrides = data || [];
+}
+
 async function loadSettings(){
   const { data, error } = await sb.from('app_settings').select('*').eq('id', true).single();
   if(error){ console.warn('loadSettings', error); return; }
@@ -205,6 +217,8 @@ function subscribeRealtime(onChange){
     .on('postgres_changes', { event: '*', schema: 'public', table: 'goal_contributions' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'cleaning_tasks' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'cleaning_done' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'school_weekly' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'school_overrides' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, onChange)
     .subscribe();
 }

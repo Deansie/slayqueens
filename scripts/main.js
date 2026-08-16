@@ -158,6 +158,16 @@ document.addEventListener('DOMContentLoaded', () => {
   $('cleaningCancel').addEventListener('click', () => $('cleaningDialog').close());
   $('cleaningDelete').addEventListener('click', deleteCleaning);
 
+  // Skola (per-child school schedules)
+  $('schoolBody').addEventListener('click', onSchoolClick);
+  $('schoolDayForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveSchoolDay(); });
+  $('schoolDayCancel').addEventListener('click', () => $('schoolDayDialog').close());
+  $('schoolDayDelete').addEventListener('click', deleteSchoolDay);
+  $('overrideForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveOverride(); });
+  $('overrideCancel').addEventListener('click', () => $('overrideDialog').close());
+  $('overrideDelete').addEventListener('click', deleteOverride);
+  $('overrideNoSchool').addEventListener('change', reflectOverrideNoSchool);
+
   // Matsedel
   $('matsedelBody').addEventListener('click', onMatsedelClick);
   $('mealForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveMeal(); });
@@ -309,6 +319,7 @@ function onProfileMenuClick(e){
   closeProfileMenu();
   if(act === 'credits') switchView('credits');
   else if(act === 'rewards') switchView('rewards');
+  else if(act === 'school') switchView('school');
   else if(act === 'budget') switchView('budget');
   else if(act === 'profile') openProfileDialog();
   else if(act === 'weather') openWeatherDialog();
@@ -356,8 +367,12 @@ async function onRealtime(payload){
   else if(t === 'goal_contributions') await loadContributions();
   else if(t === 'cleaning_tasks') await loadCleaningTasks();
   else if(t === 'cleaning_done') await loadCleaningDone();
+  else if(t === 'school_weekly') await loadSchoolWeekly();
+  else if(t === 'school_overrides') await loadSchoolOverrides();
   else if(t === 'app_settings') await loadSettings();
+  renderHeader();
   renderToday();
+  renderSchool();
   renderCalendar();
   renderTasks();
   renderRoutines();
@@ -375,8 +390,10 @@ async function onRealtime(payload){
 // Full reload + repaint, used when the app resumes and may have missed live updates.
 async function resync(){
   if(!sb || !session) return;
-  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions(), loadGoals(), loadContributions(), loadCleaningTasks(), loadCleaningDone(), loadSettings()]);
+  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions(), loadGoals(), loadContributions(), loadCleaningTasks(), loadCleaningDone(), loadSchoolWeekly(), loadSchoolOverrides(), loadSettings()]);
+  renderHeader();
   renderToday();
+  renderSchool();
   renderCalendar();
   renderTasks();
   renderRoutines();

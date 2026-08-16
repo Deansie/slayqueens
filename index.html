@@ -38,6 +38,7 @@
 <link rel="stylesheet" href="styles/routines.css" />
 <link rel="stylesheet" href="styles/rewards.css" />
 <link rel="stylesheet" href="styles/today.css" />
+<link rel="stylesheet" href="styles/school.css" />
 <link rel="stylesheet" href="styles/overlays.css" />
 <link rel="stylesheet" href="styles/responsive.css" />
 </head>
@@ -166,6 +167,12 @@
       <h2 class="view-title serif">Belöningar</h2>
       <div id="rewardsBody"></div>
     </section>
+
+    <!-- Skola (per-child school schedules — reached from the profile menu, parents) -->
+    <section class="view" id="view-school" hidden>
+      <h2 class="view-title serif">Skola</h2>
+      <div id="schoolBody"></div>
+    </section>
   </main>
 
   <!-- Context-aware add button -->
@@ -202,6 +209,7 @@
     <div class="mp-bal" id="mpBal" hidden></div>
     <button class="mp-item" data-menu="credits" type="button" role="menuitem"><span class="mp-ico">⭐</span> Poäng</button>
     <button class="mp-item" data-menu="rewards" type="button" role="menuitem"><span class="mp-ico">🎁</span> Belöningar</button>
+    <button class="mp-item parent-only" data-menu="school" type="button" role="menuitem"><span class="mp-ico">🎓</span> Skola</button>
     <button class="mp-item parent-only" data-menu="budget" type="button" role="menuitem"><span class="mp-ico">💰</span> Budget</button>
     <button class="mp-item" data-menu="profile" type="button" role="menuitem"><span class="mp-ico">🎨</span> Profil &amp; notiser</button>
     <button class="mp-item" data-menu="weather" type="button" role="menuitem"><span class="mp-ico">📍</span> Väderplats</button>
@@ -640,6 +648,65 @@
   </form>
 </dialog>
 
+<!-- Skola: weekly-day editor -------------------------------------------- -->
+<dialog id="schoolDayDialog">
+  <form method="dialog" class="dlg-body" id="schoolDayForm">
+    <h3 id="schoolDayTitle" class="serif">Skoldag</h3>
+    <div class="dlg-row">
+      <div class="dlg-field">
+        <label for="schoolDayStart">Start</label>
+        <input id="schoolDayStart" type="time" required />
+      </div>
+      <div class="dlg-field">
+        <label for="schoolDayEnd">Slut</label>
+        <input id="schoolDayEnd" type="time" required />
+      </div>
+    </div>
+    <div class="dlg-field">
+      <label for="schoolDayActivity">Aktivitet</label>
+      <select id="schoolDayActivity"></select>
+    </div>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="schoolDayDelete" type="button" hidden>Ta bort</button>
+      <button class="btn ghost" id="schoolDayCancel" type="button">Avbryt</button>
+      <button class="btn" value="ok" id="schoolDaySave" type="submit">Spara</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Skola: per-date exception (avvikelse) ------------------------------- -->
+<dialog id="overrideDialog">
+  <form method="dialog" class="dlg-body" id="overrideForm">
+    <h3 id="overrideTitle" class="serif">Avvikelse</h3>
+    <div class="dlg-field">
+      <label for="overrideDate">Datum</label>
+      <input id="overrideDate" type="date" required />
+    </div>
+    <label class="dlg-check"><input id="overrideNoSchool" type="checkbox" /> Ingen skola (lov/studiedag)</label>
+    <div id="overrideFields">
+      <div class="dlg-row">
+        <div class="dlg-field">
+          <label for="overrideStart">Start</label>
+          <input id="overrideStart" type="time" />
+        </div>
+        <div class="dlg-field">
+          <label for="overrideEnd">Slut</label>
+          <input id="overrideEnd" type="time" />
+        </div>
+      </div>
+      <div class="dlg-field">
+        <label for="overrideActivity">Aktivitet</label>
+        <select id="overrideActivity"></select>
+      </div>
+    </div>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="overrideDelete" type="button" hidden>Ta bort</button>
+      <button class="btn ghost" id="overrideCancel" type="button">Avbryt</button>
+      <button class="btn" value="ok" id="overrideSave" type="submit">Spara</button>
+    </div>
+  </form>
+</dialog>
+
 <!-- Weather location picker ------------------------------------------ -->
 <dialog id="weatherDialog">
   <form method="dialog" class="dlg-body" id="weatherForm">
@@ -690,6 +757,7 @@
 <script src="scripts/auth.js"></script>
 <script src="scripts/header.js"></script>
 <script src="scripts/today.js"></script>
+<script src="scripts/school.js"></script>
 <script src="scripts/weather.js"></script>
 <script src="scripts/calendar.js"></script>
 <script src="scripts/tasks.js"></script>

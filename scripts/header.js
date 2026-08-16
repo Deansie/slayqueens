@@ -19,7 +19,16 @@ function renderHeader(){
     const events = state.events || [];
     const today = events.filter(e => dateKey(e.starts_at) === tKey).length;
     const tomorrow = events.filter(e => dateKey(e.starts_at) === mKey).length;
-    sub.innerHTML =
-      `<b>${today}</b> ${today === 1 ? 'händelse' : 'händelser'} idag · <b>${tomorrow}</b> imorgon`;
+
+    // On a school day (parents), lead with school; otherwise the plain event count.
+    const inSchool = (typeof schoolToday === 'function' && isParent()) ? schoolToday().length : 0;
+    if(inSchool){
+      const acts = events.filter(e => dateKey(e.starts_at) === tKey && !e.all_day).length;
+      sub.innerHTML =
+        `<b>${inSchool}</b> i skolan · <b>${acts}</b> ${acts === 1 ? 'aktivitet' : 'aktiviteter'} idag`;
+    } else {
+      sub.innerHTML =
+        `<b>${today}</b> ${today === 1 ? 'händelse' : 'händelser'} idag · <b>${tomorrow}</b> imorgon`;
+    }
   }
 }

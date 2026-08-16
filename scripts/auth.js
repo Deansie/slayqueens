@@ -38,9 +38,10 @@ async function enterApp(){
     $('meName').textContent = capital(me.name);
     const demoBar = $('demoBanner');
     if(demoBar) demoBar.hidden = !isDemo();
-    await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions(), loadGoals(), loadContributions(), loadCleaningTasks(), loadCleaningDone(), loadSettings()]);
+    await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions(), loadGoals(), loadContributions(), loadCleaningTasks(), loadCleaningDone(), loadSchoolWeekly(), loadSchoolOverrides(), loadSettings()]);
     renderHeader();
     renderToday();
+    renderSchool();
     renderCalendar();
     renderTasks();
     renderRoutines();
@@ -81,6 +82,7 @@ function enterDemo(){
   if(demoBar) demoBar.hidden = false;
   renderHeader();
   renderToday();
+  renderSchool();
   renderCalendar();
   renderTasks();
   renderRoutines();

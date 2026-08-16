@@ -1,0 +1,44 @@
+/* Skola — the parent's school-schedule editor (profile-menu view). One card per child: a weekly
+   list of tappable day rows + a list of upcoming per-date exceptions. Chips reuse today.css's
+   .school-chip. */
+
+.school-kid{
+  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+  box-shadow:var(--shadow-sm); padding:14px 16px; margin-bottom:16px;
+}
+.school-kid-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.school-kid-av{ flex:0 0 auto; display:inline-flex; }
+.school-kid-name{ font-size:1.25rem; font-weight:700; letter-spacing:-.01em; }
+
+.school-week{ display:flex; flex-direction:column; }
+.school-day{
+  display:flex; align-items:center; gap:11px; width:100%; text-align:left; cursor:pointer;
+  border:0; background:transparent; color:var(--text); padding:10px 0; font:inherit;
+}
+.school-day + .school-day{ border-top:1px solid var(--border); }
+.school-day:hover .school-day-name{ color:var(--accent-ink); }
+.school-day-name{ flex:0 0 84px; font-weight:600; }
+.school-day-time{ flex:0 0 auto; font-weight:700; letter-spacing:-.01em; color:var(--muted); }
+.school-day-empty{ flex:0 0 auto; color:var(--faint); font-size:.9rem; }
+.school-day .school-chip{ margin-left:auto; }
+
+.school-chip{
+  flex:0 0 auto; padding:3px 10px; border-radius:var(--radius-pill);
+  background:var(--gold-soft); color:var(--accent-ink); font-size:.8rem; font-weight:700;
+}
+
+.school-over-head{
+  display:flex; align-items:baseline; justify-content:space-between; gap:10px;
+  margin:14px 0 6px; padding-top:12px; border-top:1px solid var(--border);
+  font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--faint);
+}
+.school-over-add{ border:0; background:transparent; cursor:pointer; padding:0; color:var(--accent-ink); font-weight:700; font-size:.8rem; letter-spacing:.01em; text-transform:none; }
+.school-over{
+  display:flex; align-items:center; gap:11px; width:100%; text-align:left; cursor:pointer;
+  border:0; background:transparent; color:var(--text); padding:8px 0; font:inherit;
+}
+.school-over + .school-over{ border-top:1px solid var(--border); }
+.school-over:hover .school-over-txt{ color:var(--accent-ink); }
+.school-over-date{ flex:0 0 auto; font-weight:700; min-width:64px; }
+.school-over-txt{ flex:1 1 auto; min-width:0; color:var(--muted); }
+.school-over-none{ color:var(--faint); font-size:.88rem; padding:4px 0 2px; }
