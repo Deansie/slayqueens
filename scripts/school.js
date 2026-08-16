@@ -31,12 +31,75 @@ let editingOverride  = null;      // { id|null, childId } while the override edi
 function kids(){ return (state.profiles || []).filter(p => p.role === 'kid'); }
 function weekdayIdx(d){ return (new Date(d).getDay() + 6) % 7; }   // Mon=0 … Sun=6
 
+// ---- röda dagar ----
+// Swedish public holidays, computed rather than fetched: the fixed ones by date, the movable
+// ones from Easter. Schools are closed on these, so they count as non-school days without
+// anyone adding an avvikelse. NOTE: school holidays (lov) vary per kommun and are NOT covered
+// here — those still need a per-date override.
+
+// Easter Sunday (anonymous Gregorian algorithm).
+function easterSunday(y){
+  const a = y % 19, b = Math.floor(y / 100), c = y % 100;
+  const d = Math.floor(b / 4), e = b % 4;
+  const f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4), k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);      // 3 = mars, 4 = april
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(y, month - 1, day);
+}
+// First Saturday on or after a given date — midsommar- and allhelgonadagen are defined that way.
+function saturdayFrom(y, month, day){
+  const d = new Date(y, month - 1, day);
+  d.setDate(d.getDate() + ((6 - d.getDay() + 7) % 7));
+  return dateKey(d);
+}
+
+// The holiday's name if `date` is a röd dag, else null.
+function redDayName(date){
+  const d = new Date(date); d.setHours(0, 0, 0, 0);
+  const y = d.getFullYear(), key = dateKey(d);
+  const on = (m, day) => dateKey(new Date(y, m - 1, day));
+
+  const fixed = {
+    [on(1, 1)]:  'Nyårsdagen',
+    [on(1, 6)]:  'Trettondedag jul',
+    [on(5, 1)]:  'Första maj',
+    [on(6, 6)]:  'Nationaldagen',
+    // Julafton/nyårsafton aren't formally röda dagar, but school is never in session then.
+    [on(12, 24)]: 'Julafton',
+    [on(12, 25)]: 'Juldagen',
+    [on(12, 26)]: 'Annandag jul',
+    [on(12, 31)]: 'Nyårsafton'
+  };
+  if(fixed[key]) return fixed[key];
+
+  const e = easterSunday(y);
+  const fromEaster = n => { const x = new Date(e); x.setDate(x.getDate() + n); return dateKey(x); };
+  const movable = {
+    [fromEaster(-2)]: 'Långfredag',
+    [fromEaster(0)]:  'Påskdagen',
+    [fromEaster(1)]:  'Annandag påsk',
+    [fromEaster(39)]: 'Kristi himmelsfärds dag',
+    [fromEaster(49)]: 'Pingstdagen'
+  };
+  if(movable[key]) return movable[key];
+
+  if(key === saturdayFrom(y, 6, 20))  return 'Midsommardagen';
+  if(key === saturdayFrom(y, 10, 31)) return 'Alla helgons dag';
+  return null;
+}
+
 // The resolved school day for a child on a date, or null if no school that day.
 function schoolDayFor(childId, date){
   const wd = weekdayIdx(date);
   const base = (state.schoolWeekly || []).find(w => w.child_id === childId && w.weekday === wd) || null;
   const over = (state.schoolOverrides || []).find(o => o.child_id === childId && o.date === dateKey(date)) || null;
   if(over && over.no_school) return null;
+  // A röd dag closes school — unless an avvikelse for that exact date says otherwise.
+  if(!over && redDayName(date)) return null;
   const start = (over && over.start_time) || (base && base.start_time) || null;
   const end   = (over && over.end_time)   || (base && base.end_time)   || null;
   if(!start || !end) return null;

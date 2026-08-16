@@ -219,8 +219,12 @@ function agendaTomorrow(){
       <span class="ag-tm-temp">${Math.round(wx.max)}°<span class="ag-tm-min"> / ${Math.round(wx.min)}°</span></span>
     </span>` : '';
 
+  const red = (typeof redDayName === 'function') ? redDayName(tmr) : null;
+
   let status;
-  if(typeof isSchoolDay === 'function' && isSchoolDay(tmr)){
+  if(red){
+    status = red;                                    // e.g. "Långfredag" — says why there's no school
+  } else if(typeof isSchoolDay === 'function' && isSchoolDay(tmr)){
     status = 'Skoldag som vanligt';
   } else if(evs.length){
     status = `${evs.length} ${evs.length === 1 ? 'händelse' : 'händelser'}`;
