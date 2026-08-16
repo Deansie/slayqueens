@@ -1,9 +1,10 @@
 'use strict';
 // Dagens agenda — the app's landing screen. A calm, sectioned overview of *today*: a school
-// panel (parents, school days), the "Dagens båge" day-arc + today's events, cleaning, the
-// approval queue, dinner, and a look-ahead "Imorgon" card. Each section is a serif header with a
-// hairline rule and an optional "›" link, followed by its card(s). Empty/positive states are
-// omitted rather than shown as filler — the header already reports the counts.
+// panel (parents), the "Dagens båge" day-arc + today's events, the approval queue, dinner, and a
+// look-ahead "Imorgon" card. Each section is a serif header with a hairline rule and an optional
+// "›" link, followed by its card(s). Empty/positive states are omitted rather than shown as
+// filler — the header already reports the counts. Städning deliberately lives only in its own
+// sub-tab (Att göra → Städschema), not here.
 // Reuses data already in `state`; reached again from anywhere via the header date.
 
 function renderToday(){
@@ -19,19 +20,16 @@ function renderToday(){
   // 2) Idag — the day-arc, then today's events
   out.push(agendaSection('Idag', navLink('calendar', 'Kalender'), dagensBageCard() + todayEventsHtml()));
 
-  // 3) Städning idag (parents only — kids aren't nudged about cleaning)
-  const clean = cleaningSection(); if(clean) out.push(clean);
-
-  // 4) Att godkänna (parents, only when something is pending)
+  // 3) Att godkänna (parents, only when something is pending)
   const appr = approvalsSection();  if(appr) out.push(appr);
 
-  // 5) Rutiner nudge (kids)
+  // 4) Rutiner nudge (kids)
   const nudge = kidNudgeSection();  if(nudge) out.push(nudge);
 
-  // 6) Middag ikväll
+  // 5) Middag ikväll
   out.push(dinnerSection());
 
-  // 7) Imorgon
+  // 6) Imorgon
   out.push(agendaTomorrow());
 
   box.innerHTML = out.join('');
@@ -125,19 +123,27 @@ function dagensBageCard(){
   const next = timed.find(e => new Date(e.starts_at) > now);
   // evening = a timed event starting at/after 17:00; drives the right-hand caption
   const evening = timed.filter(e => new Date(e.starts_at).getHours() >= 17).pop();
+  // the event the arc labels: the next one coming up, else the day's last (so a finished day
+  // still reads as "this is what today held")
+  const focus = next || timed[timed.length - 1] || null;
 
-  let peakDot = '';
-  if(next){
-    const p = arcProgress(new Date(next.starts_at).getHours() + new Date(next.starts_at).getMinutes() / 60);
-    const cat = categoryOf(next.category);
-    peakDot = `
-      <text x="${px(p)}" y="${py(p) - 12}" class="ag-arc-time" text-anchor="middle">${fmtTime(next.starts_at)}</text>
-      <circle cx="${px(p)}" cy="${py(p)}" r="7" class="ag-arc-peak" style="stroke:${cat.color}"/>`;
-  }
+  // every timed event gets a dot along the arc; past ones are muted, the focus one is larger
+  const dots = timed.map(ev => {
+    const d = new Date(ev.starts_at);
+    const p = arcProgress(d.getHours() + d.getMinutes() / 60);
+    const cat = categoryOf(ev.category);
+    const isFocus = focus && ev.id === focus.id;
+    const past = d <= now;
+    const label = isFocus
+      ? `<text x="${px(p)}" y="${py(p) - 13}" class="ag-arc-time" text-anchor="middle">${fmtTime(ev.starts_at)}</text>`
+      : '';
+    return `${label}<circle cx="${px(p)}" cy="${py(p)}" r="${isFocus ? 7 : 5}" class="ag-arc-dot${isFocus ? ' is-focus' : ''}${past ? ' is-past' : ''}" style="stroke:${cat.color}"/>`;
+  }).join('');
 
-  const caption = evening
-    ? `${escapeHtml(evening.title)} kl ${new Date(evening.starts_at).getHours()}`
-    : 'Kvällen är fri';
+  let caption;
+  if(!timed.length) caption = 'Inget planerat';
+  else if(evening) caption = `${escapeHtml(evening.title)} kl ${new Date(evening.starts_at).getHours()}`;
+  else caption = 'Kvällen är fri';
 
   return `
     <div class="ag-arc-card">
@@ -149,7 +155,7 @@ function dagensBageCard(){
         <path d="M ${px(0)} ${baseY} Q ${midX} ${ctrlY} ${px(1)} ${baseY}" class="ag-arc-path"/>
         <circle cx="${px(1)}" cy="${baseY}" r="3" class="ag-arc-end"/>
         <circle cx="${px(0)}" cy="${baseY}" r="3" class="ag-arc-end"/>
-        ${peakDot}
+        ${dots}
         <circle cx="${px(nowP)}" cy="${py(nowP)}" r="6" class="ag-arc-now"/>
         <text x="${px(nowP)}" y="${py(nowP) + 20}" class="ag-arc-nowlbl" text-anchor="middle">NU</text>
       </svg>
@@ -158,16 +164,22 @@ function dagensBageCard(){
 }
 
 // ---- Skola panel (parents, school days) — implemented in school.js; silent until then ----
+// Shows today's school day; on a weekend/lov it looks ahead to the next school day instead of
+// hiding, so a schedule that's been set up is always visible from the landing screen.
 function schoolSection(){
-  if(typeof schoolToday !== 'function' || !isParent()) return '';
-  const rows = schoolToday();
+  if(typeof nextSchoolDate !== 'function' || !isParent()) return '';
+  const when = nextSchoolDate();
+  if(!when) return '';
+  const rows = schoolOn(when);
   if(!rows.length) return '';
-  const sum = schoolSummaryToday();
+  const sum = schoolSummaryOn(when);
+  const isToday = dateKey(when) === todayKey();
   const body = `
     <div class="ag-card ag-school">
       <div class="ag-school-sum">
         <span class="ag-school-ico" aria-hidden="true">🎓</span>
         <span>Först ut <b>${escapeHtml(sum.firstOut)}</b> · sist hem <b>${escapeHtml(sum.lastHome)}</b></span>
+        ${isToday ? '' : `<span class="ag-school-next">${escapeHtml(relativeDay(when))}</span>`}
       </div>
       ${rows.map(schoolPanelRow).join('')}
     </div>`;
@@ -183,34 +195,6 @@ function schoolPanelRow(r){
       <span class="ag-school-name">${escapeHtml(capital(r.child.name))}</span>
       <span class="ag-school-time">${escapeHtml(fmtSchoolTime(r.day.start))}–${escapeHtml(fmtSchoolTime(r.day.end))}</span>
       ${chip}
-    </div>`;
-}
-
-// ---- today's cleaning (Städschema) — parents only ----
-function cleaningSection(){
-  if(!isParent()) return '';
-  const tasks = state.cleaningTasks || [];
-  if(!tasks.length) return '';
-  const todayIdx = todayWeekdayIdx();
-  const relevant = tasks.filter(t => t.weekday === todayIdx)
-    .concat(tasks.filter(t => t.weekday < todayIdx && !cleaningDoneRow(t.id)));
-  if(!relevant.length) return '';
-  const total = tasks.length;
-  const done = tasks.filter(t => cleaningDoneRow(t.id)).length;
-  const body = `<div class="ag-card">${relevant.map(agendaCleanRow).join('')}</div>`;
-  return agendaSection('Städning idag',
-    `<button class="ag-sec-link" type="button" data-go="cleaning">${done}/${total} ›</button>`, body);
-}
-function agendaCleanRow(t){
-  const isDone = !!cleaningDoneRow(t.id);
-  const overdue = t.weekday < todayWeekdayIdx() && !isDone;
-  return `
-    <div class="cl-task${isDone ? ' done' : ''}${overdue ? ' overdue' : ''}">
-      <button class="cl-check" data-clean="${t.id}" type="button" role="checkbox" aria-checked="${isDone}" aria-label="Klarmarkera">${isDone ? '✓' : ''}</button>
-      <div class="cl-task-main">
-        <div class="cl-task-title">${escapeHtml(t.title)}</div>
-        ${overdue ? '<div class="cl-task-meta late">Släpar efter</div>' : ''}
-      </div>
     </div>`;
 }
 
@@ -308,8 +292,6 @@ function agendaTomorrow(){
 
 // ---- navigation ----
 function onTodayClick(e){
-  const clean = e.target.closest('[data-clean]');
-  if(clean){ toggleCleaningDone(clean.dataset.clean); return; }
   const b = e.target.closest('[data-go]');
   if(!b) return;
   switch(b.dataset.go){
@@ -319,7 +301,6 @@ function onTodayClick(e){
     case 'routines': switchView('tasks'); setTasksTab('routines'); break;
     case 'rewards':  switchView('rewards'); break;
     case 'credits':  switchView('credits'); break;
-    case 'cleaning': switchView('todos'); setTodoTab('cleaning'); break;
     case 'meal':     if(isParent()) openMealDialog(todayKey(), mealForDate(todayKey())); break;
     case 'newEvent': if(typeof openEventDialog === 'function') openEventDialog(null); break;
   }

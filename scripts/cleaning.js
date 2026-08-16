@@ -108,7 +108,6 @@ async function toggleCleaningDone(taskId){
     }
     await loadCleaningDone();
     renderCleaning();
-    renderToday();   // the agenda's "Städning idag" reflects the same ticks
   }catch(err){ console.warn('toggleCleaningDone', err); toast('warn', 'Kunde inte uppdatera'); }
 }
 

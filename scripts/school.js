@@ -44,19 +44,30 @@ function schoolDayFor(childId, date){
   return { start, end, activity };
 }
 
-// Kids with school today, each { child, day }, sorted by start time.
-function schoolToday(){
-  const now = new Date();
+// Kids with school on a given date, each { child, day }, sorted by start time.
+function schoolOn(date){
   return kids()
-    .map(child => ({ child, day: schoolDayFor(child.id, now) }))
+    .map(child => ({ child, day: schoolDayFor(child.id, date) }))
     .filter(r => r.day)
     .sort((a, b) => a.day.start.localeCompare(b.day.start));
 }
+function schoolToday(){ return schoolOn(new Date()); }
 function isSchoolDay(date){ return kids().some(c => schoolDayFor(c.id, date)); }
 
-// Earliest start / latest end across the kids in school today (formatted for display).
-function schoolSummaryToday(){
-  const rows = schoolToday();
+// The next date with school for anyone — today when it's a school day, else the coming
+// weekday (looks a week ahead). Lets the agenda show the schedule on weekends and lov too.
+function nextSchoolDate(){
+  const base = new Date(); base.setHours(0, 0, 0, 0);
+  for(let i = 0; i < 8; i++){
+    const d = new Date(base); d.setDate(d.getDate() + i);
+    if(isSchoolDay(d)) return d;
+  }
+  return null;
+}
+
+// Earliest start / latest end across the kids in school on a date (formatted for display).
+function schoolSummaryOn(date){
+  const rows = schoolOn(date);
   let first = null, last = null;
   for(const r of rows){
     if(first === null || r.day.start < first) first = r.day.start;
@@ -64,6 +75,7 @@ function schoolSummaryToday(){
   }
   return { firstOut: fmtSchoolTime(first), lastHome: fmtSchoolTime(last), count: rows.length };
 }
+function schoolSummaryToday(){ return schoolSummaryOn(new Date()); }
 
 // ---- management view (profile menu → Skola, parents only) ----
 function renderSchool(){

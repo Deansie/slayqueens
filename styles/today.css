@@ -52,7 +52,9 @@
 .ag-arc-svg{ display:block; width:100%; height:auto; margin:2px 0; overflow:visible; }
 .ag-arc-path{ fill:none; stroke:var(--border-strong); stroke-width:2; }
 .ag-arc-end{ fill:var(--border-strong); }
-.ag-arc-peak{ fill:var(--card); stroke-width:3; }
+.ag-arc-dot{ fill:var(--card); stroke-width:3; }
+.ag-arc-dot.is-past{ opacity:.4; }
+.ag-arc-dot.is-focus{ stroke-width:3.5; }
 .ag-arc-time{ fill:var(--muted); font-size:12px; font-weight:700; }
 .ag-arc-now{ fill:var(--accent-ink); stroke:var(--card); stroke-width:3; }
 .ag-arc-nowlbl{ fill:var(--faint); font-size:10px; font-weight:700; letter-spacing:.1em; }
@@ -62,6 +64,10 @@
 .ag-school-sum{ display:flex; align-items:center; gap:9px; padding:2px 0 11px; color:var(--muted); font-size:.92rem; }
 .ag-school-sum b{ color:var(--text); font-weight:700; }
 .ag-school-ico{ font-size:1.15rem; line-height:1; }
+.ag-school-next{
+  margin-left:auto; flex:0 0 auto; padding:2px 9px; border-radius:var(--radius-pill);
+  background:var(--card-2); color:var(--muted); font-size:.75rem; font-weight:700;
+}
 .ag-school-row{ display:flex; align-items:center; gap:11px; padding:9px 0; border-top:1px solid var(--border); }
 .ag-school-av{ flex:0 0 auto; display:inline-flex; }
 .ag-school-name{ flex:0 0 auto; font-weight:600; }
