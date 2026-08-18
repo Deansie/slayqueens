@@ -14,9 +14,6 @@ function renderToday(){
 
   const out = [];
 
-  // A slim countdown to the next (or current) lov sits at the very top when there is one.
-  const cd = lovCountdownHtml();    if(cd) out.push(cd);
-
   // Pending-work callouts float to the top when present (usually absent), so on a normal day
   // the agenda reads exactly Idag · Middag · Skola · Imorgon.
   const appr = approvalsSection();  if(appr) out.push(appr);   // parents, only when something is pending
@@ -57,8 +54,8 @@ function navLink(go, label){
 
 // ---- lov countdown ----
 // A slim strip counting down to the next multi-day lov (school break) — or, when we're already in
-// one, how much of it is left. Reads state.schoolClosures; hidden when nothing is upcoming. The
-// whole strip taps through to the Skola view (the full "Lediga dagar" list).
+// one, how much of it is left. Rendered inside the Skola section (see schoolSection). Reads
+// state.schoolClosures; hidden when nothing is upcoming. Taps through to the Skola view.
 function daysBetween(aKey, bKey){
   const a = new Date(aKey + 'T00:00:00'), b = new Date(bKey + 'T00:00:00');
   return Math.round((b - a) / 86400000);
@@ -159,17 +156,22 @@ function eventCard(ev){
 // everyone — the kids look up each other's times here too.
 function schoolSection(){
   if(typeof nextSchoolDate !== 'function') return '';
-  const when = nextSchoolDate();
-  if(!when) return '';
-  const rows = schoolOn(when);
-  if(!rows.length) return '';
-  const isToday = dateKey(when) === todayKey();
-  const body = `
-    <div class="ag-card ag-school">
-      ${rows.map(schoolPanelRow).join('')}
-      ${schoolMealRow(dateKey(when))}
-    </div>`;
-  const right = `${isToday ? '' : `<span class="ag-sec-when">${escapeHtml(relativeDay(when))}</span>`}${navLink('school', `${rows.length} barn`)}`;
+  const cd = lovCountdownHtml();               // '' when no lov is upcoming
+  const when = nextSchoolDate();               // null during a long lov (looks only 8 days ahead)
+  const rows = when ? schoolOn(when) : [];
+  if(!rows.length && !cd) return '';           // nothing school-related to show
+
+  let body = cd;                               // the lov countdown leads the Skola section
+  let right = '';
+  if(rows.length){
+    const isToday = dateKey(when) === todayKey();
+    body += `
+      <div class="ag-card ag-school">
+        ${rows.map(schoolPanelRow).join('')}
+        ${schoolMealRow(dateKey(when))}
+      </div>`;
+    right = `${isToday ? '' : `<span class="ag-sec-when">${escapeHtml(relativeDay(when))}</span>`}${navLink('school', `${rows.length} barn`)}`;
+  }
   return agendaSection('Skola', right, body);
 }
 // The school lunch for the day the panel is showing, under the kids' rows. Always rendered —
