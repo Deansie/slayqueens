@@ -1,10 +1,11 @@
 'use strict';
-// Dagens agenda — the app's landing screen. A calm, sectioned overview of *today*: a school
-// panel, today's events, the approval queue, dinner, and a look-ahead "Imorgon" card. Each
-// section is a serif header with a hairline rule and an optional "›" link, followed by its
-// card(s). Empty/positive states are omitted rather than shown as
-// filler — the header already reports the counts. Städning deliberately lives only in its own
-// sub-tab (Att göra → Städschema), not here.
+// Dagens agenda — the app's landing screen. A calm, sectioned overview of *today*, in order:
+// today's events (Idag), tonight's dinner (Middag, tap → Matsedel), the school panel (Skola),
+// and a look-ahead "Imorgon" card. Pending-work callouts (the parent approval queue / a kid
+// Rutiner nudge) float above when present. Each section is a serif header with a hairline rule
+// and an optional "›" link, followed by its card(s). Empty/positive states are omitted rather
+// than shown as filler — the header already reports the counts. Städning deliberately lives only
+// in its own sub-tab (Att göra → Städschema), not here.
 // Reuses data already in `state`; reached again from anywhere via the header date.
 
 function renderToday(){
@@ -13,24 +14,23 @@ function renderToday(){
 
   const out = [];
 
-  // 1) Skola — parents, school days (filled once school.js is loaded; silent otherwise)
-  const school = schoolSection();
-  if(school) out.push(school);
+  // Pending-work callouts float to the top when present (usually absent), so on a normal day
+  // the agenda reads exactly Idag · Middag · Skola · Imorgon.
+  const appr = approvalsSection();  if(appr) out.push(appr);   // parents, only when something is pending
+  const nudge = kidNudgeSection();  if(nudge) out.push(nudge); // kids
 
-  // 2) Idag — today's events (omitted entirely on a day with nothing in the calendar)
+  // 1) Idag — today's events (omitted entirely on a day with nothing in the calendar)
   const evsHtml = todayEventsHtml();
   if(evsHtml) out.push(agendaSection('Idag', navLink('calendar', 'Kalender'), evsHtml));
 
-  // 3) Att godkänna (parents, only when something is pending)
-  const appr = approvalsSection();  if(appr) out.push(appr);
-
-  // 4) Rutiner nudge (kids)
-  const nudge = kidNudgeSection();  if(nudge) out.push(nudge);
-
-  // 5) Middag ikväll
+  // 2) Middag ikväll
   out.push(dinnerSection());
 
-  // 6) Imorgon
+  // 3) Skola — school days (filled once school.js is loaded; silent otherwise)
+  const school = schoolSection();
+  if(school) out.push(school);
+
+  // 4) Imorgon
   out.push(agendaTomorrow());
 
   box.innerHTML = out.join('');
@@ -143,22 +143,20 @@ function schoolPanelRow(r){
 }
 
 // ---- dinner ----
+// The whole card is a button into Matsedel — where the meal is viewed and (by a parent) planned.
 function dinnerSection(){
   const meal = (typeof mealForDate === 'function') ? mealForDate(todayKey()) : null;
-  let inner;
+  let main;
   if(meal && meal.title){
-    inner = `<span class="ag-meal-ico" aria-hidden="true">🍴</span>
-      <span class="ag-meal-main"><b>${escapeHtml(meal.title)}</b>${meal.note ? `<span class="ag-meal-sub">${escapeHtml(meal.note)}</span>` : ''}</span>`;
+    main = `<span class="ag-meal-main"><b>${escapeHtml(meal.title)}</b>${meal.note ? `<span class="ag-meal-sub">${escapeHtml(meal.note)}</span>` : ''}</span>`;
   } else if(isParent()){
-    inner = `<span class="ag-meal-ico" aria-hidden="true">🍴</span>
-      <span class="ag-meal-main muted">Planera middag</span><span class="ag-caret">›</span>`;
-    return agendaSection('Middag', linkLabel('Ikväll'),
-      `<button class="ag-card ag-meal ag-meal-btn" type="button" data-go="meal">${inner}</button>`);
+    main = `<span class="ag-meal-main muted">Planera middag</span>`;
   } else {
-    inner = `<span class="ag-meal-ico" aria-hidden="true">🍴</span>
-      <span class="ag-meal-main muted">Ingen middag planerad</span>`;
+    main = `<span class="ag-meal-main muted">Ingen middag planerad</span>`;
   }
-  return agendaSection('Middag', linkLabel('Ikväll'), `<div class="ag-card ag-meal">${inner}</div>`);
+  const inner = `<span class="ag-meal-ico" aria-hidden="true">🍴</span>${main}<span class="ag-caret" aria-hidden="true">›</span>`;
+  return agendaSection('Middag', linkLabel('Ikväll'),
+    `<button class="ag-card ag-meal ag-meal-btn" type="button" data-go="matsedel">${inner}</button>`);
 }
 // A non-interactive right-hand label (e.g. "Ikväll", "Tisdag").
 function linkLabel(text){ return `<span class="ag-sec-when">${escapeHtml(text)}</span>`; }
@@ -264,6 +262,6 @@ function onTodayClick(e){
     case 'routines': switchView('tasks'); setTasksTab('routines'); break;
     case 'rewards':  switchView('rewards'); break;
     case 'credits':  switchView('credits'); break;
-    case 'meal':     if(isParent()) openMealDialog(todayKey(), mealForDate(todayKey())); break;
+    case 'matsedel': switchView('matsedel'); break;
   }
 }
