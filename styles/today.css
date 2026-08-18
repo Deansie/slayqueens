@@ -100,6 +100,7 @@ button.ag-meal-btn:hover .ag-meal-main{ color:var(--accent-ink); }
 .ag-tm-min{ color:var(--muted); font-weight:600; font-size:.95rem; }
 .ag-tm-main{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; align-items:flex-end; gap:2px; text-align:right; }
 .ag-tm-status{ color:var(--muted); font-weight:600; }
+.ag-tm-titles{ color:var(--faint); font-size:.82rem; line-height:1.35; word-break:break-word; }
 .ag-tm-plan{ border:0; background:transparent; cursor:pointer; padding:0; color:var(--accent-ink); font-weight:700; font-size:.9rem; }
 
 /* The header date doubles as the home button (tap → Dagens agenda) */
