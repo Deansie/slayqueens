@@ -221,6 +221,9 @@ function agendaTomorrow(){
 
   const red = (typeof redDayName === 'function') ? redDayName(tmr) : null;
 
+  // The summary line reports the *day* (why there's/there isn't school); the events themselves
+  // are listed as their own cards below, so this stays a short context note even when there
+  // are events — a school day with plans shows both "Skoldag som vanligt" and the event cards.
   let status;
   if(red){
     status = red;                                    // e.g. "Långfredag" — says why there's no school
@@ -232,13 +235,20 @@ function agendaTomorrow(){
     status = 'Inget planerat än';
   }
 
+  const evsHtml = evs.length
+    ? (evs.filter(e => e.all_day).length ? `<div class="ag-sub">Heldag</div>` : '')
+      + evs.filter(e => e.all_day).map(eventCard).join('')
+      + evs.filter(e => !e.all_day).map(eventCard).join('')
+    : '';
+
   const body = `
     <div class="ag-card ag-tomorrow">
       ${wxHtml}
       <span class="ag-tm-main">
         <span class="ag-tm-status">${escapeHtml(status)}</span>
       </span>
-    </div>`;
+    </div>
+    ${evsHtml}`;
   return agendaSection('Imorgon', linkLabel(capital(WEEKDAYS[tmr.getDay()])), body);
 }
 
