@@ -235,21 +235,23 @@ function agendaTomorrow(){
     status = 'Inget planerat än';
   }
 
-  // A small hint listing the event titles (all-day first), so the day's plans are visible at a
-  // glance without the weight of full cards.
-  const titlesHtml = evs.length
-    ? `<span class="ag-tm-titles">${evs.map(e =>
-        `${e.all_day ? '' : escapeHtml(fmtTime(e.starts_at)) + ' '}${e.private ? '🔒 ' : ''}${escapeHtml(e.title)}`
-      ).join(' · ')}</span>`
+  // A small hint listing the events (all-day first), so the day's plans are visible at a glance
+  // without the weight of full cards — a left-aligned list with a time column that stays tidy
+  // on a narrow phone.
+  const listHtml = evs.length
+    ? `<ul class="ag-tm-list">${evs.map(e => `
+        <li class="ag-tm-ev">${e.private ? '🔒 ' : ''}${escapeHtml(e.title)}</li>`).join('')}</ul>`
     : '';
 
   const body = `
     <div class="ag-card ag-tomorrow">
-      ${wxHtml}
-      <span class="ag-tm-main">
-        <span class="ag-tm-status">${escapeHtml(status)}</span>
-        ${titlesHtml}
-      </span>
+      <div class="ag-tm-head">
+        ${wxHtml}
+        <span class="ag-tm-main">
+          <span class="ag-tm-status">${escapeHtml(status)}</span>
+        </span>
+      </div>
+      ${listHtml}
     </div>`;
   return agendaSection('Imorgon', linkLabel(capital(WEEKDAYS[tmr.getDay()])), body);
 }
