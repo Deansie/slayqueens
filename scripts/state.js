@@ -1,6 +1,6 @@
 'use strict';
 // In-memory copy of the shared data, plus realtime subscriptions.
-const state = { profiles: [], profilesById: {}, events: [], tasks: [], balances: [], ledger: [], payouts: [], templates: [], suggestions: [], votes: [], messages: [], todos: [], meals: [], mealDishes: [], mealWishes: [], shopTopics: [], shopItems: [], behaviors: [], markLedger: [], markBalances: [], markRequests: [], rewardTiers: [], rewards: [], redemptions: [], goals: [], contributions: [], cleaningTasks: [], cleaningDone: [], schoolWeekly: [], schoolOverrides: [], schoolMeals: [], settings: { cleaning_reminder_enabled: true, cleaning_reminder_hour: 8 } };
+const state = { profiles: [], profilesById: {}, events: [], tasks: [], balances: [], ledger: [], payouts: [], templates: [], suggestions: [], votes: [], messages: [], todos: [], meals: [], mealDishes: [], mealWishes: [], shopTopics: [], shopItems: [], behaviors: [], markLedger: [], markBalances: [], markRequests: [], rewardTiers: [], rewards: [], redemptions: [], goals: [], contributions: [], cleaningTasks: [], cleaningDone: [], schoolWeekly: [], schoolOverrides: [], schoolClosures: [], schoolMeals: [], settings: { cleaning_reminder_enabled: true, cleaning_reminder_hour: 8 } };
 
 async function loadProfiles(){
   const { data, error } = await sb.from('profiles').select('*').order('name');
@@ -178,6 +178,11 @@ async function loadSchoolOverrides(){
   state.schoolOverrides = data || [];
 }
 
+async function loadSchoolClosures(){
+  const { data, error } = await sb.from('school_closures').select('*').order('start_date');
+  if(error){ console.warn('loadSchoolClosures', error); return; }
+  state.schoolClosures = data || [];
+}
 async function loadSchoolMeals(){
   const { data, error } = await sb.from('school_meals').select('*').order('date');
   if(error){ console.warn('loadSchoolMeals', error); return; }
@@ -225,6 +230,7 @@ function subscribeRealtime(onChange){
     .on('postgres_changes', { event: '*', schema: 'public', table: 'cleaning_done' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'school_weekly' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'school_overrides' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'school_closures' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'school_meals' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, onChange)
     .subscribe();

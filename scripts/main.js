@@ -167,6 +167,9 @@ document.addEventListener('DOMContentLoaded', () => {
   $('overrideCancel').addEventListener('click', () => $('overrideDialog').close());
   $('overrideDelete').addEventListener('click', deleteOverride);
   $('overrideNoSchool').addEventListener('change', reflectOverrideNoSchool);
+  $('closureForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveClosure(); });
+  $('closureCancel').addEventListener('click', () => $('closureDialog').close());
+  $('closureDelete').addEventListener('click', deleteClosure);
   $('schoolMenuClose').addEventListener('click', () => $('schoolMenuDialog').close());
   $('schoolMenuPrev').addEventListener('click', () => shiftSchoolMenu(-1));
   $('schoolMenuNext').addEventListener('click', () => shiftSchoolMenu(1));
@@ -372,6 +375,7 @@ async function onRealtime(payload){
   else if(t === 'cleaning_done') await loadCleaningDone();
   else if(t === 'school_weekly') await loadSchoolWeekly();
   else if(t === 'school_overrides') await loadSchoolOverrides();
+  else if(t === 'school_closures') await loadSchoolClosures();
   else if(t === 'school_meals') await loadSchoolMeals();
   else if(t === 'app_settings') await loadSettings();
   renderHeader();
@@ -394,7 +398,7 @@ async function onRealtime(payload){
 // Full reload + repaint, used when the app resumes and may have missed live updates.
 async function resync(){
   if(!sb || !session) return;
-  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions(), loadGoals(), loadContributions(), loadCleaningTasks(), loadCleaningDone(), loadSchoolWeekly(), loadSchoolOverrides(), loadSchoolMeals(), loadSettings()]);
+  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions(), loadGoals(), loadContributions(), loadCleaningTasks(), loadCleaningDone(), loadSchoolWeekly(), loadSchoolOverrides(), loadSchoolClosures(), loadSchoolMeals(), loadSettings()]);
   renderHeader();
   renderToday();
   renderSchool();

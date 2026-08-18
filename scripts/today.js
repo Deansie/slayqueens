@@ -213,6 +213,7 @@ function agendaTomorrow(){
     </span>` : '';
 
   const red = (typeof redDayName === 'function') ? redDayName(tmr) : null;
+  const lov = (typeof closureName === 'function') ? closureName(tmr) : null;
 
   // The summary line reports the *day* (why there's/there isn't school); the events themselves
   // are listed as their own cards below, so this stays a short context note even when there
@@ -220,6 +221,8 @@ function agendaTomorrow(){
   let status;
   if(red){
     status = red;                                    // e.g. "Långfredag" — says why there's no school
+  } else if(lov){
+    status = lov;                                    // e.g. "Höstlov" — a family-wide ledig dag
   } else if(typeof isSchoolDay === 'function' && isSchoolDay(tmr)){
     status = 'Skoldag som vanligt';
   } else if(evs.length){

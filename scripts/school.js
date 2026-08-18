@@ -27,6 +27,7 @@ function fmtSchoolTime(t){
 
 let editingSchoolDay = null;      // { childId, weekday } while the weekday editor is open
 let editingOverride  = null;      // { id|null, childId } while the override editor is open
+let editingClosure   = null;      // { id|null } while the family-wide ledig-dag editor is open
 
 // Only these four kids go to school; any other kid profile is left out of the Skola feature.
 const SCHOOL_KIDS = ['abbe', 'julia', 'olle', 'alfred'];
@@ -97,14 +98,26 @@ function redDayName(date){
   return null;
 }
 
+// ---- lediga dagar (family-wide lov / studiedagar) ----
+// A shared closure list, managed once for the whole family (a "common group" in Skola settings),
+// so a lov that applies to every kid doesn't need a per-child avvikelse each. Any date a closure
+// covers is a non-school day for everyone — same precedence as a röd dag (a per-child avvikelse
+// for that exact date still wins). end_date null = a single day (= start_date).
+function closureOn(date){
+  const k = dateKey(date);
+  return (state.schoolClosures || []).find(c => k >= c.start_date && k <= (c.end_date || c.start_date)) || null;
+}
+function closureName(date){ const c = closureOn(date); return c ? c.label : null; }
+
 // The resolved school day for a child on a date, or null if no school that day.
 function schoolDayFor(childId, date){
   const wd = weekdayIdx(date);
   const base = (state.schoolWeekly || []).find(w => w.child_id === childId && w.weekday === wd) || null;
   const over = (state.schoolOverrides || []).find(o => o.child_id === childId && o.date === dateKey(date)) || null;
   if(over && over.no_school) return null;
-  // A röd dag closes school — unless an avvikelse for that exact date says otherwise.
-  if(!over && redDayName(date)) return null;
+  // A röd dag or a family-wide ledig dag (lov/studiedag) closes school — unless an avvikelse for
+  // that exact date says otherwise.
+  if(!over && (redDayName(date) || closureOn(date))) return null;
   const start = (over && over.start_time) || (base && base.start_time) || null;
   const end   = (over && over.end_time)   || (base && base.end_time)   || null;
   if(!start || !end) return null;
@@ -222,12 +235,46 @@ function renderSchoolMenu(){
 function renderSchool(){
   const box = $('schoolBody');
   if(!box || !me) return;
+  const readOnly = !isParent();
   const list = kids();
-  if(!list.length){
-    box.innerHTML = `<div class="placeholder"><div class="ph-emoji">🎓</div><h3>Inga barn än</h3><p>Skolscheman läggs upp per barn.</p></div>`;
-    return;
-  }
-  box.innerHTML = list.map(c => schoolKidCard(c, !isParent())).join('');
+  const kidsHtml = list.length
+    ? list.map(c => schoolKidCard(c, readOnly)).join('')
+    : `<div class="placeholder"><div class="ph-emoji">🎓</div><h3>Inga barn än</h3><p>Skolscheman läggs upp per barn.</p></div>`;
+  // The shared "Lediga dagar" group leads, then a card per child.
+  box.innerHTML = schoolClosuresSection(readOnly) + kidsHtml;
+}
+
+// The family-wide "Lediga dagar" group at the top of the Skola view — one card for the whole
+// family listing upcoming lov/studiedagar/klämdagar (past ones drop off). Parents add/edit here;
+// kids see it read-only. Each row leads with the type and trails with the date (range).
+function schoolClosuresSection(readOnly){
+  const today = todayKey();
+  const upcoming = (state.schoolClosures || [])
+    .filter(c => (c.end_date || c.start_date) >= today)
+    .sort((a, b) => a.start_date.localeCompare(b.start_date));
+  const rows = upcoming.map(c => {
+    const range = (c.end_date && c.end_date !== c.start_date)
+      ? `${fmtDate(c.start_date)} – ${fmtDate(c.end_date)}`
+      : fmtDate(c.start_date);
+    const body = `<span class="school-lov-name">${escapeHtml(c.label)}</span>
+        <span class="school-lov-date">${escapeHtml(range)}</span>`;
+    return readOnly
+      ? `<div class="school-over is-static">${body}</div>`
+      : `<button class="school-over" type="button" data-schoolclosure="${escapeHtml(c.id)}">${body}<span class="ag-caret" aria-hidden="true">✎</span></button>`;
+  }).join('');
+  return `
+    <section class="school-kid school-lov">
+      <div class="school-kid-head">
+        <span class="school-lov-ico" aria-hidden="true">📅</span>
+        <h3 class="school-kid-name serif">Lediga dagar</h3>
+      </div>
+      <p class="school-lov-hint">Lov, studiedagar och klämdagar — gäller alla barn.</p>
+      <div class="school-over-head">
+        <span>Kommande</span>
+        ${readOnly ? '' : `<button class="school-over-add" type="button" data-schoolclosureadd="1">+ Lägg till</button>`}
+      </div>
+      ${rows || '<div class="school-over-none">Inga kommande lediga dagar</div>'}
+    </section>`;
 }
 
 function schoolKidCard(child, readOnly){
@@ -286,6 +333,14 @@ function onSchoolClick(e){
   if(over){
     const o = (state.schoolOverrides || []).find(x => x.id === over.dataset.schoolover);
     if(o) openOverrideDialog(o.child_id, o);
+    return;
+  }
+  const closAdd = e.target.closest('[data-schoolclosureadd]');
+  if(closAdd){ openClosureDialog(null); return; }
+  const clos = e.target.closest('[data-schoolclosure]');
+  if(clos){
+    const c = (state.schoolClosures || []).find(x => x.id === clos.dataset.schoolclosure);
+    if(c) openClosureDialog(c);
   }
 }
 
@@ -388,6 +443,58 @@ async function deleteOverride(){
     await loadSchoolOverrides();
     afterSchoolChange();
   }catch(err){ console.warn('deleteOverride', err); toast('warn', 'Kunde inte ta bort'); }
+}
+
+// ---- lediga dagar editor (family-wide) ----
+function openClosureDialog(clos){
+  editingClosure = { id: clos ? clos.id : null };
+  $('closureTitle').textContent = clos ? 'Ledig dag' : 'Ny ledig dag';
+  $('closureLabel').value = clos ? clos.label : '';
+  $('closureStart').value = clos ? clos.start_date : todayKey();
+  $('closureEnd').value   = clos && clos.end_date ? clos.end_date : '';
+  $('closureDelete').hidden = !clos;
+  $('closureDialog').showModal();
+}
+
+async function saveClosure(){
+  if(!editingClosure) return;
+  const label = $('closureLabel').value.trim();
+  const start = $('closureStart').value;
+  let end = $('closureEnd').value || null;
+  if(!label){ toast('warn', 'Ange en typ, t.ex. Höstlov'); return; }
+  if(!start){ toast('warn', 'Välj ett startdatum'); return; }
+  if(end && end < start){ toast('warn', 'Till-datumet är före från-datumet'); return; }
+  if(end === start) end = null;          // a single day stores end_date null
+  try{
+    let error;
+    if(editingClosure.id){
+      ({ error } = await sb.from('school_closures')
+        .update({ label, start_date: start, end_date: end }).eq('id', editingClosure.id));
+    } else {
+      ({ error } = await sb.from('school_closures')
+        .insert({ label, start_date: start, end_date: end, created_by: me.id }));
+    }
+    if(error) throw error;
+    $('closureDialog').close();
+    toast('ok', 'Sparad');
+    await loadSchoolClosures();
+    afterSchoolChange();
+  }catch(err){
+    console.warn('saveClosure', err);
+    toast('warn', err && err.code === '23505' ? 'Den finns redan' : 'Kunde inte spara');
+  }
+}
+
+async function deleteClosure(){
+  if(!editingClosure || !editingClosure.id) return;
+  try{
+    const { error } = await sb.from('school_closures').delete().eq('id', editingClosure.id);
+    if(error) throw error;
+    $('closureDialog').close();
+    toast('ok', 'Borttagen');
+    await loadSchoolClosures();
+    afterSchoolChange();
+  }catch(err){ console.warn('deleteClosure', err); toast('warn', 'Kunde inte ta bort'); }
 }
 
 // Repaint everything that reads the schedule after an edit.

@@ -725,6 +725,33 @@
   </form>
 </dialog>
 
+<!-- Skola: family-wide ledig dag (lov/studiedag) — applies to all kids -- -->
+<dialog id="closureDialog">
+  <form method="dialog" class="dlg-body" id="closureForm">
+    <h3 id="closureTitle" class="serif">Ledig dag</h3>
+    <div class="dlg-field">
+      <label for="closureLabel">Typ</label>
+      <input id="closureLabel" type="text" required placeholder="T.ex. Höstlov, Studiedag" />
+    </div>
+    <div class="dlg-row">
+      <div class="dlg-field">
+        <label for="closureStart">Från</label>
+        <input id="closureStart" type="date" required />
+      </div>
+      <div class="dlg-field">
+        <label for="closureEnd">Till</label>
+        <input id="closureEnd" type="date" />
+      </div>
+    </div>
+    <p class="dlg-note">Lämna "Till" tomt för en enstaka dag. Gäller alla barn.</p>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="closureDelete" type="button" hidden>Ta bort</button>
+      <button class="btn ghost" id="closureCancel" type="button">Avbryt</button>
+      <button class="btn" value="ok" id="closureSave" type="submit">Spara</button>
+    </div>
+  </form>
+</dialog>
+
 <!-- Weather location picker ------------------------------------------ -->
 <dialog id="weatherDialog">
   <form method="dialog" class="dlg-body" id="weatherForm">

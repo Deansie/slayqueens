@@ -44,6 +44,17 @@
 .school-over-txt{ flex:1 1 auto; min-width:0; color:var(--muted); }
 .school-over-none{ color:var(--faint); font-size:.88rem; padding:4px 0 2px; }
 
+/* Family-wide "Lediga dagar" group — one shared card above the per-kid cards. Reuses the
+   .school-over row styling; the label leads (dark) and the date range trails (muted). */
+.school-lov-ico{
+  flex:0 0 auto; width:34px; height:34px; border-radius:50%; display:grid; place-items:center;
+  background:var(--gold-soft); font-size:1.1rem;
+}
+.school-lov-hint{ color:var(--faint); font-size:.85rem; margin:-4px 0 2px; }
+.school-lov-name{ flex:1 1 auto; min-width:0; font-weight:700; letter-spacing:-.01em; }
+.school-lov-date{ flex:0 0 auto; color:var(--muted); font-weight:600; }
+.school-over:hover .school-lov-name{ color:var(--accent-ink); }
+
 /* The week's school lunch (dialog) */
 .smenu-head{ display:flex; align-items:center; gap:8px; margin-bottom:10px; }
 .smenu-head-mid{ flex:1 1 auto; min-width:0; text-align:center; }
