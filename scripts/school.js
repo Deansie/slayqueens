@@ -28,7 +28,12 @@ function fmtSchoolTime(t){
 let editingSchoolDay = null;      // { childId, weekday } while the weekday editor is open
 let editingOverride  = null;      // { id|null, childId } while the override editor is open
 
-function kids(){ return (state.profiles || []).filter(p => p.role === 'kid'); }
+// Only these four kids go to school; any other kid profile is left out of the Skola feature.
+const SCHOOL_KIDS = ['abbe', 'julia', 'olle', 'alfred'];
+function kids(){
+  return (state.profiles || []).filter(p =>
+    p.role === 'kid' && SCHOOL_KIDS.includes(String(p.name || '').trim().toLowerCase()));
+}
 function weekdayIdx(d){ return (new Date(d).getDay() + 6) % 7; }   // Mon=0 … Sun=6
 
 // ---- röda dagar ----
@@ -239,7 +244,7 @@ function renderSchool(){
 
 function schoolKidCard(child, readOnly){
   const days = [];
-  for(let wd = 0; wd < 7; wd++){
+  for(let wd = 0; wd < 5; wd++){       // Mån–Fre only; no school on weekends
     const base = (state.schoolWeekly || []).find(w => w.child_id === child.id && w.weekday === wd);
     const inner = base
       ? `<span class="school-day-time">${escapeHtml(fmtSchoolTime(base.start_time))}–${escapeHtml(fmtSchoolTime(base.end_time))}</span>
