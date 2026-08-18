@@ -102,19 +102,14 @@ function schoolSection(){
   if(!when) return '';
   const rows = schoolOn(when);
   if(!rows.length) return '';
-  const sum = schoolSummaryOn(when);
   const isToday = dateKey(when) === todayKey();
   const body = `
     <div class="ag-card ag-school">
-      <div class="ag-school-sum">
-        <span class="ag-school-ico" aria-hidden="true">🎓</span>
-        <span>Först ut <b>${escapeHtml(sum.firstOut)}</b> · sist hem <b>${escapeHtml(sum.lastHome)}</b></span>
-        ${isToday ? '' : `<span class="ag-school-next">${escapeHtml(relativeDay(when))}</span>`}
-      </div>
       ${rows.map(schoolPanelRow).join('')}
       ${schoolMealRow(dateKey(when))}
     </div>`;
-  return agendaSection('Skola', navLink('school', `${rows.length} barn`), body);
+  const right = `${isToday ? '' : `<span class="ag-sec-when">${escapeHtml(relativeDay(when))}</span>`}${navLink('school', `${rows.length} barn`)}`;
+  return agendaSection('Skola', right, body);
 }
 // The school lunch for the day the panel is showing, under the kids' rows. Always rendered —
 // on a weekend or a lov there's no dish, but the row stays as the way in to the week's menu

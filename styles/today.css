@@ -39,17 +39,11 @@
 }
 
 /* ---- Skola panel ---- */
-.ag-school-sum{ display:flex; align-items:center; gap:9px; padding:2px 0 11px; color:var(--muted); font-size:.92rem; }
-.ag-school-sum b{ color:var(--text); font-weight:700; }
-.ag-school-ico{ font-size:1.15rem; line-height:1; }
-.ag-school-next{
-  margin-left:auto; flex:0 0 auto; padding:2px 9px; border-radius:var(--radius-pill);
-  background:var(--card-2); color:var(--muted); font-size:.75rem; font-weight:700;
-}
 .ag-school-row{ display:flex; align-items:center; gap:11px; padding:9px 0; border-top:1px solid var(--border); }
+.ag-school-row:first-child{ border-top:0; }
 .ag-school-av{ flex:0 0 auto; display:inline-flex; }
-.ag-school-name{ flex:0 0 auto; font-weight:600; }
-.ag-school-time{ flex:0 0 auto; font-weight:700; letter-spacing:-.01em; color:var(--muted); }
+.ag-school-name{ flex:0 0 auto; min-width:5em; font-weight:600; }
+.ag-school-time{ flex:0 0 auto; font-weight:700; letter-spacing:-.01em; color:var(--muted); font-variant-numeric:tabular-nums; }
 .school-chip{
   margin-left:auto; flex:0 0 auto; padding:3px 10px; border-radius:var(--radius-pill);
   background:var(--gold-soft); color:var(--accent-ink); font-size:.8rem; font-weight:700;

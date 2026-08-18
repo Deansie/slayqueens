@@ -133,18 +133,6 @@ function nextSchoolDate(){
   return null;
 }
 
-// Earliest start / latest end across the kids in school on a date (formatted for display).
-function schoolSummaryOn(date){
-  const rows = schoolOn(date);
-  let first = null, last = null;
-  for(const r of rows){
-    if(first === null || r.day.start < first) first = r.day.start;
-    if(last === null || r.day.end > last) last = r.day.end;
-  }
-  return { firstOut: fmtSchoolTime(first), lastHome: fmtSchoolTime(last), count: rows.length };
-}
-function schoolSummaryToday(){ return schoolSummaryOn(new Date()); }
-
 // ---- school lunch (skolmaten.se, fetched server-side into `school_meals`) ----
 function schoolMealFor(key){
   return (state.schoolMeals || []).find(m => m.date === key) || null;
