@@ -20,6 +20,19 @@
 .muted{ color:var(--muted); }
 .ag-caret{ flex:0 0 auto; color:var(--faint); font-size:1.15rem; margin-left:auto; }
 
+/* Lov countdown — a slim gold strip at the very top of the agenda, taps through to Skola. */
+.ag-countdown{
+  display:flex; align-items:center; gap:11px; width:100%; text-align:left; cursor:pointer;
+  padding:10px 14px; margin-bottom:14px; border-radius:var(--radius);
+  background:var(--gold-soft); border:1px solid var(--gold-line); color:var(--text); font:inherit;
+}
+.ag-countdown:hover{ border-color:var(--accent); }
+.ag-cd-emoji{ flex:0 0 auto; font-size:1.35rem; line-height:1; }
+.ag-cd-body{ flex:1 1 auto; min-width:0; display:flex; align-items:baseline; gap:6px; flex-wrap:wrap; }
+.ag-cd-num{ font-size:1.5rem; font-weight:700; color:var(--accent-ink); line-height:1; }
+.ag-cd-name{ font-weight:700; letter-spacing:-.01em; }
+.ag-cd-sub{ color:var(--muted); font-size:.9rem; }
+
 /* ---- event cards ---- */
 .ag-evc{
   position:relative; background:var(--card); border:1px solid var(--border);

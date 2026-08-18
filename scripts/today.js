@@ -14,6 +14,9 @@ function renderToday(){
 
   const out = [];
 
+  // A slim countdown to the next (or current) lov sits at the very top when there is one.
+  const cd = lovCountdownHtml();    if(cd) out.push(cd);
+
   // Pending-work callouts float to the top when present (usually absent), so on a normal day
   // the agenda reads exactly Idag · Middag · Skola · Imorgon.
   const appr = approvalsSection();  if(appr) out.push(appr);   // parents, only when something is pending
@@ -50,6 +53,64 @@ function agendaSection(title, right, body){
 }
 function navLink(go, label){
   return `<button class="ag-sec-link" type="button" data-go="${go}">${escapeHtml(label)} ›</button>`;
+}
+
+// ---- lov countdown ----
+// A slim strip counting down to the next multi-day lov (school break) — or, when we're already in
+// one, how much of it is left. Reads state.schoolClosures; hidden when nothing is upcoming. The
+// whole strip taps through to the Skola view (the full "Lediga dagar" list).
+function daysBetween(aKey, bKey){
+  const a = new Date(aKey + 'T00:00:00'), b = new Date(bKey + 'T00:00:00');
+  return Math.round((b - a) / 86400000);
+}
+// A fitting emoji for a lov by its (Swedish) name.
+function lovEmoji(label){
+  const l = (label || '').toLowerCase();
+  if(l.includes('sommar')) return '🏖️';
+  if(l.includes('jul'))    return '🎄';
+  if(l.includes('sport'))  return '⛷️';
+  if(l.includes('påsk'))   return '🐣';
+  if(l.includes('höst'))   return '🍂';
+  if(l.includes('studie')) return '📚';
+  if(l.includes('kläm'))   return '🌉';
+  return '🎒';
+}
+// The current or next lov plus the day math, or null when none is upcoming. Only multi-day breaks
+// count — single studiedagar/klämdagar are day-off entries in the list, not what a lov countdown
+// is about.
+function lovCountdownData(){
+  const lovar = (state.schoolClosures || []).filter(c => c.end_date && c.end_date > c.start_date);
+  if(!lovar.length) return null;
+  const today = todayKey();
+  const current = lovar.find(c => today >= c.start_date && today <= c.end_date);
+  if(current){
+    return { mode: 'current', name: current.label, emoji: lovEmoji(current.label),
+             left: daysBetween(today, current.end_date) };
+  }
+  const next = lovar
+    .filter(c => c.start_date > today)
+    .sort((a, b) => a.start_date.localeCompare(b.start_date))[0];
+  if(!next) return null;
+  return { mode: 'next', name: next.label, emoji: lovEmoji(next.label),
+           days: daysBetween(today, next.start_date) };
+}
+function lovCountdownHtml(){
+  const d = lovCountdownData();
+  if(!d) return '';
+  const name = `<span class="ag-cd-name">${escapeHtml(d.name)}</span>`;
+  let body;
+  if(d.mode === 'current'){
+    const tail = d.left <= 0 ? 'sista dagen' : `${d.left} ${d.left === 1 ? 'dag' : 'dagar'} kvar`;
+    body = `${name} <span class="ag-cd-sub">· ${tail}</span>`;
+  } else if(d.days <= 1){
+    body = `<span class="ag-cd-sub">Imorgon:</span> ${name}`;
+  } else {
+    body = `<span class="ag-cd-num serif">${d.days}</span> <span class="ag-cd-sub">dagar till</span> ${name}`;
+  }
+  return `<button class="ag-countdown" type="button" data-go="school">
+      <span class="ag-cd-emoji" aria-hidden="true">${d.emoji}</span>
+      <span class="ag-cd-body">${body}</span>
+    </button>`;
 }
 
 // ---- events ----
