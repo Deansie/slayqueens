@@ -34,6 +34,20 @@ const DEMO_DATA = (function(){
     { id:'ev-lov',     title:'Sommarlov börjar', starts_at:at(12,0,0), ends_at:null, all_day:true, owner_id:null, category:'skola', private:false, notes:null, created_by:P.johan, created_at:at(-4) }
   ];
 
+  // Möten: known meeting/busy blocks a new calendar event is checked against (±15 min). Mostly
+  // Johan's recurring work-from-home meetings + one one-off, so the "Möten" dialog shows a real
+  // weekly schedule (grouped by weekday, then "Enstaka") and a clashing new event would warn.
+  const meetings = [
+    { id:'mt-mon-vecko',   title:'Veckomöte',         weekday:0,    date:null,   start_time:'09:00', end_time:'09:30', created_by:P.johan, created_at:at(-14) },
+    { id:'mt-mon-projekt', title:'Projektavstämning', weekday:0,    date:null,   start_time:'13:00', end_time:'14:00', created_by:P.johan, created_at:at(-14) },
+    { id:'mt-tue-standup', title:'Standup',           weekday:1,    date:null,   start_time:'09:15', end_time:'09:30', created_by:P.johan, created_at:at(-14) },
+    { id:'mt-wed-standup', title:'Standup',           weekday:2,    date:null,   start_time:'09:15', end_time:'09:30', created_by:P.johan, created_at:at(-14) },
+    { id:'mt-wed-kund',    title:'Kundmöte',          weekday:2,    date:null,   start_time:'15:00', end_time:'16:00', created_by:P.johan, created_at:at(-14) },
+    { id:'mt-thu-team',    title:'Teammöte',          weekday:3,    date:null,   start_time:'10:00', end_time:'11:00', created_by:P.anna,  created_at:at(-14) },
+    { id:'mt-fri-standup', title:'Standup',           weekday:4,    date:null,   start_time:'09:15', end_time:'09:30', created_by:P.johan, created_at:at(-14) },
+    { id:'mt-kvartal',     title:'Kvartalsgenomgång', weekday:null, date:day(3), start_time:'14:00', end_time:'15:30', created_by:P.johan, created_at:at(-7) }
+  ];
+
   const tasks = [
     { id:'t-diska',  title:'Diska', description:'Efter middagen', reward:15, status:'open',      claimed_by:null,   created_by:P.johan, reject_reason:null, created_at:at(-1) },
     { id:'t-sopor',  title:'Ta ut soporna', description:null, reward:10, status:'open',           claimed_by:null,   created_by:P.johan, reject_reason:null, created_at:at(-1) },
@@ -262,7 +276,7 @@ const DEMO_DATA = (function(){
 
   return {
     meId: P.johan,
-    state: { profiles, events, tasks, balances, ledger, payouts, templates, suggestions, votes, messages, todos, meals, mealDishes, mealWishes, shopTopics, shopItems, behaviors, markLedger, markBalances, markRequests, rewardTiers, rewards, redemptions, goals, contributions, cleaningTasks, cleaningDone, settings, schoolWeekly, schoolOverrides, schoolClosures, schoolMeals },
+    state: { profiles, events, meetings, tasks, balances, ledger, payouts, templates, suggestions, votes, messages, todos, meals, mealDishes, mealWishes, shopTopics, shopItems, behaviors, markLedger, markBalances, markRequests, rewardTiers, rewards, redemptions, goals, contributions, cleaningTasks, cleaningDone, settings, schoolWeekly, schoolOverrides, schoolClosures, schoolMeals },
     budget
   };
 })();
