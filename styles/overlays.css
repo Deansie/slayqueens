@@ -44,3 +44,18 @@ dialog::backdrop{ background:rgba(6,8,6,.55); -webkit-backdrop-filter:blur(2px);
 .reminder-time label{ margin:0; font-size:.85rem; color:var(--muted); }
 .reminder-time select{ width:auto; flex:0 0 auto; }
 .dlg-actions{ display:flex; justify-content:flex-end; gap:9px; margin-top:4px; }
+
+/* Möten — meeting list grouped by weekday + an inline add form */
+.mt-list{ display:flex; flex-direction:column; gap:12px; max-height:40vh; overflow-y:auto; }
+.mt-group-h{ font-size:.72rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:2px; }
+.mt-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:5px 0; border-bottom:1px solid var(--border); }
+.mt-when{ font-size:.92rem; }
+.mt-date, .mt-title{ color:var(--muted); }
+.mt-empty{ color:var(--muted); }
+.mt-del{ width:auto; background:none; border:none; color:var(--muted); font-size:1rem; line-height:1; cursor:pointer; padding:2px 6px; }
+.mt-del:hover{ color:#cf5f72; }
+.mt-add{ display:flex; flex-direction:column; gap:8px; border-top:1px solid var(--border); padding-top:12px; }
+.mt-add-row{ display:flex; align-items:center; gap:6px; }
+.mt-add-row select, .mt-add-row input[type=time], .mt-add-row input[type=date]{ width:auto; flex:0 0 auto; }
+.mt-add-row input[type=text]{ flex:1; min-width:0; }
+.wh-dash{ color:var(--muted); }

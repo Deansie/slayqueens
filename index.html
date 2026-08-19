@@ -212,6 +212,7 @@
     <button class="mp-item" data-menu="school" type="button" role="menuitem"><span class="mp-ico">🎓</span> Skola</button>
     <button class="mp-item parent-only" data-menu="budget" type="button" role="menuitem"><span class="mp-ico">💰</span> Budget</button>
     <button class="mp-item" data-menu="profile" type="button" role="menuitem"><span class="mp-ico">🎨</span> Profil &amp; notiser</button>
+    <button class="mp-item parent-only" data-menu="meetings" type="button" role="menuitem"><span class="mp-ico">🤝</span> Möten</button>
     <button class="mp-item" data-menu="weather" type="button" role="menuitem"><span class="mp-ico">📍</span> Väderplats</button>
     <button class="mp-item" data-menu="theme" type="button" role="menuitem"><span class="mp-ico" id="mpThemeIco">🌙</span> <span id="mpThemeLabel">Mörkt tema</span></button>
     <div class="mp-sep"></div>
@@ -469,6 +470,35 @@
     <div class="dlg-actions">
       <button class="btn ghost" id="profileCancel" type="button">Avbryt</button>
       <button class="btn" value="ok" id="profileSave" type="submit">Spara</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Möten: known meeting/busy blocks; a calendar event that collides (±15 min) warns before saving -->
+<dialog id="meetingsDialog">
+  <form method="dialog" class="dlg-body" id="meetingsForm">
+    <h3 class="serif">Möten</h3>
+    <p>Lägg in dina möten så varnar appen när någon skapar en händelse som krockar (±15 min). Veckomöten upprepas varje vecka.</p>
+    <div class="mt-list" id="meetingsList"></div>
+    <div class="mt-add">
+      <div class="mt-add-row">
+        <select id="meetKind" aria-label="Typ">
+          <option value="weekly">Varje vecka</option>
+          <option value="date">Ett datum</option>
+        </select>
+        <select id="meetWeekday" aria-label="Veckodag"></select>
+        <input id="meetDate" type="date" aria-label="Datum" hidden />
+      </div>
+      <div class="mt-add-row">
+        <input id="meetStart" type="time" aria-label="Start" value="09:00" />
+        <span class="wh-dash">–</span>
+        <input id="meetEnd" type="time" aria-label="Slut" value="09:30" />
+        <input id="meetTitle" type="text" placeholder="Rubrik (valfritt)" maxlength="60" />
+      </div>
+      <button class="btn ghost block" id="meetAdd" type="button">+ Lägg till möte</button>
+    </div>
+    <div class="dlg-actions">
+      <button class="btn" id="meetingsClose" type="button">Stäng</button>
     </div>
   </form>
 </dialog>
@@ -804,6 +834,7 @@
 <script src="scripts/today.js"></script>
 <script src="scripts/school.js"></script>
 <script src="scripts/weather.js"></script>
+<script src="scripts/meetings.js"></script>
 <script src="scripts/calendar.js"></script>
 <script src="scripts/tasks.js"></script>
 <script src="scripts/routines.js"></script>

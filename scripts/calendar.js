@@ -215,6 +215,24 @@ async function saveEventFromDialog(){
     starts_at = new Date(`${date}T${start}`).toISOString();
     if(end) ends_at = new Date(`${date}T${end}`).toISOString();
   }
+
+  // Soft heads-up (never a hard block) when a timed event collides with a known meeting (±buffer).
+  // On edit we only re-check if the start actually moved, so fixing a typo stays quiet. If the user
+  // confirms anyway, remember the meeting so the co-parent gets a push after the save (below).
+  let collisionMeeting = null;
+  if(!allDay && typeof meetingConflict === 'function'){
+    const movedStart = !editingEvent || editingEvent.all_day ||
+      dateKey(editingEvent.starts_at) !== date ||
+      fmtTime(editingEvent.starts_at) !== ($('evStart').value || '00:00');
+    if(movedStart){
+      const m = meetingConflict(date, $('evStart').value || '00:00', $('evEnd').value);
+      if(m){
+        if(!(await confirmDialog(`Krockar med ${meetingLabel(m)}. Lägga till ändå?`, 'Lägg till ändå', 'Krock med möte'))) return;
+        collisionMeeting = m;
+      }
+    }
+  }
+
   const fields = {
     title,
     starts_at,
@@ -233,12 +251,14 @@ async function saveEventFromDialog(){
         .eq('id', editingEvent.id);
       if(error) throw error;
       toast('ok', 'Uppdaterad');
+      if(collisionMeeting) notify('event_collision', { eventId: editingEvent.id, meeting: meetingLabel(collisionMeeting) });
     } else {
       const { data, error } = await sb.from('calendar_events')
         .insert({ ...fields, created_by: me.id }).select('id').single();
       if(error) throw error;
       toast('ok', 'Tillagd');
       if(data) notify('event_new', { eventId: data.id });
+      if(data && collisionMeeting) notify('event_collision', { eventId: data.id, meeting: meetingLabel(collisionMeeting) });
     }
     await loadEvents();
     renderCalendar();

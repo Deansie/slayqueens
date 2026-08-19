@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
     const actor = isCron ? null : await verifyActor(req);
     if (!isCron && !actor) return json({ error: 'unauthorized' }, 401);
 
-    const { type, taskId, eventId, payoutId, suggestionId, toProfile, context, parentId, topicId, requestId, amount, reason, redemptionId, goalId, todoId, itemId, cleaningId } = await req.json();
+    const { type, taskId, eventId, payoutId, suggestionId, toProfile, context, parentId, topicId, requestId, amount, reason, redemptionId, goalId, todoId, itemId, cleaningId, meeting } = await req.json();
     let recipients: string[] = [];
     let title = 'Slayqueens';
     let body = '';
@@ -137,6 +137,19 @@ Deno.serve(async (req) => {
         // personal event (owner === creator): nobody else needs to know
         title = 'Ny händelse 📅';
         body = `${ev.title} · ${whenLabel(ev.starts_at, ev.all_day)}`;
+      }
+
+    } else if (type === 'event_collision') {
+      // A calendar event was saved despite clashing with a known meeting — tell the OTHER parent(s)
+      // (the actor confirmed it themselves and is filtered out below). `meeting` is a ready-made
+      // label from the client, e.g. '"Standup" (09:00–09:30)'.
+      const { data: ev } = await admin.from('calendar_events')
+        .select('title, starts_at, all_day, created_by').eq('id', eventId).single();
+      if (ev) {
+        const who = await profile(ev.created_by ?? actor);
+        recipients = await ids('parent');
+        title = '⚠️ Krock med möte';
+        body = `${who?.name ?? 'Någon'}: "${ev.title}" ${whenLabel(ev.starts_at, ev.all_day)} krockar med ${meeting || 'ett möte'}`;
       }
 
     } else if (type === 'message') {

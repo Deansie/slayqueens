@@ -163,6 +163,16 @@ document.addEventListener('DOMContentLoaded', () => {
   $('schoolDayForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveSchoolDay(); });
   $('schoolDayCancel').addEventListener('click', () => $('schoolDayDialog').close());
   $('schoolDayDelete').addEventListener('click', deleteSchoolDay);
+
+  // Möten (profile menu → meeting list + collision buffer)
+  $('meetingsForm').addEventListener('submit', (e) => { e.preventDefault(); addMeeting(); });   // Enter adds
+  $('meetKind').addEventListener('change', onMeetKindChange);
+  $('meetAdd').addEventListener('click', addMeeting);
+  $('meetingsClose').addEventListener('click', () => $('meetingsDialog').close());
+  $('meetingsList').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-del]');
+    if(b) deleteMeeting(b.dataset.del);
+  });
   $('overrideForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveOverride(); });
   $('overrideCancel').addEventListener('click', () => $('overrideDialog').close());
   $('overrideDelete').addEventListener('click', deleteOverride);
@@ -328,14 +338,17 @@ function onProfileMenuClick(e){
   else if(act === 'school') switchView('school');
   else if(act === 'budget') switchView('budget');
   else if(act === 'profile') openProfileDialog();
+  else if(act === 'meetings') openMeetingsDialog();
   else if(act === 'weather') openWeatherDialog();
   else if(act === 'theme') toggleTheme();
   else if(act === 'logout'){ unsubscribeRealtime(); signOut(); }
 }
 
-// Promise-based confirm using the shared <dialog>.
-function confirmDialog(text, okLabel){
+// Promise-based confirm using the shared <dialog>. `title` overrides the "Ta bort" header
+// (reset each call so a custom title from one confirm never leaks into the next).
+function confirmDialog(text, okLabel, title){
   return new Promise(resolve => {
+    $('confirmTitle').textContent = title || 'Ta bort';
     $('confirmText').textContent = text;
     $('confirmOk').textContent = okLabel || 'Ta bort';
     const dlg = $('confirmDialog');
@@ -377,6 +390,7 @@ async function onRealtime(payload){
   else if(t === 'school_overrides') await loadSchoolOverrides();
   else if(t === 'school_closures') await loadSchoolClosures();
   else if(t === 'school_meals') await loadSchoolMeals();
+  else if(t === 'meetings') await loadMeetings();
   else if(t === 'app_settings') await loadSettings();
   renderHeader();
   renderToday();
