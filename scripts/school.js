@@ -29,11 +29,10 @@ let editingSchoolDay = null;      // { childId, weekday } while the weekday edit
 let editingOverride  = null;      // { id|null, childId } while the override editor is open
 let editingClosure   = null;      // { id|null } while the family-wide ledig-dag editor is open
 
-// Only these four kids go to school; any other kid profile is left out of the Skola feature.
-const SCHOOL_KIDS = ['abbe', 'julia', 'olle', 'alfred'];
+// Kids who actually go to school — flagged per profile in the backend (profiles.in_school), set
+// by a parent (via SQL, like names). Any other kid profile is left out of the Skola feature.
 function kids(){
-  return (state.profiles || []).filter(p =>
-    p.role === 'kid' && SCHOOL_KIDS.includes(String(p.name || '').trim().toLowerCase()));
+  return (state.profiles || []).filter(p => p.role === 'kid' && p.in_school);
 }
 function weekdayIdx(d){ return (new Date(d).getDay() + 6) % 7; }   // Mon=0 … Sun=6
 

@@ -19,8 +19,8 @@ const DEMO_DATA = (function(){
   const profiles = [
     { id:P.johan, name:'johan', role:'parent', color:'#c98aa8' },
     { id:P.anna,  name:'anna',  role:'parent', color:'#5b8def' },
-    { id:P.nils,  name:'nils',  role:'kid',    color:'#7ea065' },
-    { id:P.ella,  name:'ella',  role:'kid',    color:'#d79b4e' }
+    { id:P.nils,  name:'nils',  role:'kid',    color:'#7ea065', in_school:true },
+    { id:P.ella,  name:'ella',  role:'kid',    color:'#d79b4e', in_school:true }
   ];
 
   const events = [
@@ -31,7 +31,7 @@ const DEMO_DATA = (function(){
     { id:'ev-fotboll', title:'Fotbollsträning', starts_at:at(2,17,0), ends_at:at(2,18,30), all_day:false, owner_id:P.nils, category:'aktivitet', private:false, notes:null, created_by:P.johan, created_at:at(-3) },
     { id:'ev-simskola',title:'Simskola', starts_at:at(3,16,0), ends_at:at(3,17,0), all_day:false, owner_id:P.ella, category:'aktivitet', private:false, notes:null, created_by:P.anna, created_at:at(-3) },
     { id:'ev-kalas',   title:'Kalas hos Emma', starts_at:at(5,13,0), ends_at:at(5,16,0), all_day:false, owner_id:P.ella, category:'kalas', private:false, notes:'Present: pysselset', created_by:P.anna, created_at:at(-2) },
-    { id:'ev-lov',     title:'Sommarlov börjar', starts_at:at(6,0,0), ends_at:null, all_day:true, owner_id:null, category:'skola', private:false, notes:null, created_by:P.johan, created_at:at(-4) }
+    { id:'ev-lov',     title:'Sommarlov börjar', starts_at:at(12,0,0), ends_at:null, all_day:true, owner_id:null, category:'skola', private:false, notes:null, created_by:P.johan, created_at:at(-4) }
   ];
 
   const tasks = [
@@ -138,6 +138,43 @@ const DEMO_DATA = (function(){
   // Household settings: the daily cleaning-reminder time (parents edit it in the profile dialog).
   const settings = { id:true, cleaning_reminder_enabled:true, cleaning_reminder_hour:8 };
 
+  // Skola · per-child weekly schedules (nils & ella are flagged in_school above), a couple of
+  // upcoming avvikelser, the family-wide lediga dagar, and two weeks of school lunches. Summer is
+  // ~12 days out (matches the "Sommarlov börjar" event), so the agenda's Skola section leads with
+  // a lov countdown ("12 dagar till Sommarlov") while this + next week stay normal school weeks.
+  const schoolWeekly = [
+    { id:'sw-nils-0', child_id:P.nils, weekday:0, start_time:'08:00', end_time:'14:30', activity:null },
+    { id:'sw-nils-1', child_id:P.nils, weekday:1, start_time:'08:00', end_time:'15:00', activity:'gympa' },
+    { id:'sw-nils-2', child_id:P.nils, weekday:2, start_time:'08:00', end_time:'14:30', activity:null },
+    { id:'sw-nils-3', child_id:P.nils, weekday:3, start_time:'08:00', end_time:'14:30', activity:'slojd' },
+    { id:'sw-nils-4', child_id:P.nils, weekday:4, start_time:'08:00', end_time:'13:00', activity:null },
+    { id:'sw-ella-0', child_id:P.ella, weekday:0, start_time:'08:20', end_time:'13:15', activity:null },
+    { id:'sw-ella-1', child_id:P.ella, weekday:1, start_time:'08:20', end_time:'13:15', activity:null },
+    { id:'sw-ella-2', child_id:P.ella, weekday:2, start_time:'08:20', end_time:'14:00', activity:'simning' },
+    { id:'sw-ella-3', child_id:P.ella, weekday:3, start_time:'08:20', end_time:'13:15', activity:null },
+    { id:'sw-ella-4', child_id:P.ella, weekday:4, start_time:'08:20', end_time:'13:15', activity:'musik' }
+  ];
+  const schoolOverrides = [
+    { id:'so-nils', child_id:P.nils, date:week(8),  no_school:false, start_time:'08:00', end_time:'11:00', activity:'utflykt' },
+    { id:'so-ella', child_id:P.ella, date:week(10), no_school:true,  start_time:null,    end_time:null,    activity:null }
+  ];
+  const schoolClosures = [
+    { id:'sc-studiedag', label:'Studiedag', start_date:day(2),  end_date:null,    created_by:P.anna,  created_at:at(-30) },
+    { id:'sc-sommarlov', label:'Sommarlov', start_date:day(12), end_date:day(72), created_by:P.johan, created_at:at(-30) }
+  ];
+  const schoolMeals = [
+    { id:'sm0',  date:week(0),  courses:['Köttbullar med potatismos', 'Vegetarisk lasagne'] },
+    { id:'sm1',  date:week(1),  courses:['Fiskgratäng med ris', 'Grönsakssoppa'] },
+    { id:'sm2',  date:week(2),  courses:['Tacobuffé', 'Bönröra med bröd'] },
+    { id:'sm3',  date:week(3),  courses:['Pannkakor med sylt', 'Ärtsoppa'] },
+    { id:'sm4',  date:week(4),  courses:['Kycklinggryta med ris', 'Falafel'] },
+    { id:'sm7',  date:week(7),  courses:['Spaghetti med köttfärssås', 'Quorngryta'] },
+    { id:'sm8',  date:week(8),  courses:['Fläskkarré med klyftpotatis', 'Halloumibiff'] },
+    { id:'sm9',  date:week(9),  courses:['Korv stroganoff', 'Linsgryta'] },
+    { id:'sm10', date:week(10), courses:['Ugnsbakad fisk med potatis', 'Vegetarisk wok'] },
+    { id:'sm11', date:week(11), courses:['Hamburgare med pommes', 'Vegoburgare'] }
+  ];
+
   // Rutiner: the behaviour library, the streck (marks) already earned, and a couple of pending
   // "I did this routine" requests for the parent's approval queue.
   const behaviors = [
@@ -225,7 +262,7 @@ const DEMO_DATA = (function(){
 
   return {
     meId: P.johan,
-    state: { profiles, events, tasks, balances, ledger, payouts, templates, suggestions, votes, messages, todos, meals, mealDishes, mealWishes, shopTopics, shopItems, behaviors, markLedger, markBalances, markRequests, rewardTiers, rewards, redemptions, goals, contributions, cleaningTasks, cleaningDone, settings },
+    state: { profiles, events, tasks, balances, ledger, payouts, templates, suggestions, votes, messages, todos, meals, mealDishes, mealWishes, shopTopics, shopItems, behaviors, markLedger, markBalances, markRequests, rewardTiers, rewards, redemptions, goals, contributions, cleaningTasks, cleaningDone, settings, schoolWeekly, schoolOverrides, schoolClosures, schoolMeals },
     budget
   };
 })();
