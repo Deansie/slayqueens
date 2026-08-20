@@ -180,7 +180,7 @@ In the **SQL editor**, run:
 ### 4. Point the front end at your project
 
 Open **Settings → API** in Supabase and copy your **Project URL** and **anon / publishable
-key** into `scripts/config.js`:
+key** into `scripts/core/config.js`:
 
 ```js
 const CONFIG = {
@@ -206,7 +206,7 @@ are what protect your data, not hiding this key. Never put the `service_role` ke
    npx web-push generate-vapid-keys
    ```
 
-2. Put the **public** key in `scripts/config.js` (`VAPID_PUBLIC_KEY` above).
+2. Put the **public** key in `scripts/core/config.js` (`VAPID_PUBLIC_KEY` above).
 3. Set the function's secrets (dashboard **Edge Functions → Secrets**, or the CLI). The
    `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` are provided automatically, so you only add:
 
@@ -313,31 +313,37 @@ styles/               CSS, split by concern; design tokens for the dark + light 
   responsive.css      Phone breakpoints
 
 scripts/              Plain JS, loaded in order (classic scripts, not modules)
-  config.js           Your Supabase URL + anon key + VAPID public key + weather default
-  helpers.js          Formatting, dates, colours, categories
-  supa.js             Supabase client + auth/session helpers
-  toast.js            Toast + undo notifications
-  state.js            In-memory data + realtime subscriptions
-  auth.js             Login screen, role gating, app startup
-  header.js           Date header + event counts
-  today.js            Dagens agenda (landing summary of today)
-  weather.js          Weather widget + location picker (Open-Meteo)
-  calendar.js         Kalender
-  tasks.js            Sysslor → Jobb (chore board)
-  routines.js         Sysslor → Rutiner (streck / behaviour rewards)
-  rewards.js          Belöningar (reward shop: tiers, rewards, redemptions)
-  credits.js          Poäng (balances, ledger, payouts)
-  suggestions.js      Idéer (voting)
-  todos.js            Att göra
-  shopping.js         Inköp (shopping-needs board)
-  cleaning.js         Städschema (weekly cleaning schedule)
-  chat.js             Comment threads + image attachments
-  profile.js          Personal colour + push toggle
-  budget.js           Budget (parents only), Supabase-backed
-  matsedel.js         Veckans matsedel (plan, dish library, wishes)
-  theme.js            Light/dark switch
-  push.js             Notification permission + subscription
-  main.js             View routing, FAB, profile menu, wiring
+  core/               App plumbing — data, auth, routing
+    config.js         Your Supabase URL + anon key + VAPID public key + weather default
+    demo-data.js      Demo-mode fixtures (read-only showcase)
+    helpers.js        Formatting, dates, colours, categories
+    supa.js           Supabase client + auth/session helpers
+    state.js          In-memory data + realtime subscriptions
+    auth.js           Login screen, role gating, app startup
+    main.js           View routing, FAB, profile menu, wiring
+  ui/                 Cross-cutting chrome, not a single view
+    toast.js          Toast + undo notifications
+    theme.js          Light/dark switch
+    header.js         Date header + event counts
+    weather.js        Weather widget + location picker (Open-Meteo)
+    profile.js        Personal colour + push toggle
+    push.js           Notification permission + subscription
+    chat.js           Comment threads + image attachments
+  features/           One file per view
+    today.js          Dagens agenda (landing summary of today)
+    school.js         Skola (schedule, lunches, lediga dagar)
+    meetings.js       Möten (collision warnings on the calendar)
+    calendar.js       Kalender
+    tasks.js          Sysslor → Jobb (chore board)
+    routines.js       Sysslor → Rutiner (streck / behaviour rewards)
+    rewards.js        Belöningar (reward shop: tiers, rewards, redemptions)
+    credits.js        Poäng (balances, ledger, payouts)
+    suggestions.js    Idéer (voting)
+    todos.js          Att göra
+    shopping.js       Inköp (shopping-needs board)
+    cleaning.js       Städschema (weekly cleaning schedule)
+    budget.js         Budget (parents only), Supabase-backed
+    matsedel.js       Veckans matsedel (plan, dish library, wishes)
 
 sql/
   schema.sql          Base tables, RLS policies, workflow functions
