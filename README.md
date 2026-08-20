@@ -25,6 +25,12 @@ or all-day, carry an optional note, and be marked **private** (hidden from the o
 still visible to parents). An event happening right now shows a *Pågår* badge. The header
 shows today's date, a count of today's and tomorrow's events, and the local weather.
 
+**Möten.** A private list of a parent's recurring or one-off meetings — for someone who works
+from home with a work calendar the family can't see. When anyone adds a calendar event that
+overlaps a meeting (within a 15-minute buffer) they get a soft heads-up before saving, so a
+dentist appointment doesn't land on top of a work call. Meetings are kept by hand; there's no
+external calendar to sync.
+
 **Att göra.** A to-do list, a shopping board, and a cleaning schedule, switched with a toggle at
 the top of the page. The **to-do list** has a shared family checklist anyone can tick off, plus
 each person's own private to-dos. **Inköp** is a shopping-needs board: parents create categories
@@ -78,6 +84,12 @@ move between weeks. Parents fill the week by picking from a growing library of t
 regular dishes ("Rätter"); kids add *önskemål* (dishes they'd like) that parents can drop into
 a day, and a wish clears itself once it's on the menu so they don't pile up.
 
+**Skola.** Each child's school week — their ordinary hours and the day's subject — plus per-date
+exceptions (a day off, or changed times). Shared **Lediga dagar** (studiedagar and lov) apply to
+everyone, and the agenda counts down to the next lov. The school **lunch menu** is fetched
+automatically each night and shown under the day's schedule, with the whole week a tap away.
+Parents set it up; kids read it.
+
 **Budget.** The household budget (parents only). Plan income and expenses one month at a time,
 group related items (e.g. all loans under "Lån"), and see totals, a savings rate, and where
 the money goes. Kids never see it.
@@ -93,8 +105,10 @@ dark theme, and a personal colour per person shown as an avatar throughout the a
 ## How it's built
 
 A static front end: plain HTML, CSS, and JavaScript with **no build step and no framework**.
-The only things loaded from a CDN are the Supabase client and the display font. Everything
-else is served exactly as it sits in this repo.
+The only third-party resources are the Supabase client library and the display font — the
+client loaded from a CDN **pinned to an exact version with Subresource Integrity**, the font
+from Google Fonts — and a **Content-Security-Policy** limits the page to loading only those.
+Everything else is served exactly as it sits in this repo.
 
 The backend is [Supabase](https://supabase.com):
 
@@ -107,7 +121,8 @@ The backend is [Supabase](https://supabase.com):
   all of the above.
 - **Realtime** so changes appear on everyone's devices instantly.
 - **Storage** for comment-thread images.
-- **One Edge Function** (`notify`) that sends the web-push notifications.
+- **Two Edge Functions**: `notify` sends the web-push notifications, and `school-menu` fetches
+  the school lunch menu from skolmaten.se on a nightly schedule.
 
 It installs as a PWA via `manifest.json` and a small service worker (`sw.js`) that receives
 push messages.
@@ -128,34 +143,19 @@ Create a project (an EU region is nice for a Swedish family). Then under
 
 ### 2. Create the database
 
-In the **SQL editor**, run:
+In the **SQL editor**, run `sql/schema.sql` (the base tables, RLS policies, and workflow
+functions), then every file in `sql/migrations/` **in filename order** (they're dated, oldest
+first). The migrations are additive and idempotent — re-running them, or running them on top of
+each other, is harmless — and together with `schema.sql` they define the full database.
 
-1. `sql/schema.sql`: the base tables, RLS policies, and workflow functions.
-2. Then each file in `sql/migrations/`, **oldest first** by the date in the filename. They're
-   additive and idempotent, so re-running or overlaps are harmless:
+Two of them need a little more:
 
-   ```
-   2026-07-03_payouts_abort.sql
-   2026-07-03b_job_templates.sql
-   2026-07-03c_event_private_categories.sql
-   2026-07-03d_suggestions.sql
-   2026-07-04_recall_chat_todos.sql
-   2026-07-05_unified_chat_images.sql        (also creates the "chat" Storage bucket)
-   2026-07-05b_budget.sql
-   2026-07-06_matsedel.sql
-   2026-07-09_shopping.sql
-   2026-07-10_marks.sql
-   2026-07-10_rewards.sql
-   2026-07-10_rewards_tier_cost.sql
-   2026-07-10_shared_goals.sql
-   2026-08-15_cleaning.sql
-   2026-08-15_cleaning_reminder.sql   (needs a one-time Vault + secret setup — see below)
-   2026-08-15_reminder_settings.sql   (makes the reminder time editable in-app)
-   ```
-
-   If the SQL editor refuses to create the Storage policies in the chat migration, create a
-   **public** bucket named `chat` in **Storage** in the dashboard and add the equivalent
-   read/insert/delete policies from that file by hand.
+- **`…_unified_chat_images.sql`** also creates the public **`chat`** Storage bucket. If the SQL
+  editor won't create the Storage policies, make a public bucket named `chat` under **Storage**
+  by hand and add the read/insert/delete policies from the top of that file.
+- **The scheduled-job migrations** (the cleaning reminder and the school-lunch fetch) schedule
+  `pg_cron` jobs that stay dormant until you complete the one-time cron setup in
+  [step 6](#6-scheduled-jobs-cleaning-reminder--school-lunch-optional). Running them now is fine.
 
 ### 3. Create accounts and pick the parents
 
@@ -233,40 +233,48 @@ outcomes, reward redemptions, payout requests/outcomes, family goals, new calend
 family, or to the person an event is added for), new **Att göra** items and **Inköp** items, new
 **Idéer**, new **Städschema** tasks, comment replies, and a **daily cleaning reminder** to parents.
 
-#### Daily cleaning reminder (optional)
+### 6. Scheduled jobs: cleaning reminder & school lunch (optional)
 
-The daily "what's due today / overdue" cleaning push is driven by **pg_cron** calling the `notify`
-function with a shared secret. It needs a one-time setup (see the header of
-`sql/migrations/2026-08-15_cleaning_reminder.sql`):
+Two background jobs run on **pg_cron** and call the Edge Functions with a shared secret (so
+nothing sensitive is committed to the repo):
 
-1. Store the function base URL and a random secret in **Vault** (SQL editor):
+- an **hourly cleaning-reminder** check that pushes parents the day's due/overdue cleaning at a
+  time they choose in-app — the cron fires every hour and the `notify` function only sends at the
+  chosen Europe/Stockholm hour (DST-safe), so changing the time never needs a migration;
+- a **nightly school-lunch fetch** that refreshes this week's and next week's menu via `school-menu`.
+
+**One-time setup** (shared by both):
+
+1. Store the functions base URL and a random secret in **Vault** (SQL editor):
 
    ```sql
    select vault.create_secret('https://YOUR-PROJECT-REF.functions.supabase.co', 'edge_functions_url');
    select vault.create_secret('SOME-LONG-RANDOM-STRING',                        'cron_secret');
    ```
 
-2. Give the function the **same** secret so it can verify the cron call:
+2. Give the functions the **same** secret so they can verify the cron calls:
 
    ```sh
    npx supabase secrets set CRON_SECRET=SOME-LONG-RANDOM-STRING --project-ref YOUR-PROJECT-REF
    ```
 
-3. Run `sql/migrations/2026-08-15_cleaning_reminder.sql`, then
-   `sql/migrations/2026-08-15_reminder_settings.sql` (the latter switches the job to run
-   **hourly** and creates the `app_settings` row), and redeploy `notify` (below).
+3. Deploy both functions (JWT verification off, same reason as `notify` in step 5):
 
-Parents then set the **time** — and turn the reminder on/off — from **profile menu → Profil &
-notiser → Daglig städpåminnelse**. The cron runs hourly and the function only sends at the chosen
-Europe/Stockholm hour, so changing the time never needs another migration.
+   ```sh
+   npx supabase functions deploy notify      --project-ref YOUR-PROJECT-REF --no-verify-jwt
+   npx supabase functions deploy school-menu --project-ref YOUR-PROJECT-REF --no-verify-jwt
+   ```
 
-Whenever you change `supabase/functions/notify/index.ts`, redeploy it (still with `--no-verify-jwt`):
+The `pg_cron` schedules come from the migrations you ran in step 2 and stay dormant until the
+secret above exists. Parents set the reminder time — and turn it on/off — from **profile menu →
+Profil & notiser → Daglig städpåminnelse**. Choose which school's menu to fetch via
+`app_settings.school_menu_id` (the slug in `https://skolmaten.se/<slug>`; defaults to
+`stromsnasskolan`).
 
-```sh
-npx supabase functions deploy notify --project-ref YOUR-PROJECT-REF --no-verify-jwt
-```
+> Whenever you change an Edge Function (`supabase/functions/*/index.ts`), redeploy it — always
+> with `--no-verify-jwt`.
 
-### 6. Host it and install it
+### 7. Host it and install it
 
 Host the folder on any static host over **HTTPS** (GitHub Pages works well; HTTPS is required
 for the service worker, push, and geolocation). Then on each phone, open the site and use
@@ -350,8 +358,9 @@ sql/
   migrations/         Additive, idempotent schema updates (run after schema.sql)
 
 supabase/
-  functions/notify/   Edge Function that sends web-push notifications
-  config.toml         Function config (notify runs with verify_jwt off)
+  functions/notify/       Edge Function: web-push notifications
+  functions/school-menu/  Edge Function: nightly school-lunch fetch (skolmaten.se)
+  config.toml             Edge Function config (verify_jwt off)
 ```
 
 ## Privacy & security
@@ -367,6 +376,9 @@ the front end (the anon key ships in the browser by design); it's:
 - **Public sign-ups disabled**, so only parent-created accounts exist.
 - **Real secrets stay server-side**: the `service_role` key and the VAPID *private* key live
   only as Supabase secrets, never in this repo.
+- **Defense in depth on the front end**: the Supabase client is pinned to an exact version with
+  Subresource Integrity (a tampered CDN file won't run), and a Content-Security-Policy limits the
+  page to loading scripts, styles, fonts, and network connections only from the expected origins.
 
 ## Credits
 
