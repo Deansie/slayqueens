@@ -14,6 +14,26 @@
     }catch(e){}
   })();
 </script>
+
+<!-- Content Security Policy — defense-in-depth against script injection & data exfiltration.
+     Placed AFTER the inline theme script above (so that first-party snippet needs no hash and
+     stays safe to edit) and BEFORE all other resources (so every script/style/fetch is governed).
+     script-src has no 'unsafe-inline', so an injected <script> or inline handler cannot run.
+     Note: frame-ancestors / X-Frame-Options are HTTP-header-only (ignored in <meta>), so
+     clickjacking protection would need server headers — not available on GitHub Pages. -->
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  base-uri 'none';
+  object-src 'none';
+  form-action 'self';
+  script-src 'self' https://cdn.jsdelivr.net;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+  font-src https://fonts.gstatic.com;
+  img-src 'self' data: blob: https://asryokpahnoklydsgiyl.supabase.co;
+  connect-src 'self' https://asryokpahnoklydsgiyl.supabase.co wss://asryokpahnoklydsgiyl.supabase.co https://api.open-meteo.com https://geocoding-api.open-meteo.com;
+  worker-src 'self';
+  manifest-src 'self';
+" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -822,7 +842,14 @@
 
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Pinned to an exact version + Subresource Integrity: if the CDN file is ever repointed or
+     tampered with, the hash won't match and the browser refuses to run it (fail-closed).
+     To upgrade: download the new .../dist/umd/supabase.js, recompute the sha384, update both.
+       openssl dgst -sha384 -binary supabase.js | openssl base64 -A -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3/dist/umd/supabase.js"
+        integrity="sha384-qafw21c/iciq0VXsi9FzkfoQv5I/V0iqE4lSNcKXPnW9/UTJLnv5CcN4FHxVLnKg"
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
 <script src="scripts/core/config.js"></script>
 <script src="scripts/core/demo-data.js"></script>
 <script src="scripts/core/helpers.js"></script>

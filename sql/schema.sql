@@ -318,7 +318,8 @@ alter table public.calendar_events add column if not exists category text;
 drop policy if exists "family reads events" on public.calendar_events;
 create policy "family reads events" on public.calendar_events
   for select using (
-    not private or created_by = auth.uid() or owner_id = auth.uid() or public.is_parent()
+    auth.uid() is not null
+    and (not private or created_by = auth.uid() or owner_id = auth.uid() or public.is_parent())
   );
 
 -- ============================================================ ADDITIONS 2026-07-03d
@@ -454,14 +455,14 @@ create table if not exists public.todos (
 alter table public.todos enable row level security;
 drop policy if exists "read shared or own todos" on public.todos;
 create policy "read shared or own todos" on public.todos
-  for select using (not private or owner_id = auth.uid() or public.is_parent());
+  for select using (auth.uid() is not null and (not private or owner_id = auth.uid() or public.is_parent()));
 drop policy if exists "create todos" on public.todos;
 create policy "create todos" on public.todos
   for insert with check (created_by = auth.uid() and (not private or owner_id = auth.uid()));
 drop policy if exists "update shared or own todos" on public.todos;
 create policy "update shared or own todos" on public.todos
-  for update using (not private or owner_id = auth.uid() or public.is_parent())
-          with check (not private or owner_id = auth.uid() or public.is_parent());
+  for update using (auth.uid() is not null and (not private or owner_id = auth.uid() or public.is_parent()))
+          with check (auth.uid() is not null and (not private or owner_id = auth.uid() or public.is_parent()));
 drop policy if exists "delete own todo or parent" on public.todos;
 create policy "delete own todo or parent" on public.todos
   for delete using (created_by = auth.uid() or owner_id = auth.uid() or public.is_parent());
