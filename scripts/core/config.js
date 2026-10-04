@@ -22,5 +22,11 @@ const CONFIG = {
   WEATHER_ENABLED: true,
   WEATHER_LAT:     56.833,   // Ljungby
   WEATHER_LON:     13.941,
-  WEATHER_LABEL:   'Ljungby'
+  WEATHER_LABEL:   'Ljungby',
+
+  // Rutiner + Belöningar (the streck/stjärnor reward system, incl. Familjemål). Switched off
+  // because the family doesn't use it: hides the Rutiner toggle in Sysslor, Belöningar in the
+  // profile menu, and their rows on the agenda. Code and data stay untouched — set true to bring
+  // it all back.
+  MARKS_ENABLED: false
 };

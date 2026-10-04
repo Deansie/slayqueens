@@ -111,14 +111,51 @@ textarea{ resize:vertical; }
   background:var(--gold-soft); box-shadow:inset 0 0 0 1px var(--gold-line);
 }
 
-/* Day headers (serif + hair-rule) */
-.event-list{ display:flex; flex-direction:column; gap:10px; }
-.day-head{ display:flex; align-items:center; gap:12px; padding:20px 2px 10px; }
-.day-head:first-child{ padding-top:4px; }
-.dh-label{ font-family:var(--serif); font-size:1.55rem; font-weight:700; letter-spacing:-.01em; }
-.dh-sub{ font-size:.9rem; color:var(--muted); }
-.dh-rule{ flex:1; height:1px; background:var(--border); }
-.day-head.is-today .dh-label{ color:var(--accent-ink); }
+/* Week navigation (Kalender): ‹ v.41 › with the week's dates */
+.cal-weeknav{ display:flex; flex-direction:column; align-items:center; gap:10px; margin:2px 0 16px; }
+.wk-nav-row{ display:flex; align-items:center; justify-content:center; gap:16px; width:100%; }
+.wk-mid{ flex:0 1 200px; min-width:0; text-align:center; }
+.wk-eyebrow{
+  font-size:.72rem; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--muted);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.wk-eyebrow.is-now{ color:var(--accent-ink); }
+.wk-no{ font-size:2.1rem; line-height:1.05; margin-top:3px; }
+.wk-range{ font-size:.88rem; color:var(--muted); margin-top:2px; }
+.wk-arrow{
+  width:38px; height:38px; flex:0 0 auto; border-radius:50%; cursor:pointer;
+  border:1px solid var(--border); background:var(--card); color:var(--text); font-size:1.2rem; line-height:1;
+}
+.wk-arrow:hover{ border-color:var(--gold-line); color:var(--accent-ink); }
+.wk-today{
+  cursor:pointer; border:1px solid var(--gold-line); background:var(--gold-soft); color:var(--accent-ink);
+  border-radius:var(--radius-pill); padding:5px 14px; font-size:.8rem; font-weight:700;
+}
+
+/* The week: one card with Monday–Sunday always shown (same rhythm as the matsedel's menu card) */
+.cal-week{
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius); padding:4px 14px; box-shadow:var(--shadow-sm);
+}
+.wk-day{
+  display:grid; grid-template-columns:40px minmax(0, 1fr); gap:14px; align-items:start;
+  padding:14px 6px; border-top:1px solid var(--border); border-radius:12px;
+}
+.wk-day:first-child{ border-top:none; }
+.wk-day.is-empty{ align-items:center; }
+.wk-day.is-today{ background:linear-gradient(90deg, var(--gold-soft), transparent 72%); }
+.wk-date{ display:flex; flex-direction:column; align-items:center; gap:4px; padding-top:1px; }
+.wk-wd{ font-size:.68rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--faint); }
+.wk-num{ font-size:1.55rem; line-height:1; }
+.wk-day.is-red .wk-num{ color:var(--danger); }
+.wk-day.is-past .wk-num{ color:var(--muted); }
+.wk-day.is-today .wk-wd, .wk-day.is-today .wk-num{ color:var(--accent-ink); }
+.wk-body{ display:flex; flex-direction:column; min-width:0; }
+.wk-tags{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+.wk-day.is-empty .wk-tags{ margin-bottom:6px; }
+.wk-tag{ font-size:.74rem; font-weight:700; border-radius:var(--radius-pill); padding:2px 9px; }
+.wk-tag.red{ color:var(--danger); background:var(--danger-soft); }
+.wk-tag.lov{ color:var(--accent-ink); background:var(--gold-soft); }
 
 /* Event card */
 .event{
@@ -197,12 +234,27 @@ textarea{ resize:vertical; }
 .ev-chat svg{ width:17px; height:17px; }
 .ev-chat .n{ font-variant-numeric:tabular-nums; }
 
-.cal-more{
-  width:100%; margin-top:14px; cursor:pointer;
-  background:transparent; border:1px dashed var(--border-strong); color:var(--muted);
-  border-radius:var(--radius-sm); padding:12px; font-weight:600; font-size:.88rem;
+/* An event inside the week: the regular card without its frame */
+.event.in-week, .event.in-week.is-today{
+  background:none; border:0; border-radius:0; box-shadow:none; padding:0; gap:7px;
 }
-.cal-more:hover{ background:var(--card-2); color:var(--text); }
+.event.in-week + .event.in-week{ border-top:1px dashed var(--border); margin-top:12px; padding-top:12px; }
+.event.in-week .ev-title{ font-size:1.15rem; }
+.wk-day.is-past .ev-time{ color:var(--muted); }
+.wk-day.is-past .ev-title{ color:color-mix(in srgb, var(--text) 72%, var(--muted)); }
+
+/* A day with nothing planned */
+.wk-empty{ margin:0; color:var(--faint); font-style:italic; }
+.wk-add{
+  display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%;
+  background:none; border:0; padding:2px 0; cursor:pointer; text-align:left;
+}
+.wk-plus{
+  flex:0 0 auto; width:28px; height:28px; border-radius:50%; display:grid; place-items:center;
+  font-style:normal; font-size:1.05rem; line-height:1; color:var(--muted); border:1px dashed var(--border-strong);
+}
+.wk-add:hover{ color:var(--muted); }
+.wk-add:hover .wk-plus{ border-color:var(--gold-line); color:var(--accent-ink); }
 
 /* Empty / placeholder states */
 .placeholder{
@@ -232,6 +284,8 @@ textarea{ resize:vertical; }
 
 /* Role visibility */
 body.is-kid .parent-only{ display:none !important; }
+/* Rutiner + Belöningar switched off (CONFIG.MARKS_ENABLED) */
+body.marks-off .marks-only{ display:none !important; }
 
 /* Section titles */
 .section-title{

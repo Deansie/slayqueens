@@ -228,8 +228,9 @@ function linkLabel(text){ return `<span class="ag-sec-when">${escapeHtml(text)}<
 function approvalsSection(){
   if(!isParent()) return '';
   const jobs   = (state.tasks || []).filter(t => t.status === 'submitted').length;
-  const marks  = (state.markRequests || []).filter(r => r.status === 'pending').length;
-  const redeem = (state.redemptions || []).filter(r => r.status === 'pending').length;
+  const marksOn = marksEnabled();   // Rutiner + Belöningar can be switched off in config.js
+  const marks  = marksOn ? (state.markRequests || []).filter(r => r.status === 'pending').length : 0;
+  const redeem = marksOn ? (state.redemptions || []).filter(r => r.status === 'pending').length : 0;
   const payout = (state.payouts || []).filter(p => p.status === 'pending').length;
   const items = [
     { n: jobs,   go: 'jobs',     icon: '🧹', label: 'jobb att godkänna' },
@@ -249,7 +250,7 @@ function approvalsSection(){
 
 // ---- kid: one light nudge toward Rutiner ----
 function kidNudgeSection(){
-  if(isParent()) return '';
+  if(isParent() || !marksEnabled()) return '';
   if(!(state.behaviors || []).length) return '';
   const waiting = (state.markRequests || []).filter(r => r.profile_id === me.id && r.status === 'pending').length;
   const sub = waiting ? `${waiting} väntar på godkännande` : 'Bocka av dagens rutiner';

@@ -37,6 +37,9 @@ function currentFabAction(){
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Rutiner + Belöningar can be switched off in config.js; .marks-only elements then hide via CSS.
+  document.body.classList.toggle('marks-off', !marksEnabled());
+
   // Bottom nav
   document.querySelectorAll('.tab').forEach(t =>
     t.addEventListener('click', () => switchView(t.dataset.view)));
@@ -79,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('wxCancel').addEventListener('click', () => $('weatherDialog').close());
 
   // Calendar
+  $('calWeekNav').addEventListener('click', onWeekNavClick);
   $('catFilter').addEventListener('click', onCatFilterClick);
   $('eventForm').addEventListener('submit', (e) => {
     if(e.submitter && e.submitter.value === 'ok') saveEventFromDialog();
@@ -245,6 +249,7 @@ function startApp(){
 
 function switchView(view){
   if(!view) return;
+  const from = currentView;
   currentView = view;
   closeProfileMenu();
   document.querySelectorAll('.tab').forEach(t =>
@@ -256,6 +261,7 @@ function switchView(view){
   });
   updateFab();
   if(view === 'budget' && window.Budget) Budget.load();
+  if(view === 'calendar' && from !== 'calendar') resetCalendarWeek();   // Kalender opens on this week
   window.scrollTo(0, 0);
 }
 
@@ -285,8 +291,9 @@ function setTodoTab(tab){
 }
 
 // Switch the "Sysslor" view between the Jobb board and the Rutiner (streck) board.
+// With the marks system switched off it always stays on Jobb.
 function setTasksTab(tab){
-  tasksTab = tab === 'routines' ? 'routines' : 'jobs';
+  tasksTab = (tab === 'routines' && marksEnabled()) ? 'routines' : 'jobs';
   try{ localStorage.setItem('slayqueens_taskstab', tasksTab); }catch(e){}
   document.querySelectorAll('#tasksSeg .seg-btn').forEach(b => {
     const on = b.dataset.taskstab === tasksTab;

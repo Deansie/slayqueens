@@ -11,6 +11,8 @@ function capital(s){ return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
 function fmtMoney(v){ return (Math.round(Number(v) || 0)).toLocaleString('sv-SE') + ' kr'; }
 
 // ---- Marks ("streck") & stars ("stjärnor") for the Rutiner reward system ----
+// The whole system (Rutiner + Belöningar) can be switched off in config.js.
+function marksEnabled(){ return !!CONFIG.MARKS_ENABLED; }
 const MARKS_PER_STAR = 10;                                    // 10 streck = 1 stjärna
 function starsOf(marks){ return Math.floor((Number(marks) || 0) / MARKS_PER_STAR); }
 // A handful of stars as emoji; collapses to "⭐ ×N" once there are too many to skim.

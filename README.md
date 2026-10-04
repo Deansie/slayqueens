@@ -18,8 +18,11 @@ queue of what's waiting to be approved (jobb, rutiner, belöningar, utbetalninga
 an **Imorgon** heads-up: tomorrow's weather (high/low) and events. It's not in the tab bar; tap
 the date in the header from anywhere to come back to it.
 
-**Kalender.** The family's shared calendar. Upcoming events are grouped by day (*Idag*,
-*Imorgon*, then by weekday), each tagged with a category (Aktiviteter, Skola, Familj, Hälsa,
+**Kalender.** The family's shared calendar, shown one week at a time like the Matsedel: ‹ › flip
+to earlier or later weeks (*Till idag* jumps back), and every day Monday–Sunday is always listed
+with that day's events inside it. Sundays and röda dagar are red, lov and studiedagar from Skola
+are labelled, past days are toned down, and an empty upcoming day can be tapped to add an event
+on it. Each event is tagged with a category (Aktiviteter, Skola, Familj, Hälsa,
 Kalas, Annat) and with whose it is: a family member or the whole family. Events can be timed
 or all-day, carry an optional note, and be marked **private** (hidden from the other kids,
 still visible to parents). An event happening right now shows a *Pågår* badge. The header
@@ -42,7 +45,10 @@ weekday and the whole family ticks them off through the week. A progress bar and
 ("2 uppgifter släpar efter — ta dem idag") encourage keeping up so nothing piles up for the
 weekend, and it resets automatically every Monday.
 
-**Sysslor.** Two boards behind a segmented toggle: **Jobb** and **Rutiner**.
+**Sysslor.** Two boards behind a segmented toggle: **Jobb** and **Rutiner**. *(Rutiner,
+Belöningar and Familjemål are currently switched off with `MARKS_ENABLED: false` in
+`scripts/core/config.js`, so Sysslor shows only the Jobb board. Set it to `true` to bring them
+back — the code and data are untouched.)*
 
 *Jobb* is the chore board. Parents post jobs with a reward in kronor (and can save recurring
 ones as reusable templates). A kid picks a job, does it, and marks it done; a parent then

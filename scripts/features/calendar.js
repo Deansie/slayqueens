@@ -1,9 +1,8 @@
 'use strict';
-// Family calendar: render upcoming events grouped by day, and add/edit/delete.
+// Family calendar: one week at a time (Monday–Sunday, every day always shown), and add/edit/delete.
 let editingEvent = null;
 let categoryFilter = null;
-let calendarExpanded = false;      // false = next 7 days only; true = all upcoming
-const CAL_WINDOW_DAYS = 7;
+let calWeekOffset = 0;      // 0 = this week, ±1 = neighbouring weeks (as in the matsedel)
 
 function ownerLabel(ev){
   if(!ev.owner_id) return { name: 'Familjen', color: 'var(--gold)', letter: 'F' };
@@ -42,76 +41,120 @@ function onCatFilterClick(e){
 function renderCalendar(){
   renderHeader();
   renderNotisBar();
+  renderWeekNav();
   renderCategoryFilter();
   const list = $('eventList');
   list.innerHTML = '';
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const cutoff = new Date(today); cutoff.setDate(cutoff.getDate() + CAL_WINDOW_DAYS);
 
-  const upcoming = state.events
-    .filter(ev => new Date(ev.starts_at) >= today)
+  const mon = mondayOfWeek(calWeekOffset);
+  const days = [...Array(7)].map((_, i) => { const d = new Date(mon); d.setDate(d.getDate() + i); return d; });
+  const keys = new Set(days.map(dateKey));
+  const byDay = {};
+  state.events
+    .filter(ev => keys.has(dateKey(ev.starts_at)))
     .filter(ev => !categoryFilter || (ev.category || 'annat') === categoryFilter)
-    .sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at));
+    .sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at))
+    .forEach(ev => { const k = dateKey(ev.starts_at); (byDay[k] = byDay[k] || []).push(ev); });
 
-  if(!upcoming.length){
-    list.innerHTML =
-      '<div class="placeholder"><div class="ph-emoji">📅</div>' +
-      `<h3>${categoryFilter ? 'Inget i den kategorin' : 'Inga kommande händelser'}</h3>` +
-      `<p>${categoryFilter ? 'Prova en annan kategori.' : 'Lägg till familjens viktiga datum.'}</p></div>`;
-    return;
-  }
+  days.forEach((d, i) => list.appendChild(weekDay(d, i, byDay[dateKey(d)] || [])));
+}
 
-  // Default to the next 7 days; "Visa fler" reveals everything further out.
-  const inWindow = upcoming.filter(ev => new Date(ev.starts_at) < cutoff);
-  const beyond = upcoming.length - inWindow.length;
-  const shown = calendarExpanded ? upcoming : inWindow;
+// ‹ v.41 › with the week's dates; away from this week, a pill leads back to it.
+function renderWeekNav(){
+  const box = $('calWeekNav');
+  if(!box) return;
+  const n = calWeekOffset;
+  const mon = mondayOfWeek(n);
+  const label = n === 0 ? 'Den här veckan'
+    : n === -1 ? 'Förra veckan'
+    : n === 1  ? 'Nästa vecka'
+    : n < 0    ? `För ${-n} veckor sedan`
+    :            `Om ${n} veckor`;
+  box.innerHTML = `
+    <div class="wk-nav-row">
+      <button class="wk-arrow" data-calweek="-1" type="button" aria-label="Föregående vecka">‹</button>
+      <div class="wk-mid">
+        <div class="wk-eyebrow${n === 0 ? ' is-now' : ''}">${label}</div>
+        <div class="wk-no serif">v.${isoWeek(mon)}</div>
+        <div class="wk-range">${escapeHtml(weekRangeLabel(mon))}</div>
+      </div>
+      <button class="wk-arrow" data-calweek="1" type="button" aria-label="Nästa vecka">›</button>
+    </div>
+    ${n !== 0 ? '<button class="wk-today" data-calweek="today" type="button">↺ Till idag</button>' : ''}`;
+}
 
-  if(!shown.length){
-    const ph = document.createElement('div');
-    ph.className = 'placeholder mini';
-    ph.innerHTML = '<p>Inget de närmaste 7 dagarna.</p>';
-    list.appendChild(ph);
-  } else {
-    let lastKey = null;
-    for(const ev of shown){
-      const key = dateKey(ev.starts_at);
-      if(key !== lastKey){
-        lastKey = key;
-        list.appendChild(dayHeader(ev.starts_at));
-      }
-      list.appendChild(eventRow(ev));
+function onWeekNavClick(e){
+  const b = e.target.closest('[data-calweek]');
+  if(!b) return;
+  const v = b.dataset.calweek;
+  calWeekOffset = v === 'today' ? 0 : calWeekOffset + Number(v);
+  renderCalendar();
+}
+
+// Coming back to Kalender from another tab always starts on this week.
+function resetCalendarWeek(){
+  if(calWeekOffset === 0) return;
+  calWeekOffset = 0;
+  renderCalendar();
+}
+
+// Weeks between this week and the one holding `key` ('YYYY-MM-DD').
+function weekOffsetOf(key){
+  const [y, m, d] = key.split('-').map(Number);
+  const mon = new Date(y, m - 1, d);
+  mon.setDate(mon.getDate() - (mon.getDay() + 6) % 7);
+  return Math.round((mon - mondayOfWeek(0)) / (7 * 86400000));
+}
+
+// One day of the week: the date on the left (Sundays and röda dagar in red, as in a paper
+// almanac), then that day's events, or a line that adds one when nothing is planned.
+function weekDay(d, idx, evs){
+  const key = dateKey(d), today = todayKey();
+  const red = (typeof redDayName === 'function') ? redDayName(d) : null;
+  const lov = (typeof closureName === 'function') ? closureName(d) : null;
+  const day = document.createElement('div');
+  day.className = 'wk-day'
+    + (key === today ? ' is-today' : key < today ? ' is-past' : '')
+    + (red || d.getDay() === 0 ? ' is-red' : '')
+    + (evs.length ? '' : ' is-empty');
+  day.setAttribute('role', 'group');
+  day.setAttribute('aria-label', `${capital(WEEKDAYS[d.getDay()])} ${d.getDate()} ${MONTHS_LONG[d.getMonth()]}`);
+  const tags = (red ? `<span class="wk-tag red">${escapeHtml(red)}</span>` : '')
+    + (lov ? `<span class="wk-tag lov">${escapeHtml(lov)}</span>` : '');
+  day.innerHTML = `
+    <div class="wk-date" aria-hidden="true">
+      <span class="wk-wd">${key === today ? 'Idag' : MEAL_WEEKDAYS[idx]}</span>
+      <span class="wk-num serif">${d.getDate()}</span>
+    </div>
+    <div class="wk-body">${tags ? `<div class="wk-tags">${tags}</div>` : ''}</div>`;
+  const body = day.querySelector('.wk-body');
+  if(evs.length){
+    for(const ev of evs){
+      const row = eventRow(ev);
+      row.classList.add('in-week');
+      body.appendChild(row);
     }
+  } else {
+    body.appendChild(emptyDay(d, key < today));
   }
-
-  if(beyond > 0){
-    list.appendChild(calendarExpanded
-      ? calMoreButton('Visa mindre', false)
-      : calMoreButton(`Visa fler (${beyond})`, true));
-  }
+  return day;
 }
 
-// Serif day heading with a hair-rule; "Imorgon" also shows its weekday.
-function dayHeader(d){
-  const head = document.createElement('div');
-  const key = dateKey(d);
-  head.className = 'day-head' + (key === todayKey() ? ' is-today' : '');
-  const x = new Date(d); x.setHours(0, 0, 0, 0);
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const diff = Math.round((x - today) / 86400000);
-  const sub = diff === 1 ? WEEKDAYS[x.getDay()] : '';
-  head.innerHTML =
-    `<span class="dh-label">${escapeHtml(relativeDay(d))}</span>` +
-    (sub ? `<span class="dh-sub">${escapeHtml(sub)}</span>` : '') +
-    '<span class="dh-rule"></span>';
-  return head;
-}
-
-function calMoreButton(label, expand){
+// A day without events. Upcoming days get "Inget planerat +", which opens Ny händelse on that
+// date; past days (and days emptied by the category filter) just show a dash.
+function emptyDay(d, past){
+  if(past || categoryFilter){
+    const dash = document.createElement('p');
+    dash.className = 'wk-empty';
+    dash.textContent = '—';
+    return dash;
+  }
   const btn = document.createElement('button');
   btn.type = 'button';
-  btn.className = 'cal-more';
-  btn.textContent = label;
-  btn.onclick = () => { calendarExpanded = expand; renderCalendar(); };
+  btn.className = 'wk-empty wk-add';
+  btn.innerHTML = '<span>Inget planerat</span><span class="wk-plus" aria-hidden="true">+</span>';
+  btn.setAttribute('aria-label', `Ny händelse ${WEEKDAYS[d.getDay()]} ${d.getDate()} ${MONTHS_LONG[d.getMonth()]}`);
+  btn.onclick = () => openEventDialog(null, dateKey(d));
   return btn;
 }
 
@@ -163,7 +206,8 @@ function toggleTime(){
   $('timeRow').hidden = $('evAllDay').checked;
 }
 
-function openEventDialog(ev){
+// `date` ('YYYY-MM-DD') pre-fills a new event's day; it defaults to today.
+function openEventDialog(ev, date){
   editingEvent = ev || null;
   $('eventDlgTitle').textContent = ev ? 'Redigera händelse' : 'Ny händelse';
 
@@ -185,7 +229,7 @@ function openEventDialog(ev){
     $('evNotes').value = ev.notes || '';
   } else {
     $('evTitle').value = '';
-    $('evDate').value  = todayKey();
+    $('evDate').value  = date || todayKey();
     $('evStart').value = '';
     $('evEnd').value   = '';
     $('evAllDay').checked = false;
@@ -260,6 +304,7 @@ async function saveEventFromDialog(){
       if(data) notify('event_new', { eventId: data.id });
       if(data && collisionMeeting) notify('event_collision', { eventId: data.id, meeting: meetingLabel(collisionMeeting) });
     }
+    calWeekOffset = weekOffsetOf(date);   // show the week the event landed in
     await loadEvents();
     renderCalendar();
   }catch(err){
