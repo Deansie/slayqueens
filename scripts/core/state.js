@@ -1,6 +1,6 @@
 'use strict';
 // In-memory copy of the shared data, plus realtime subscriptions.
-const state = { profiles: [], profilesById: {}, events: [], tasks: [], balances: [], ledger: [], payouts: [], templates: [], suggestions: [], votes: [], messages: [], todos: [], meals: [], mealDishes: [], mealWishes: [], shopTopics: [], shopItems: [], behaviors: [], markLedger: [], markBalances: [], markRequests: [], rewardTiers: [], rewards: [], redemptions: [], goals: [], contributions: [], cleaningTasks: [], cleaningDone: [], schoolWeekly: [], schoolOverrides: [], schoolClosures: [], schoolMeals: [], meetings: [], workDays: [], homework: [], settings: { cleaning_reminder_enabled: true, cleaning_reminder_hour: 8 } };
+const state = { profiles: [], profilesById: {}, events: [], tasks: [], balances: [], ledger: [], payouts: [], templates: [], suggestions: [], votes: [], messages: [], todos: [], meals: [], mealDishes: [], mealWishes: [], shopTopics: [], shopItems: [], behaviors: [], markLedger: [], markBalances: [], markRequests: [], rewardTiers: [], rewards: [], redemptions: [], goals: [], contributions: [], cleaningTasks: [], cleaningDone: [], schoolWeekly: [], schoolOverrides: [], schoolClosures: [], schoolMeals: [], meetings: [], workDays: [], homework: [], gifts: [], settings: { cleaning_reminder_enabled: true, cleaning_reminder_hour: 8 } };
 
 async function loadProfiles(){
   const { data, error } = await sb.from('profiles').select('*').order('name');
@@ -201,6 +201,13 @@ async function loadWorkDays(){
   state.workDays = data || [];
 }
 
+// Julklappar for this Christmas (parents only by RLS; loaded only while the list is unlocked).
+async function loadGifts(){
+  const { data, error } = await sb.from('gifts').select('*').eq('year', new Date().getFullYear()).order('created_at');
+  if(error){ console.warn('loadGifts', error); return; }
+  state.gifts = data || [];
+}
+
 // Läxor still open, plus recent ones (a ticked läxa shows until its day is over).
 async function loadHomework(){
   const since = dateKey(new Date(Date.now() - 86400000));
@@ -257,6 +264,7 @@ function subscribeRealtime(onChange){
     .on('postgres_changes', { event: '*', schema: 'public', table: 'meetings' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'work_days' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'homework' }, onChange)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'gifts' }, onChange)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, onChange)
     .subscribe();
 }

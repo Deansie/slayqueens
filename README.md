@@ -41,8 +41,10 @@ the top of the page. The **to-do list** has a shared family checklist anyone can
 each person's own private to-dos. **Inköp** is a shopping-needs board: parents create categories
 ("Kläder", "Skolsaker"…) and assign each to a person or leave it shared. A category is private to
 whoever it's for, so a kid only sees the categories assigned to them (plus shared ones) and fills
-in what they need there; parents see everyone's — handy with several kids. Parents tick things off
-as they shop. **Städschema** is a recurring weekly cleaning schedule: parents pin chores to a
+in what they need there; parents see everyone's — handy with several kids. The page is a compact
+list with one row per category (how many things are left) and one category open at a time: type
+a thing and press Enter to add it, tick it off when bought (bought things fold away under
+*Köpta*), and tap *Redigera* to delete. **Städschema** is a recurring weekly cleaning schedule: parents pin chores to a
 weekday and the whole family ticks them off through the week. A progress bar and a nudge
 ("2 uppgifter släpar efter — ta dem idag") encourage keeping up so nothing piles up for the
 weekend, and it resets automatically every Monday.
@@ -97,6 +99,15 @@ exceptions (a day off, or changed times). Shared **Lediga dagar** (studiedagar a
 everyone, and the agenda counts down to the next lov. The school **lunch menu** is fetched
 automatically each night and shown under the day's schedule, with the whole week a tap away.
 Parents set it up; kids read it.
+
+**Julklappar.** A gift list only the parents can see (the tables are parents-only), kept out of
+sight because the kids sometimes use a parent's phone: there's no menu entry, and it opens from
+Inköp behind a 4-digit code that you choose in the app the first time (only its hash is stored).
+Presents are grouped per kid, folded into one row each with the count and total; each has an
+optional price and a Köpt tick. Tapping something in Inköp saves a copy here, and nothing about
+the original changes, so a wish list never gives a present away. The list locks again when you
+leave it or put the app away. Forgot the code? Run
+`update public.gift_settings set code_hash = null;` and choose a new one.
 
 **Läxor.** Homework reminders, only on Dagens agenda. There's no schedule: when a kid says they
 have homework, tap **+ Läxa** on the start screen, write what it is and pick the kid; the next

@@ -1,53 +1,84 @@
 /* ============================================================
-   Shopping board ("Inköp") — inside "Att göra". Parents make
-   categories (each owned by a person or shared); everyone fills in
-   what's missing. Cards echo the to-do / chore surfaces, with a
-   tickable item list per category.
+   Shopping board ("Inköp") — inside "Att göra". An accordion: one
+   compact row per category (icon, name, whose, how many left), one
+   open at a time. An open list has a type-and-Enter field, compact
+   rows, bought items folded under "Köpta", and ✕ only in "Redigera".
    ============================================================ */
 
-.shop-topic{
+.shop-acc{
   background:var(--card); border:1px solid var(--border);
-  border-radius:var(--radius); padding:12px 14px 10px; box-shadow:var(--shadow-sm);
-  margin-bottom:11px;
+  border-radius:var(--radius); box-shadow:var(--shadow-sm); overflow:hidden;
 }
-.shop-topic-head{ display:flex; align-items:center; gap:9px; margin-bottom:6px; }
-.shop-emoji{ font-size:1.1rem; line-height:1; flex:0 0 auto; }
-.shop-topic-name{
-  flex:0 1 auto; min-width:0;
-  font-family:var(--serif); font-size:1.22rem; font-weight:600;
-  letter-spacing:-.01em; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+.shop-row{
+  display:flex; align-items:center; gap:10px; width:100%; text-align:left; cursor:pointer;
+  border:0; border-top:1px solid var(--border); background:transparent; color:var(--text);
+  padding:13px 14px; font:inherit;
 }
-.shop-topic-tools{ margin-left:auto; display:flex; align-items:center; gap:2px; flex:0 0 auto; }
-
-.shop-items{ display:flex; flex-direction:column; }
-.shop-hint{ margin:-1px 0 10px; color:var(--muted); font-size:.82rem; line-height:1.4; }
-
-.shop-item{
-  display:flex; align-items:center; gap:11px;
-  padding:9px 2px; border-top:1px solid var(--border);
+.shop-acc > .shop-row:first-child{ border-top:0; }
+.shop-row:hover .shop-row-title{ color:var(--accent-ink); }
+.shop-row[aria-expanded="true"]{ background:var(--gold-soft); }
+.shop-emoji{ font-size:1.15rem; line-height:1; flex:0 0 auto; }
+.shop-row-title{
+  flex:0 1 auto; min-width:0; font-weight:700; font-size:1rem;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
-.shop-item:first-child{ border-top:none; }
-.shop-item.bought{ opacity:.55; }
-.shop-check{
-  width:23px; height:23px; flex:0 0 auto; cursor:pointer;
-  border:2px solid var(--border-strong); background:var(--card-2);
-  border-radius:7px; display:grid; place-items:center; font-size:.8rem; color:#fff;
-}
-.shop-item.bought .shop-check{ background:var(--success); border-color:var(--success); }
-.shop-item-title{ flex:1; min-width:0; font-weight:500; word-break:break-word; }
-.shop-item.bought .shop-item-title{ text-decoration:line-through; }
 .shop-owner{
-  display:inline-flex; align-items:center; gap:5px; flex:0 0 auto;
+  display:inline-flex; align-items:center; gap:5px; flex:0 1 auto; min-width:0;
   font-size:.78rem; font-weight:600; color:var(--muted); white-space:nowrap;
 }
 .shop-owner .avatar{ width:18px; height:18px; font-size:.58rem; }
-
-.shop-add{
-  margin-top:8px; width:100%;
-  background:transparent; border:1px dashed var(--border-strong); color:var(--muted);
-  border-radius:var(--radius-sm); padding:9px; font-weight:600; font-size:.86rem; cursor:pointer;
+.shop-count{
+  margin-left:auto; flex:0 0 auto; min-width:1.6em; text-align:right;
+  font-weight:800; font-size:.92rem; color:var(--accent-ink); font-variant-numeric:tabular-nums;
 }
-.shop-add:hover{ background:var(--card-2); color:var(--accent-ink); border-color:var(--gold-line); }
+.shop-count.is-clear{ color:var(--success); }
+.shop-caret{ flex:0 0 auto; color:var(--faint); font-size:1.1rem; line-height:1; transition:transform .15s; }
+.shop-row .shop-count + .shop-caret{ margin-left:0; }
+.shop-row .shop-owner + .shop-caret, .shop-row .shop-row-title + .shop-caret{ margin-left:auto; }
+.shop-row[aria-expanded="true"] .shop-caret{ transform:rotate(90deg); }
+
+/* the open list */
+.shop-body{ border-top:1px solid var(--border); padding:8px 14px 12px; }
+.shop-tools{ display:flex; align-items:center; justify-content:flex-end; gap:6px; margin-bottom:6px; }
+.shop-edit{
+  border:0; background:transparent; cursor:pointer; padding:4px 2px;
+  color:var(--accent-ink); font-weight:700; font-size:.85rem;
+}
+.shop-qa{ margin-bottom:4px; }
+.shop-items{ display:flex; flex-direction:column; }
+.shop-item{ display:flex; align-items:center; gap:11px; padding:8px 1px; }
+.shop-item + .shop-item{ border-top:1px solid var(--border); }
+.shop-check{
+  width:21px; height:21px; flex:0 0 auto; cursor:pointer;
+  border:2px solid var(--border-strong); background:var(--card-2);
+  border-radius:6px; display:grid; place-items:center; font-size:.72rem; color:#fff;
+}
+.shop-item.bought .shop-check{ background:var(--success); border-color:var(--success); }
+.shop-item-title{
+  flex:1; min-width:0; font-weight:500; word-break:break-word;
+  border:0; background:transparent; padding:0; text-align:left; color:var(--text); font:inherit;
+}
+button.shop-item-title{ cursor:pointer; }
+.shop-item.bought .shop-item-title{ text-decoration:line-through; color:var(--faint); }
+.shop-del{
+  flex:0 0 auto; width:28px; height:28px; border:0; border-radius:50%; cursor:pointer;
+  background:transparent; color:var(--danger); font-size:.8rem;
+}
+.shop-del:hover{ background:var(--danger-soft); }
+.shop-empty{ color:var(--muted); font-size:.9rem; padding:8px 1px; }
+.shop-bought{
+  display:flex; align-items:center; justify-content:space-between;
+  border-top:1px solid var(--border); margin-top:4px; padding:9px 1px 2px;
+}
+.shop-bought-toggle, .shop-clear{
+  border:0; background:transparent; cursor:pointer; padding:2px 0; font-weight:700; font-size:.85rem;
+}
+.shop-bought-toggle{ color:var(--muted); }
+.shop-clear{ color:var(--accent-ink); }
+.shop-deltopic{
+  display:block; margin:12px 0 0 auto; border:0; background:transparent; cursor:pointer;
+  color:var(--danger); font-weight:700; font-size:.85rem; padding:4px 0;
+}
 
 /* Category-icon picker in the "Ny kategori" dialog */
 .shop-emoji-picks{ display:flex; flex-wrap:wrap; gap:7px; }
@@ -57,3 +88,5 @@
 }
 .shop-emoji-pick:hover{ border-color:var(--gold-line); }
 .shop-emoji-pick.on{ border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft); background:var(--gold-soft); }
+
+@media (prefers-reduced-motion: reduce){ .shop-caret{ transition:none; } }

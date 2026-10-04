@@ -159,8 +159,20 @@ document.addEventListener('DOMContentLoaded', () => {
   $('shopEmojiPicks').addEventListener('click', onEmojiPickClick);
   $('shopTopicForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveTopic(); });
   $('shopTopicCancel').addEventListener('click', () => $('shopTopicDialog').close());
-  $('shopItemForm').addEventListener('submit', (e) => { if(e.submitter && e.submitter.value === 'ok') saveItem(); });
-  $('shopItemCancel').addEventListener('click', () => $('shopItemDialog').close());
+  $('shoppingBoard').addEventListener('keydown', onShoppingKey);   // type an item + Enter
+
+  // Julklappar (parents only): hold Inköp for 4 s → code → the gift list
+  initGiftHold();
+  $('pinPad').addEventListener('click', onPinPadClick);
+  $('pinDialog').addEventListener('keydown', onPinKey);
+  $('giftsBody').addEventListener('click', onGiftsClick);
+  $('giftsBody').addEventListener('keydown', onGiftsKey);
+  $('giftForm').addEventListener('submit', (e) => {
+    if(e.submitter && e.submitter.value === 'ok' && !saveGiftDialog()) e.preventDefault();   // stay open until a kid is picked
+  });
+  $('giftCancel').addEventListener('click', () => $('giftDialog').close());
+  $('giftDelete').addEventListener('click', deleteGiftFromDialog);
+  $('giftKidPicks').addEventListener('click', onGiftKidPick);
   $('todoSeg').addEventListener('click', (e) => {
     const b = e.target.closest('[data-todotab]');
     if(b) setTodoTab(b.dataset.todotab);
@@ -228,7 +240,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // (a backgrounded PWA lets it expire → requests would otherwise fall back to the anon
   // key and get denied) and re-sync, since the realtime socket may also have dropped.
   document.addEventListener('visibilitychange', () => {
-    if(document.hidden){ if(window.Budget) Budget.flush(); }
+    if(document.hidden){
+      if(window.Budget) Budget.flush();
+      if(currentView === 'gifts') switchView('todos');   // lock the gift list when the app is put away
+    }
     else refreshAndResync();
   });
   window.addEventListener('pagehide', () => { if(window.Budget) Budget.flush(); });
@@ -273,6 +288,7 @@ function switchView(view){
   updateFab();
   if(view === 'budget' && window.Budget) Budget.load();
   if(view === 'calendar' && from !== 'calendar') resetCalendarWeek();   // Kalender opens on this week
+  if(from === 'gifts' && view !== 'gifts') lockGifts();                  // leaving the gift list locks it
   window.scrollTo(0, 0);
 }
 
@@ -411,6 +427,7 @@ async function onRealtime(payload){
   else if(t === 'meetings') await loadMeetings();
   else if(t === 'work_days') await loadWorkDays();
   else if(t === 'homework') await loadHomework();
+  else if(t === 'gifts'){ if(giftsUnlocked && !isDemo()) await loadGifts(); }
   else if(t === 'app_settings') await loadSettings();
   renderHeader();
   renderToday();
@@ -426,6 +443,7 @@ async function onRealtime(payload){
   renderCleaning();
   renderMatsedel();
   renderChat();
+  renderGifts();   // only paints while the gift list is open and unlocked
   if($('mealDishDialog').open) renderMealDishList();
 }
 

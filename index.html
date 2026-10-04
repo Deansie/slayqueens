@@ -59,6 +59,7 @@
 <link rel="stylesheet" href="styles/rewards.css" />
 <link rel="stylesheet" href="styles/today.css" />
 <link rel="stylesheet" href="styles/homework.css" />
+<link rel="stylesheet" href="styles/gifts.css" />
 <link rel="stylesheet" href="styles/school.css" />
 <link rel="stylesheet" href="styles/overlays.css" />
 <link rel="stylesheet" href="styles/responsive.css" />
@@ -173,6 +174,11 @@
     </section>
 
     <!-- Budget (parents only) -->
+    <!-- Julklappar (parents only, behind a code — reached by holding Inköp for 4 s) -->
+    <section class="view" id="view-gifts" hidden>
+      <div id="giftsBody"></div>
+    </section>
+
     <section class="view" id="view-budget" hidden>
       <div id="budgetBody"></div>
     </section>
@@ -582,21 +588,6 @@
   </form>
 </dialog>
 
-<!-- Inköp: add item (anyone) ----------------------------------------- -->
-<dialog id="shopItemDialog">
-  <form method="dialog" class="dlg-body" id="shopItemForm">
-    <h3 id="shopItemDlgTitle" class="serif">Lägg till</h3>
-    <div class="dlg-field">
-      <label for="shopItemTitle">Vad saknas?</label>
-      <input id="shopItemTitle" type="text" required maxlength="80" placeholder="T.ex. Strumpor" />
-    </div>
-    <div class="dlg-actions">
-      <button class="btn ghost" id="shopItemCancel" type="button">Avbryt</button>
-      <button class="btn" value="ok" id="shopItemSave" type="submit">Lägg till</button>
-    </div>
-  </form>
-</dialog>
-
 <!-- Budget: new month dialog ----------------------------------------- -->
 <dialog id="budgetMonthDialog">
   <form method="dialog" class="dlg-body" id="budgetMonthForm">
@@ -828,6 +819,47 @@
   </form>
 </dialog>
 
+<!-- Julklappar: the code pad (the list opens by holding Inköp for 4 s) - -->
+<dialog id="pinDialog">
+  <div class="dlg-body pin-body">
+    <h3 class="serif" id="pinTitle">Ange kod</h3>
+    <p class="pin-sub" id="pinSub"></p>
+    <div class="pin-dots" id="pinDots" role="status" aria-label="0 av 4 siffror"><span></span><span></span><span></span><span></span></div>
+    <div class="pin-pad" id="pinPad">
+      <button type="button" data-pin="1">1</button><button type="button" data-pin="2">2</button><button type="button" data-pin="3">3</button>
+      <button type="button" data-pin="4">4</button><button type="button" data-pin="5">5</button><button type="button" data-pin="6">6</button>
+      <button type="button" data-pin="7">7</button><button type="button" data-pin="8">8</button><button type="button" data-pin="9">9</button>
+      <button type="button" class="pin-ghost" data-pin="cancel">Avbryt</button><button type="button" data-pin="0">0</button><button type="button" class="pin-ghost" data-pin="back" aria-label="Radera">⌫</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Julklappar: save a wish from Inköp, or change a present -------------- -->
+<dialog id="giftDialog">
+  <form method="dialog" class="dlg-body" id="giftForm">
+    <h3 class="serif" id="giftDlgTitle">🔒 Spara undan</h3>
+    <p class="dlg-note" id="giftDlgNote">Hamnar i den låsta listan. Inget ändras i Inköp.</p>
+    <div class="dlg-field">
+      <label for="giftTitle">Vad?</label>
+      <input id="giftTitle" type="text" required maxlength="80" autocomplete="off" />
+    </div>
+    <div class="dlg-field">
+      <span class="hw-dlg-cap" id="giftKidCap">Till vem?</span>
+      <div class="hw-picks" id="giftKidPicks" role="group" aria-labelledby="giftKidCap"></div>
+    </div>
+    <div class="dlg-field">
+      <label for="giftPrice">Pris i kr (valfritt)</label>
+      <input id="giftPrice" type="number" inputmode="numeric" min="0" step="1" />
+    </div>
+    <p class="hw-err" id="giftErr" hidden>Välj vem den är till.</p>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="giftDelete" type="button" hidden>Ta bort</button>
+      <button class="btn ghost" id="giftCancel" type="button">Avbryt</button>
+      <button class="btn" value="ok" type="submit">Spara</button>
+    </div>
+  </form>
+</dialog>
+
 <!-- Weather location picker ------------------------------------------ -->
 <dialog id="weatherDialog">
   <form method="dialog" class="dlg-body" id="weatherForm">
@@ -897,6 +929,7 @@
 <script src="scripts/features/suggestions.js"></script>
 <script src="scripts/features/todos.js"></script>
 <script src="scripts/features/shopping.js"></script>
+<script src="scripts/features/gifts.js"></script>
 <script src="scripts/features/cleaning.js"></script>
 <script src="scripts/ui/chat.js"></script>
 <script src="scripts/ui/profile.js"></script>

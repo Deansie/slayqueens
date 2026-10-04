@@ -1,0 +1,87 @@
+/* Julklappar — the parents-only gift list (reached by holding "Inköp" for 4 s + a code),
+   its code pad, and the hold feedback on the Inköp button. */
+
+/* Holding "Inköp": a thin line only starts filling after a second, so a normal tap shows
+   nothing; it's full when the code pad opens at 4 s. */
+#todoSeg .seg-btn{ position:relative; overflow:hidden; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; }
+#todoSeg .seg-btn::after{
+  content:''; position:absolute; left:0; bottom:0; height:2px; width:0;
+  background:var(--accent); opacity:.65; pointer-events:none;
+}
+#todoSeg .seg-btn.is-holding::after{ width:100%; transition:width 3s linear 1s; }
+
+/* ---- code pad ---- */
+.pin-body{ align-items:center; text-align:center; gap:14px; padding:24px 22px 20px; }
+.pin-body h3{ font-size:1.4rem; }
+.dlg-body .pin-sub{ min-height:1.2em; margin-top:-6px; }
+.pin-dots{ display:flex; gap:14px; margin:4px 0 6px; }
+.pin-dots span{ width:14px; height:14px; border-radius:50%; border:1.5px solid var(--border-strong); }
+.pin-dots span.on{ background:var(--accent); border-color:var(--accent); }
+.pin-dots.shake{ animation:pinshake .35s; }
+@keyframes pinshake{ 0%,100%{ transform:none; } 25%{ transform:translateX(-8px); } 75%{ transform:translateX(8px); } }
+.pin-pad{ display:grid; grid-template-columns:repeat(3, 66px); gap:12px; }
+.pin-pad button{
+  width:66px; height:66px; border-radius:50%; cursor:pointer;
+  border:1px solid var(--border); background:var(--card-2); color:var(--text);
+  font-size:1.4rem; font-weight:600; font-variant-numeric:tabular-nums;
+}
+.pin-pad button:hover{ border-color:var(--gold-line); }
+.pin-pad button:active{ background:var(--gold-soft); }
+.pin-pad .pin-ghost{ border-color:transparent; background:transparent; font-size:.9rem; color:var(--muted); }
+
+/* ---- the list ---- */
+.gifts{ display:flex; flex-direction:column; gap:12px; }
+.gf-head{ display:flex; flex-direction:column; gap:3px; }
+.gf-back{
+  align-self:flex-start; border:0; background:transparent; cursor:pointer; padding:2px 0;
+  color:var(--accent-ink); font-weight:700; font-size:.92rem;
+}
+.gf-title{ font-size:1.9rem; line-height:1.1; margin-top:4px; }
+.gf-sub{ color:var(--muted); font-size:.85rem; }
+.gf-total{
+  display:flex; justify-content:space-between; align-items:baseline; gap:10px;
+  background:var(--card-2); border-radius:var(--radius-sm); padding:10px 14px;
+  color:var(--muted); font-size:.92rem; font-variant-numeric:tabular-nums;
+}
+.gf-total b{ color:var(--text); font-size:1.1rem; }
+.gf-kids{
+  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+  box-shadow:var(--shadow-sm); overflow:hidden;
+}
+.gf-kid + .gf-kid{ border-top:1px solid var(--border); }
+.gf-kid-row{
+  display:flex; align-items:center; gap:10px; width:100%; text-align:left; cursor:pointer;
+  border:0; background:transparent; color:var(--text); padding:13px 14px; font:inherit;
+}
+.gf-kid.is-open .gf-kid-row{ background:var(--gold-soft); }
+.gf-kid-name{ font-weight:700; }
+.gf-kid-meta{ margin-left:auto; color:var(--muted); font-size:.88rem; font-weight:600; font-variant-numeric:tabular-nums; }
+.gf-caret{ flex:0 0 auto; color:var(--faint); font-size:1.1rem; transition:transform .15s; }
+.gf-kid.is-open .gf-caret{ transform:rotate(90deg); }
+.gf-kid-body{ border-top:1px solid var(--border); padding:6px 14px 12px; }
+.gf-row{ display:flex; align-items:center; gap:11px; padding:8px 1px; }
+.gf-row + .gf-row{ border-top:1px solid var(--border); }
+.gf-check{
+  width:21px; height:21px; flex:0 0 auto; cursor:pointer;
+  border:2px solid var(--border-strong); background:var(--card-2);
+  border-radius:6px; display:grid; place-items:center; font-size:.72rem; color:#fff;
+}
+.gf-row.is-bought .gf-check{ background:var(--success); border-color:var(--success); }
+.gf-name{
+  flex:1; min-width:0; text-align:left; cursor:pointer; padding:0; border:0; background:transparent;
+  color:var(--text); font:inherit; font-weight:500; word-break:break-word;
+}
+.gf-row.is-bought .gf-name{ color:var(--muted); }
+.gf-wish{
+  margin-left:7px; padding:1px 7px; border-radius:var(--radius-pill); vertical-align:1px;
+  background:var(--gold-soft); color:var(--accent-ink); font-size:.68rem; font-weight:700;
+}
+.gf-price{ flex:0 0 auto; color:var(--muted); font-weight:700; font-size:.9rem; font-variant-numeric:tabular-nums; }
+.gf-qa{ margin-top:8px; }
+.gf-empty{ color:var(--muted); padding:14px; }
+.gf-tip{ color:var(--muted); font-size:.82rem; }
+
+@media (prefers-reduced-motion: reduce){
+  .pin-dots.shake{ animation:none; }
+  .gf-caret{ transition:none; }
+}
