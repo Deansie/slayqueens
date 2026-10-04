@@ -22,8 +22,10 @@ the date in the header from anywhere to come back to it.
 to earlier or later weeks (*Till idag* jumps back), and every day Monday–Sunday is always listed
 with that day's events inside it. Sundays and röda dagar are red, lov and studiedagar from Skola
 are labelled, past days are toned down, and an empty upcoming day can be tapped to add an event
-on it. Each event is tagged with a category (Aktiviteter, Skola, Familj, Hälsa,
-Kalas, Annat) and with whose it is: a family member or the whole family. Events can be timed
+on it. A parent taps a date to mark where they work that day (🏠 hemma → 🏢 på kontoret → nothing);
+their own marker shows under the date, and everyone else sees it as a small tag on the day. Each
+event shows whose it is: a family member or the whole family. (An event can also carry a category,
+set in the event dialog; it shows on Dagens agenda.) Events can be timed
 or all-day, carry an optional note, and be marked **private** (hidden from the other kids,
 still visible to parents). An event happening right now shows a *Pågår* badge. The header
 shows today's date, a count of today's and tomorrow's events, and the local weather.

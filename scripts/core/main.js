@@ -83,7 +83,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Calendar
   $('calWeekNav').addEventListener('click', onWeekNavClick);
-  $('catFilter').addEventListener('click', onCatFilterClick);
   $('eventForm').addEventListener('submit', (e) => {
     if(e.submitter && e.submitter.value === 'ok') saveEventFromDialog();
   });
@@ -398,6 +397,7 @@ async function onRealtime(payload){
   else if(t === 'school_closures') await loadSchoolClosures();
   else if(t === 'school_meals') await loadSchoolMeals();
   else if(t === 'meetings') await loadMeetings();
+  else if(t === 'work_days') await loadWorkDays();
   else if(t === 'app_settings') await loadSettings();
   renderHeader();
   renderToday();
@@ -419,7 +419,7 @@ async function onRealtime(payload){
 // Full reload + repaint, used when the app resumes and may have missed live updates.
 async function resync(){
   if(!sb || !session) return;
-  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions(), loadGoals(), loadContributions(), loadCleaningTasks(), loadCleaningDone(), loadSchoolWeekly(), loadSchoolOverrides(), loadSchoolClosures(), loadSchoolMeals(), loadSettings()]);
+  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions(), loadGoals(), loadContributions(), loadCleaningTasks(), loadCleaningDone(), loadSchoolWeekly(), loadSchoolOverrides(), loadSchoolClosures(), loadSchoolMeals(), loadMeetings(), loadWorkDays(), loadSettings()]);
   renderHeader();
   renderToday();
   renderSchool();

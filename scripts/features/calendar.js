@@ -1,8 +1,15 @@
 'use strict';
 // Family calendar: one week at a time (Monday–Sunday, every day always shown), and add/edit/delete.
 let editingEvent = null;
-let categoryFilter = null;
 let calWeekOffset = 0;      // 0 = this week, ±1 = neighbouring weeks (as in the matsedel)
+
+// Where a parent works on a day (work_days). A tap waits in pendingWork until it's saved, so a
+// quick 🏠 → 🏢 double tap shows at once and only the final choice is written.
+const WORK_PLACES = { home: { icon: '🏠', label: 'hemma' }, office: { icon: '🏢', label: 'på kontoret' } };
+const pendingWork = {};     // 'YYYY-MM-DD' → 'home' | 'office' | null until the latest tap is saved
+const workTaps = {};        // 'YYYY-MM-DD' → tap counter, to tell the latest tap from older ones
+const workTimers = {};
+const workSaves = {};       // 'YYYY-MM-DD' → save in flight; a day's saves run one at a time, in order
 
 function ownerLabel(ev){
   if(!ev.owner_id) return { name: 'Familjen', color: 'var(--gold)', letter: 'F' };
@@ -21,28 +28,10 @@ function isOngoing(ev){
   return now >= start && now <= end;
 }
 
-function renderCategoryFilter(){
-  const box = $('catFilter');
-  if(!box) return;
-  const chip = (key, label, color) =>
-    `<button class="fchip${categoryFilter === key ? ' active' : ''}" data-cat="${key || ''}" type="button">` +
-    `${color ? `<span class="dot" style="--c:${color}"></span>` : ''}${label}</button>`;
-  box.innerHTML = chip(null, 'Alla', null) +
-    CATEGORIES.map(c => chip(c.key, escapeHtml(c.label), c.color)).join('');
-}
-
-function onCatFilterClick(e){
-  const b = e.target.closest('[data-cat]');
-  if(!b) return;
-  categoryFilter = b.dataset.cat || null;
-  renderCalendar();
-}
-
 function renderCalendar(){
   renderHeader();
   renderNotisBar();
   renderWeekNav();
-  renderCategoryFilter();
   const list = $('eventList');
   list.innerHTML = '';
 
@@ -52,7 +41,6 @@ function renderCalendar(){
   const byDay = {};
   state.events
     .filter(ev => keys.has(dateKey(ev.starts_at)))
-    .filter(ev => !categoryFilter || (ev.category || 'annat') === categoryFilter)
     .sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at))
     .forEach(ev => { const k = dateKey(ev.starts_at); (byDay[k] = byDay[k] || []).push(ev); });
 
@@ -112,21 +100,34 @@ function weekDay(d, idx, evs){
   const key = dateKey(d), today = todayKey();
   const red = (typeof redDayName === 'function') ? redDayName(d) : null;
   const lov = (typeof closureName === 'function') ? closureName(d) : null;
+  const dayLabel = `${capital(WEEKDAYS[d.getDay()])} ${d.getDate()} ${MONTHS_LONG[d.getMonth()]}`;
   const day = document.createElement('div');
   day.className = 'wk-day'
     + (key === today ? ' is-today' : key < today ? ' is-past' : '')
     + (red || d.getDay() === 0 ? ' is-red' : '')
     + (evs.length ? '' : ' is-empty');
   day.setAttribute('role', 'group');
-  day.setAttribute('aria-label', `${capital(WEEKDAYS[d.getDay()])} ${d.getDate()} ${MONTHS_LONG[d.getMonth()]}`);
+  day.setAttribute('aria-label', dayLabel);
+
+  // My own home/office marker sits under the date; other people's show as tags on the day.
+  const mine = me ? workOf(me.id, key) : null;
+  const others = (state.workDays || []).filter(w => w.date === key && !(me && w.profile_id === me.id));
   const tags = (red ? `<span class="wk-tag red">${escapeHtml(red)}</span>` : '')
-    + (lov ? `<span class="wk-tag lov">${escapeHtml(lov)}</span>` : '');
-  day.innerHTML = `
-    <div class="wk-date" aria-hidden="true">
+    + (lov ? `<span class="wk-tag lov">${escapeHtml(lov)}</span>` : '')
+    + others.map(workTag).join('');
+  const date = `
       <span class="wk-wd">${key === today ? 'Idag' : MEAL_WEEKDAYS[idx]}</span>
       <span class="wk-num serif">${d.getDate()}</span>
-    </div>
+      ${mine ? `<span class="wk-work">${WORK_PLACES[mine].icon}</span>` : ''}`;
+  // Parents tap the date (today and later) to cycle their own marker: 🏠 → 🏢 → none.
+  const canMark = isParent() && key >= today;
+  const status = mine ? `du jobbar ${WORK_PLACES[mine].label}` : 'ingen arbetsplats vald';
+  day.innerHTML = `
+    ${canMark
+      ? `<button class="wk-date" type="button" aria-label="${dayLabel}: ${status}. Tryck för att ändra.">${date}</button>`
+      : `<div class="wk-date" aria-hidden="true">${date}</div>`}
     <div class="wk-body">${tags ? `<div class="wk-tags">${tags}</div>` : ''}</div>`;
+  if(canMark) day.querySelector('.wk-date').onclick = () => cycleWorkDay(key);
   const body = day.querySelector('.wk-body');
   if(evs.length){
     for(const ev of evs){
@@ -141,9 +142,9 @@ function weekDay(d, idx, evs){
 }
 
 // A day without events. Upcoming days get "Inget planerat +", which opens Ny händelse on that
-// date; past days (and days emptied by the category filter) just show a dash.
+// date; past days just show a dash.
 function emptyDay(d, past){
-  if(past || categoryFilter){
+  if(past){
     const dash = document.createElement('p');
     dash.className = 'wk-empty';
     dash.textContent = '—';
@@ -158,13 +159,64 @@ function emptyDay(d, past){
   return btn;
 }
 
+// Someone else's marker on a day, e.g. "🏠 Anna".
+function workTag(w){
+  const p = state.profilesById[w.profile_id];
+  const place = WORK_PLACES[w.location];
+  if(!p || !place) return '';
+  const name = capital(p.name);
+  return `<span class="wk-tag work" title="${escapeHtml(`${name} jobbar ${place.label}`)}">${place.icon} ${escapeHtml(name)}</span>`;
+}
+
+// Where someone works on `key`; for me, a tap that's still waiting to be saved wins.
+function workOf(profileId, key){
+  if(me && profileId === me.id && key in pendingWork) return pendingWork[key];
+  const w = (state.workDays || []).find(x => x.profile_id === profileId && x.date === key);
+  return w ? w.location : null;
+}
+
+// Tap on a date: none → 🏠 hemma → 🏢 på kontoret → none. Shown at once, saved after a short pause.
+function cycleWorkDay(key){
+  if(!me) return;
+  const cur = workOf(me.id, key);
+  pendingWork[key] = cur === null ? 'home' : cur === 'home' ? 'office' : null;
+  const tap = workTaps[key] = (workTaps[key] || 0) + 1;
+  renderCalendar();
+  clearTimeout(workTimers[key]);
+  workTimers[key] = setTimeout(() => {
+    const location = pendingWork[key];
+    workSaves[key] = (workSaves[key] || Promise.resolve()).catch(() => {})
+      .then(() => saveWorkDay(key, location, tap));
+  }, 600);
+}
+
+async function saveWorkDay(key, location, tap){
+  if(isDemo()){
+    // Demo: keep the change on this device only, like the budget does; nothing is saved.
+    state.workDays = (state.workDays || []).filter(w => !(w.profile_id === me.id && w.date === key));
+    if(location) state.workDays.push({ profile_id: me.id, date: key, location });
+  } else {
+    try{
+      const { error } = location
+        ? await sb.from('work_days').upsert({ profile_id: me.id, date: key, location }, { onConflict: 'profile_id,date' })
+        : await sb.from('work_days').delete().eq('profile_id', me.id).eq('date', key);
+      if(error) throw error;
+      await loadWorkDays();
+    }catch(err){
+      console.warn('saveWorkDay', err);
+      toast('warn', 'Kunde inte spara');
+    }
+  }
+  if(workTaps[key] === tap) delete pendingWork[key];   // a newer tap keeps showing until it's saved
+  renderCalendar();
+}
+
 function eventRow(ev){
   const row = document.createElement('article');
   const isToday = dateKey(ev.starts_at) === todayKey();
   const ongoing = isToday && isOngoing(ev);
   row.className = 'event' + (isToday ? ' is-today' : '') + (ongoing ? ' is-ongoing' : '');
   const owner = ownerLabel(ev);
-  const cat = categoryOf(ev.category);
   const canEdit = (me && ev.created_by === me.id) || isParent();
   const when = ev.all_day
     ? 'Heldag'
@@ -188,7 +240,6 @@ function eventRow(ev){
     ${ev.notes ? `<p class="ev-notes">${escapeHtml(ev.notes)}</p>` : ''}
     <div class="ev-foot">
       <div class="ev-tags">
-        <span class="cat-chip" style="--c:${cat.color}"><span class="dot"></span>${escapeHtml(cat.label)}</span>
         <span class="owner-chip">${avatarHtml(owner.color, owner.name)}${escapeHtml(owner.name)}</span>
       </div>
       ${chatButton('event', ev.id)}
