@@ -160,7 +160,9 @@ button.wk-date:hover{ background:color-mix(in srgb, var(--text) 6%, transparent)
   box-shadow:0 0 0 1px color-mix(in srgb, var(--gold) 20%, transparent), var(--shadow-sm);
 }
 .ev-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
-.ev-when{ display:flex; align-items:center; gap:11px; min-width:0; }
+.ev-when{ display:flex; align-items:center; gap:11px; flex:0 0 auto; }
+/* right end of the time row: whose event it is, then the ⋯ menu last */
+.ev-top-end{ display:flex; align-items:center; gap:4px; min-width:0; margin-left:auto; }
 .ev-time{ font-size:.9rem; font-weight:700; color:var(--accent-ink); letter-spacing:.02em; font-variant-numeric:tabular-nums; }
 .ev-live{
   display:inline-flex; align-items:center; gap:6px;
@@ -177,14 +179,18 @@ button.wk-date:hover{ background:color-mix(in srgb, var(--text) 6%, transparent)
 }
 .ev-title{ font-size:1.35rem; font-weight:700; letter-spacing:-.01em; line-height:1.2; }
 .ev-notes{ color:var(--muted); font-size:.92rem; margin-top:-1px; }
-.ev-foot{ display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
-.ev-tags{ display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+.ev-foot{ display:flex; justify-content:flex-end; }   /* just the 💬 now */
 
 .owner-chip{
-  display:inline-flex; align-items:center; gap:7px;
+  display:inline-flex; align-items:center; gap:7px; min-width:0;
   font-size:.8rem; font-weight:600; color:var(--muted);
   background:var(--card-2); border-radius:var(--radius-pill); padding:3px 12px 3px 4px;
 }
+.oc-name{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }   /* long names shorten, the time never does */
+/* On the time row every name pill gets the same width (fits "Familjen"), and cards without a ⋯ menu
+   keep its space, so avatars and names line up in one column down the week. */
+.ev-top-end .owner-chip{ width:6.6rem; flex:0 1 auto; }   /* a real width: flex-basis alone shrinks back to the name */
+.ev-menu-spacer{ flex:0 0 32px; }
 
 /* Kebab menu on a card (native <details>) */
 .ev-menu{ position:relative; flex:0 0 auto; }

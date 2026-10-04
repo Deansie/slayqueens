@@ -227,23 +227,21 @@ function eventRow(ev){
         <span class="ev-time">${escapeHtml(when)}</span>
         ${ongoing ? '<span class="ev-live">Pågår</span>' : ''}
       </div>
-      ${canEdit ? `
-      <details class="ev-menu">
-        <summary aria-label="Fler val">⋯</summary>
-        <div class="ev-menu-pop">
-          <button type="button" data-edit>✎ Redigera</button>
-          <button type="button" data-del class="danger">🗑 Ta bort</button>
-        </div>
-      </details>` : ''}
+      <div class="ev-top-end">
+        <span class="owner-chip">${avatarHtml(owner.color, owner.name)}<span class="oc-name">${escapeHtml(owner.name)}</span></span>
+        ${canEdit ? `
+        <details class="ev-menu">
+          <summary aria-label="Fler val">⋯</summary>
+          <div class="ev-menu-pop">
+            <button type="button" data-edit>✎ Redigera</button>
+            <button type="button" data-del class="danger">🗑 Ta bort</button>
+          </div>
+        </details>` : '<span class="ev-menu-spacer" aria-hidden="true"></span>'}
+      </div>
     </div>
     <h3 class="ev-title">${ev.private ? '🔒 ' : ''}${escapeHtml(ev.title)}</h3>
     ${ev.notes ? `<p class="ev-notes">${escapeHtml(ev.notes)}</p>` : ''}
-    <div class="ev-foot">
-      <div class="ev-tags">
-        <span class="owner-chip">${avatarHtml(owner.color, owner.name)}${escapeHtml(owner.name)}</span>
-      </div>
-      ${chatButton('event', ev.id)}
-    </div>`;
+    <div class="ev-foot">${chatButton('event', ev.id)}</div>`;
   if(canEdit){
     const menu = row.querySelector('.ev-menu');
     const close = () => { if(menu) menu.open = false; };
