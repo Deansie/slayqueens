@@ -159,17 +159,21 @@ function schoolSection(){
   const cd = lovCountdownHtml();               // '' when no lov is upcoming
   const when = nextSchoolDate();               // null during a long lov (looks only 8 days ahead)
   const rows = when ? schoolOn(when) : [];
-  if(!rows.length && !cd) return '';           // nothing school-related to show
+  const hw = (typeof homeworkBlockHtml === 'function') ? homeworkBlockHtml() : '';   // Läxor row
+  if(!rows.length && !cd && !hw) return '';    // nothing school-related to show
 
   let body = cd;                               // the lov countdown leads the Skola section
   let right = '';
-  if(rows.length){
-    const isToday = dateKey(when) === todayKey();
+  if(rows.length || hw){
     body += `
       <div class="ag-card ag-school">
         ${rows.map(schoolPanelRow).join('')}
-        ${schoolMealRow(dateKey(when))}
+        ${hw}
+        ${rows.length ? schoolMealRow(dateKey(when)) : ''}
       </div>`;
+  }
+  if(rows.length){
+    const isToday = dateKey(when) === todayKey();
     right = `${isToday ? '' : `<span class="ag-sec-when">${escapeHtml(relativeDay(when))}</span>`}${navLink('school', `${rows.length} barn`)}`;
   }
   return agendaSection('Skola', right, body);
@@ -318,6 +322,7 @@ function agendaTomorrow(){
 
 // ---- navigation ----
 function onTodayClick(e){
+  if(typeof onHomeworkClick === 'function' && onHomeworkClick(e)) return;   // Läxor row in the Skola card
   const menu = e.target.closest('[data-schoolmenu]');
   if(menu){ openSchoolMenu(menu.dataset.schoolmenu); return; }
   const b = e.target.closest('[data-go]');

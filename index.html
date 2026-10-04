@@ -58,6 +58,7 @@
 <link rel="stylesheet" href="styles/routines.css" />
 <link rel="stylesheet" href="styles/rewards.css" />
 <link rel="stylesheet" href="styles/today.css" />
+<link rel="stylesheet" href="styles/homework.css" />
 <link rel="stylesheet" href="styles/school.css" />
 <link rel="stylesheet" href="styles/overlays.css" />
 <link rel="stylesheet" href="styles/responsive.css" />
@@ -802,6 +803,31 @@
   </form>
 </dialog>
 
+<!-- Läxor: quick add from Dagens agenda ------------------------------ -->
+<dialog id="homeworkDialog">
+  <form method="dialog" class="dlg-body" id="homeworkForm">
+    <h3 class="serif">Ny läxa</h3>
+    <div class="dlg-field">
+      <label for="hwTitle">Vad?</label>
+      <input id="hwTitle" type="text" required maxlength="80" placeholder="T.ex. Glosor v.41" autocomplete="off" />
+    </div>
+    <div class="dlg-field" id="hwKidField">
+      <span class="hw-dlg-cap" id="hwKidCap">Vem?</span>
+      <div class="hw-picks" id="hwKidPicks" role="group" aria-labelledby="hwKidCap"></div>
+    </div>
+    <div class="dlg-field">
+      <span class="hw-dlg-cap" id="hwDueCap">Till när?</span>
+      <div class="hw-picks" id="hwDuePicks" role="group" aria-labelledby="hwDueCap"></div>
+      <input id="hwDate" type="date" required aria-label="Datum" />
+    </div>
+    <p class="hw-err" id="hwErr" hidden>Välj vem läxan är till.</p>
+    <div class="dlg-actions">
+      <button class="btn ghost" id="homeworkCancel" type="button">Avbryt</button>
+      <button class="btn" value="ok" type="submit">Lägg till</button>
+    </div>
+  </form>
+</dialog>
+
 <!-- Weather location picker ------------------------------------------ -->
 <dialog id="weatherDialog">
   <form method="dialog" class="dlg-body" id="weatherForm">
@@ -860,6 +886,7 @@
 <script src="scripts/ui/header.js"></script>
 <script src="scripts/features/today.js"></script>
 <script src="scripts/features/school.js"></script>
+<script src="scripts/features/homework.js"></script>
 <script src="scripts/ui/weather.js"></script>
 <script src="scripts/features/meetings.js"></script>
 <script src="scripts/features/calendar.js"></script>

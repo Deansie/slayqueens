@@ -1,0 +1,62 @@
+/* Läxor — a row inside the agenda's Skola card. Collapsed it shows who has homework left;
+   open, each kid's läxor with a tick box. Plus the quick-add dialog. */
+
+.hw-block{ border-top:1px solid var(--border); margin-top:2px; }
+.ag-school > .hw-block:first-child{ border-top:0; margin-top:0; }
+.hw-head{
+  display:flex; align-items:center; gap:11px; width:100%; text-align:left; cursor:pointer;
+  border:0; background:transparent; color:var(--text); padding:11px 0; font:inherit;
+}
+.hw-ico{ flex:0 0 auto; font-size:1.15rem; line-height:1; }
+.hw-head-main{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:3px; }
+.hw-cap{ font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--faint); }
+.hw-who-list{ display:flex; flex-wrap:wrap; gap:6px 14px; }
+.hw-who{ display:inline-flex; align-items:center; gap:6px; font-weight:600; }
+.hw-head:hover .hw-who{ color:var(--accent-ink); }
+.hw-allclear{ color:var(--muted); font-weight:600; }
+.hw-caret{ transition:transform .15s; }
+.hw-block.is-open .hw-caret{ transform:rotate(90deg); }
+
+.hw-list{ display:flex; flex-direction:column; gap:10px; padding:0 0 10px; }
+.hw-kid-name{ display:flex; align-items:center; gap:7px; font-weight:700; font-size:.9rem; margin-bottom:2px; }
+.hw-row{ display:flex; align-items:center; gap:10px; padding:5px 0 5px 4px; }
+.hw-check{
+  flex:0 0 auto; width:22px; height:22px; padding:0; border-radius:50%; cursor:pointer;
+  border:1.5px solid var(--border-strong); background:transparent; color:transparent;
+  display:grid; place-items:center; font-size:.72rem; font-weight:800; line-height:1;
+}
+.hw-check:hover{ border-color:var(--accent); }
+.hw-check:disabled{ cursor:default; opacity:.6; }
+.hw-row.is-done .hw-check{ background:var(--accent); border-color:var(--accent); color:var(--on-accent); }
+.hw-main{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; }
+.hw-title{ font-weight:600; overflow-wrap:anywhere; }
+.hw-row.is-done .hw-title{ text-decoration:line-through; color:var(--faint); font-weight:500; }
+.hw-due{ font-size:.8rem; color:var(--muted); }
+.hw-due.is-late{ color:var(--danger); font-weight:700; }
+.hw-del{
+  flex:0 0 auto; width:26px; height:26px; border:0; border-radius:50%; cursor:pointer;
+  background:transparent; color:var(--faint); font-size:.75rem; line-height:1;
+}
+.hw-del:hover{ background:var(--danger-soft); color:var(--danger); }
+.hw-add{
+  align-self:flex-start; border:0; background:transparent; cursor:pointer; padding:4px 0;
+  color:var(--accent-ink); font-weight:700; font-size:.9rem;
+}
+
+/* quick-add dialog */
+.hw-dlg-cap{ font-size:.8rem; color:var(--muted); font-weight:600; }
+.hw-picks{ display:flex; flex-wrap:wrap; gap:7px; }
+.hw-pick{
+  display:inline-flex; align-items:center; gap:7px; cursor:pointer;
+  border:1px solid var(--border); background:var(--card-2); color:var(--text);
+  border-radius:var(--radius-pill); padding:7px 13px; font-size:.88rem; font-weight:600;
+}
+.hw-pick.with-av{ padding-left:5px; }
+.hw-pick:hover{ border-color:var(--gold-line); }
+.hw-pick.on{
+  color:var(--accent-ink); border-color:var(--gold-line);
+  background:var(--gold-soft); box-shadow:inset 0 0 0 1px var(--gold-line);
+}
+.dlg-body .hw-err{ color:var(--danger); font-size:.85rem; font-weight:600; }
+
+@media (prefers-reduced-motion: reduce){ .hw-caret{ transition:none; } }

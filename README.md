@@ -98,6 +98,12 @@ everyone, and the agenda counts down to the next lov. The school **lunch menu** 
 automatically each night and shown under the day's schedule, with the whole week a tap away.
 Parents set it up; kids read it.
 
+**Läxor.** Homework reminders, only on Dagens agenda. There's no schedule: when a kid says they
+have homework, tap **+ Läxa** on the start screen, write what it is and pick the kid; the next
+school day is already chosen. In the Skola card a *Läxor* row shows which kids have homework left;
+tap it to open the list and tick each läxa when it's done (late ones turn red). A ticked läxa stays
+crossed out until its day is over. Parents add homework for any kid; a kid can add and tick their own.
+
 **Budget.** The household budget (parents only). Plan income and expenses one month at a time,
 group related items (e.g. all loans under "Lån"), and see totals, a savings rate, and where
 the money goes. Kids never see it.

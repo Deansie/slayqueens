@@ -10,10 +10,10 @@ let tasksTab = 'jobs';
 try{ if(localStorage.getItem('slayqueens_taskstab') === 'routines') tasksTab = 'routines'; }catch(e){}
 
 // Which "+" action the floating button performs per view (null = no button here). The
-// "todos" and "tasks" views are dynamic — their action depends on the sub-tab — so they're
-// resolved in currentFabAction() rather than listed here.
+// "todos" and "tasks" views are dynamic — their action depends on the sub-tab — and so is
+// "today" (+ Läxa, only for someone who can add homework); they're resolved in
+// currentFabAction() rather than listed here.
 const FAB_ACTIONS = {
-  today:       null,
   calendar:    { label: 'Ny händelse', run: () => openEventDialog(null) },
   suggestions: { label: 'Ny idé',      run: () => openSuggestionDialog() },
   matsedel:    { label: 'Önska',       run: () => openWishDialog() },
@@ -23,6 +23,9 @@ const FAB_ACTIONS = {
 
 // The FAB action for the current view (and, on the two segmented views, the current sub-tab).
 function currentFabAction(){
+  if(currentView === 'today'){
+    return homeworkKids().length ? { label: 'Läxa', run: () => openHomeworkDialog() } : null;
+  }
   if(currentView === 'todos'){
     if(todoTab === 'shopping') return { label: 'Ny kategori',    run: () => openTopicDialog(),        parentOnly: true };
     if(todoTab === 'cleaning') return { label: 'Ny städuppgift', run: () => openCleaningDialog(null), parentOnly: true };
@@ -50,6 +53,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); switchView('today'); }
   });
   $('todayBody').addEventListener('click', onTodayClick);
+
+  // Läxor (homework on the agenda): the quick-add dialog
+  $('homeworkForm').addEventListener('submit', (e) => {
+    if(e.submitter && e.submitter.value === 'ok' && !saveHomework()) e.preventDefault();   // stay open until a kid is picked
+  });
+  $('homeworkCancel').addEventListener('click', () => $('homeworkDialog').close());
+  $('hwKidPicks').addEventListener('click', onHomeworkKidPick);
+  $('hwDuePicks').addEventListener('click', onHomeworkDuePick);
+  $('hwDate').addEventListener('input', reflectHomeworkDue);
 
   // Floating add button
   $('fab').addEventListener('click', () => {
@@ -398,6 +410,7 @@ async function onRealtime(payload){
   else if(t === 'school_meals') await loadSchoolMeals();
   else if(t === 'meetings') await loadMeetings();
   else if(t === 'work_days') await loadWorkDays();
+  else if(t === 'homework') await loadHomework();
   else if(t === 'app_settings') await loadSettings();
   renderHeader();
   renderToday();
@@ -419,7 +432,7 @@ async function onRealtime(payload){
 // Full reload + repaint, used when the app resumes and may have missed live updates.
 async function resync(){
   if(!sb || !session) return;
-  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions(), loadGoals(), loadContributions(), loadCleaningTasks(), loadCleaningDone(), loadSchoolWeekly(), loadSchoolOverrides(), loadSchoolClosures(), loadSchoolMeals(), loadMeetings(), loadWorkDays(), loadSettings()]);
+  await Promise.all([loadProfiles(), loadEvents(), loadTasks(), loadBalances(), loadLedger(), loadPayouts(), loadTemplates(), loadSuggestions(), loadVotes(), loadMessages(), loadTodos(), loadMeals(), loadMealDishes(), loadMealWishes(), loadShopTopics(), loadShopItems(), loadBehaviors(), loadMarkLedger(), loadMarkBalances(), loadMarkRequests(), loadRewardTiers(), loadRewards(), loadRedemptions(), loadGoals(), loadContributions(), loadCleaningTasks(), loadCleaningDone(), loadSchoolWeekly(), loadSchoolOverrides(), loadSchoolClosures(), loadSchoolMeals(), loadMeetings(), loadWorkDays(), loadHomework(), loadSettings()]);
   renderHeader();
   renderToday();
   renderSchool();
