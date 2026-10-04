@@ -31,7 +31,12 @@ const DEMO_DATA = (function(){
     { id:'ev-fotboll', title:'Fotbollsträning', starts_at:at(2,17,0), ends_at:at(2,18,30), all_day:false, owner_id:P.nils, category:'aktivitet', private:false, notes:null, created_by:P.johan, created_at:at(-3) },
     { id:'ev-simskola',title:'Simskola', starts_at:at(3,16,0), ends_at:at(3,17,0), all_day:false, owner_id:P.ella, category:'aktivitet', private:false, notes:null, created_by:P.anna, created_at:at(-3) },
     { id:'ev-kalas',   title:'Kalas hos Emma', starts_at:at(5,13,0), ends_at:at(5,16,0), all_day:false, owner_id:P.ella, category:'kalas', private:false, notes:'Present: pysselset', created_by:P.anna, created_at:at(-2) },
-    { id:'ev-lov',     title:'Sommarlov börjar', starts_at:at(12,0,0), ends_at:null, all_day:true, owner_id:null, category:'skola', private:false, notes:null, created_by:P.johan, created_at:at(-4) }
+    { id:'ev-lov',     title:'Sommarlov börjar', starts_at:at(12,0,0), ends_at:null, all_day:true, owner_id:null, category:'skola', private:false, notes:null, created_by:P.johan, created_at:at(-4) },
+    // A few that already happened, so the week view's earlier days (and ‹ last week) aren't empty.
+    { id:'ev-loppis',  title:'Loppis på skolan', starts_at:at(-2,10,0), ends_at:at(-2,12,0), all_day:false, owner_id:null, category:'skola', private:false, notes:null, created_by:P.anna, created_at:at(-9) },
+    { id:'ev-match',   title:'Fotbollsmatch', starts_at:at(-3,17,30), ends_at:at(-3,19,0), all_day:false, owner_id:P.nils, category:'aktivitet', private:false, notes:'Vann 3–2!', created_by:P.johan, created_at:at(-8) },
+    { id:'ev-mote',    title:'Föräldramöte', starts_at:at(-5,18,0), ends_at:at(-5,19,0), all_day:false, owner_id:P.anna, category:'skola', private:false, notes:null, created_by:P.anna, created_at:at(-12) },
+    { id:'ev-svamp',   title:'Svampplockning', starts_at:at(-8,0,0), ends_at:null, all_day:true, owner_id:null, category:'familj', private:false, notes:null, created_by:P.johan, created_at:at(-14) }
   ];
 
   // Möten: known meeting/busy blocks a new calendar event is checked against (±15 min). Mostly
@@ -118,7 +123,8 @@ const DEMO_DATA = (function(){
     { id:'st-klader-nils', title:'Kläder',    emoji:'👕', owner_id:P.nils, created_by:P.anna,  created_at:at(-7) },
     { id:'st-klader-ella', title:'Kläder',    emoji:'👕', owner_id:P.ella, created_by:P.anna,  created_at:at(-6) },
     { id:'st-skola-nils',  title:'Skolsaker', emoji:'🎒', owner_id:P.nils, created_by:P.johan, created_at:at(-5) },
-    { id:'st-hem',         title:'Hemmet',    emoji:'🏠', owner_id:null,   created_by:P.anna,  created_at:at(-4) }
+    { id:'st-hem',         title:'Hemmet',    emoji:'🏠', owner_id:null,   created_by:P.anna,  created_at:at(-4) },
+    { id:'st-jul',         title:'Önskelista till jul', emoji:'🎄', owner_id:null, created_by:P.anna, created_at:at(-10) }
   ];
   const shopItems = [
     { id:'si1', topic_id:'st-klader-nils', title:'Strumpor',             bought:false, created_by:P.nils,  created_at:at(-3), bought_at:null,  bought_by:null },
@@ -127,7 +133,53 @@ const DEMO_DATA = (function(){
     { id:'si4', topic_id:'st-skola-nils',  title:'Suddgummi',            bought:false, created_by:P.nils,  created_at:at(-2), bought_at:null,  bought_by:null },
     { id:'si5', topic_id:'st-skola-nils',  title:'Linjal och passare',   bought:false, created_by:P.nils,  created_at:at(-1), bought_at:null,  bought_by:null },
     { id:'si6', topic_id:'st-hem',         title:'Diskmedel',            bought:false, created_by:P.johan, created_at:at(-1), bought_at:null,  bought_by:null },
-    { id:'si7', topic_id:'st-hem',         title:'Glödlampa till hallen',bought:false, created_by:P.anna,  created_at:at(-2), bought_at:null,  bought_by:null }
+    { id:'si7', topic_id:'st-hem',         title:'Glödlampa till hallen',bought:false, created_by:P.anna,  created_at:at(-2), bought_at:null,  bought_by:null },
+    // The kids' wish list. A parent taps a wish to save a copy in the locked Julklappar list
+    // (the kid's name in the text is picked up); nothing about the wish changes.
+    { id:'si8',  topic_id:'st-jul', title:'Spidermanbil Nils',           bought:false, created_by:P.nils, created_at:at(-9), bought_at:null, bought_by:null },
+    { id:'si9',  topic_id:'st-jul', title:'Lego Friends Ella',           bought:false, created_by:P.ella, created_at:at(-9), bought_at:null, bought_by:null },
+    { id:'si10', topic_id:'st-jul', title:'Magnatiles Nils',             bought:false, created_by:P.anna, created_at:at(-8), bought_at:null, bought_by:null },
+    { id:'si11', topic_id:'st-jul', title:'Hörlurar Ella',               bought:false, created_by:P.ella, created_at:at(-7), bought_at:null, bought_by:null },
+    { id:'si12', topic_id:'st-jul', title:'Piratkläder och svärd Nils',  bought:false, created_by:P.nils, created_at:at(-6), bought_at:null, bought_by:null },
+    { id:'si13', topic_id:'st-jul', title:'Bagarkläder Ella',            bought:false, created_by:P.ella, created_at:at(-5), bought_at:null, bought_by:null },
+    { id:'si14', topic_id:'st-jul', title:'Brainrot-klistermärken Nils', bought:false, created_by:P.nils, created_at:at(-3), bought_at:null, bought_by:null }
+  ];
+
+  // Kalender: where the parents work (🏠 hemma / 🏢 på kontoret), this week and next. The demo
+  // user is Johan, so his show under the date and Anna's as tags.
+  const workDays = [
+    { id:'wd1',  profile_id:P.johan, date:week(0), location:'home' },
+    { id:'wd2',  profile_id:P.johan, date:week(1), location:'office' },
+    { id:'wd3',  profile_id:P.johan, date:week(2), location:'office' },
+    { id:'wd4',  profile_id:P.johan, date:week(3), location:'home' },
+    { id:'wd5',  profile_id:P.johan, date:week(4), location:'office' },
+    { id:'wd6',  profile_id:P.anna,  date:week(1), location:'home' },
+    { id:'wd7',  profile_id:P.anna,  date:week(3), location:'office' },
+    { id:'wd8',  profile_id:P.johan, date:week(7), location:'home' },
+    { id:'wd9',  profile_id:P.johan, date:week(8), location:'office' },
+    { id:'wd10', profile_id:P.anna,  date:week(9), location:'home' }
+  ];
+
+  // Läxor (in the Skola card on Dagens agenda): one late, one done today, the rest coming up.
+  const homework = [
+    { id:'hw1', kid_id:P.ella, title:'Skriv klart berättelsen', due_date:day(0),  done_at:null,       done_by:null,   created_by:P.anna,  created_at:at(-2) },
+    { id:'hw2', kid_id:P.nils, title:'Stavningsord',            due_date:day(0),  done_at:at(0,16,0), done_by:P.nils, created_by:P.johan, created_at:at(-3) },
+    { id:'hw3', kid_id:P.nils, title:'Läsläxa: kapitel 4',      due_date:day(1),  done_at:null,       done_by:null,   created_by:P.johan, created_at:at(0) },
+    { id:'hw4', kid_id:P.ella, title:'Glosor engelska',         due_date:day(1),  done_at:null,       done_by:null,   created_by:P.ella,  created_at:at(0) },
+    { id:'hw5', kid_id:P.ella, title:'Matte s. 34–35',          due_date:day(3),  done_at:null,       done_by:null,   created_by:P.anna,  created_at:at(-1) },
+    { id:'hw6', kid_id:P.nils, title:'Ta med lånebok',          due_date:day(-1), done_at:null,       done_by:null,   created_by:P.anna,  created_at:at(-3) }
+  ];
+
+  // Julklappar: the parents-only gift list (hold Inköp for 4 s, demo code 1234). Prices, a couple
+  // already bought, and some saved from the wish list above ("önskad").
+  const giftYear = now.getFullYear();
+  const gifts = [
+    { id:'gf1', recipient_id:P.nils, title:'Magnatiles 100 bitar',  price:599,  bought:true,  year:giftYear, from_wish:true,  created_by:P.anna,  created_at:at(-6) },
+    { id:'gf2', recipient_id:P.nils, title:'Piratkläder och svärd', price:349,  bought:false, year:giftYear, from_wish:true,  created_by:P.johan, created_at:at(-5) },
+    { id:'gf3', recipient_id:P.nils, title:'Verktygsbänk',          price:899,  bought:false, year:giftYear, from_wish:false, created_by:P.johan, created_at:at(-4) },
+    { id:'gf4', recipient_id:P.ella, title:'Sunny Angels',          price:129,  bought:true,  year:giftYear, from_wish:false, created_by:P.anna,  created_at:at(-6) },
+    { id:'gf5', recipient_id:P.ella, title:'Hörlurar',              price:499,  bought:false, year:giftYear, from_wish:true,  created_by:P.anna,  created_at:at(-3) },
+    { id:'gf6', recipient_id:P.ella, title:'Pysselbok',             price:null, bought:false, year:giftYear, from_wish:false, created_by:P.anna,  created_at:at(-1) }
   ];
 
   // Städschema: a weekly cleaning plan pinned to weekdays (0 = Mon … 6 = Sun), shared — anyone
@@ -276,7 +328,7 @@ const DEMO_DATA = (function(){
 
   return {
     meId: P.johan,
-    state: { profiles, events, meetings, tasks, balances, ledger, payouts, templates, suggestions, votes, messages, todos, meals, mealDishes, mealWishes, shopTopics, shopItems, behaviors, markLedger, markBalances, markRequests, rewardTiers, rewards, redemptions, goals, contributions, cleaningTasks, cleaningDone, settings, schoolWeekly, schoolOverrides, schoolClosures, schoolMeals },
+    state: { profiles, events, meetings, tasks, balances, ledger, payouts, templates, suggestions, votes, messages, todos, meals, mealDishes, mealWishes, shopTopics, shopItems, behaviors, markLedger, markBalances, markRequests, rewardTiers, rewards, redemptions, goals, contributions, cleaningTasks, cleaningDone, settings, schoolWeekly, schoolOverrides, schoolClosures, schoolMeals, workDays, homework, gifts },
     budget
   };
 })();

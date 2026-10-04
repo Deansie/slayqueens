@@ -6,8 +6,9 @@
 //
 // Laid out as an accordion: one compact row per category (icon, name, who it's for, how many
 // are left) and only one open at a time. An open list has a type-and-Enter field, bought items
-// fold away under "Köpta (n)", and ✕ only appears in "Redigera". A parent can tap an item to
-// save a copy in the locked gift list (gifts.js); the item itself is left untouched.
+// fold away under "Köpta (n)", and ✕ only appears in "Redigera". In the kids' wish list
+// ("Önskelista till jul…") a parent can tap an item to save a copy in the locked gift list
+// (gifts.js); the item itself is left untouched.
 
 // A small palette of category icons parents can pick from (first one is the default).
 const SHOP_EMOJI = ['🛒','👕','🎒','🧴','🍎','🧻','💊','🎮','🏠','✏️','⚽','🐶','🎄'];
@@ -16,6 +17,7 @@ let editingTopicEmoji = '🛒';      // emoji chosen in the category dialog
 let shopOpenTopic = null;          // the one open category (remembered per device)
 try{ shopOpenTopic = localStorage.getItem('slayqueens_shopopen'); }catch(e){}
 let shopEditing = false;           // "Redigera": ✕ on items, and "Ta bort listan" for parents
+let shopReorder = false;           // parents: "↕ Ändra ordning" — ↑/↓ on every list
 const shopShowBought = {};         // category id → bought items unfolded
 
 function itemsForTopic(id){ return (state.shopItems || []).filter(i => i.topic_id === id); }
@@ -36,11 +38,63 @@ function renderShopping(){
   }
   if(shopOpenTopic && !topics.some(t => t.id === shopOpenTopic)) shopOpenTopic = null;
 
+  if(!isParent()) shopReorder = false;
+
   // Keep a half-typed item (and the cursor) when a live update repaints the board.
   const active = document.activeElement;
   const typing = active && active.dataset && active.dataset.shopqa ? { id: active.id, value: active.value } : null;
-  box.innerHTML = `<div class="shop-acc">${topics.map(topicRow).join('')}</div>`;
+  const rows = shopReorder
+    ? topics.map((t, i) => reorderRow(t, i, topics.length)).join('')
+    : topics.map(topicRow).join('');
+  const orderBtn = (isParent() && topics.length > 1)
+    ? `<button class="shop-order" type="button" data-shop="order" aria-pressed="${shopReorder}">${shopReorder ? 'Klar' : '↕ Ändra ordning'}</button>`
+    : '';
+  box.innerHTML = `<div class="shop-acc${shopReorder ? ' is-reorder' : ''}">${rows}</div>${orderBtn}`;
   if(typing){ const el = $(typing.id); if(el){ el.value = typing.value; el.focus(); } }
+}
+
+// A list's row while parents are changing the order: no opening, just ↑ / ↓.
+function reorderRow(t, i, n){
+  const owner = t.owner_id ? state.profilesById[t.owner_id] : null;
+  const name = escapeHtml(t.title);
+  return `
+    <div class="shop-row">
+      <span class="shop-emoji" aria-hidden="true">${escapeHtml(t.emoji || '🛒')}</span>
+      <span class="shop-row-title">${name}</span>
+      ${owner ? `<span class="shop-owner">${avatarHtml(profileColor(owner), owner.name)}${escapeHtml(capital(owner.name))}</span>` : ''}
+      <span class="shop-move">
+        <button class="shop-move-btn" type="button" data-shop="up" data-topic="${t.id}" aria-label="Flytta upp ${name}"${i === 0 ? ' disabled' : ''}>↑</button>
+        <button class="shop-move-btn" type="button" data-shop="down" data-topic="${t.id}" aria-label="Flytta ner ${name}"${i === n - 1 ? ' disabled' : ''}>↓</button>
+      </span>
+    </div>`;
+}
+
+// Move a list one step, renumber them all in the new order and save the ones that changed.
+async function moveTopic(id, dir){
+  const list = (state.shopTopics || []).slice();
+  const i = list.findIndex(t => t.id === id), j = i + dir;
+  if(i < 0 || j < 0 || j >= list.length) return;
+  [list[i], list[j]] = [list[j], list[i]];
+  const changed = [];
+  list.forEach((t, k) => { if(t.sort !== k){ t.sort = k; changed.push(t); } });
+  state.shopTopics = list;
+  renderShopping();
+  // keep the focus on the moved list's arrow so it can be tapped again
+  const next = $('shoppingBoard').querySelector(`[data-shop="${dir < 0 ? 'up' : 'down'}"][data-topic="${id}"]:not(:disabled)`)
+    || $('shoppingBoard').querySelector(`[data-topic="${id}"].shop-move-btn:not(:disabled)`);
+  if(next) next.focus();
+  if(isDemo() || !changed.length) return;
+  try{
+    const results = await Promise.all(changed.map(t =>
+      sb.from('shopping_topics').update({ sort: t.sort }).eq('id', t.id)));
+    const failed = results.find(r => r.error);
+    if(failed) throw failed.error;
+  }catch(err){
+    console.warn('moveTopic', err);
+    toast('warn', 'Kunde inte spara ordningen');
+    await loadShopTopics();
+    renderShopping();
+  }
 }
 
 function topicRow(t){
@@ -70,6 +124,9 @@ function topicBody(t, items){
   const open   = items.filter(i => !i.bought).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
   const bought = items.filter(i =>  i.bought).sort((a, b) => new Date(b.bought_at || b.created_at) - new Date(a.bought_at || a.created_at));
   const showBought = !!shopShowBought[t.id];
+  // Only the kids' wish list ("Önskelista till jul…") lets a parent save a present to Julklappar.
+  const keepable = isParent() && typeof isWishList === 'function' && isWishList(t);
+  const row = i => itemRow(i, keepable);
   return `
     <div class="shop-body">
       <div class="shop-tools">
@@ -79,22 +136,23 @@ function topicBody(t, items){
       <label class="sr-only" for="shopQa-${t.id}">Lägg till i ${escapeHtml(t.title)}</label>
       <input class="shop-qa" id="shopQa-${t.id}" data-shopqa="${t.id}" type="text" maxlength="80"
         autocomplete="off" enterkeyhint="done" placeholder="${t.owner_id ? 'Lägg till det du saknar…' : 'Lägg till…'}">
-      ${open.length ? `<div class="shop-items">${open.map(itemRow).join('')}</div>` : '<p class="shop-empty">Inget som saknas just nu.</p>'}
+      ${open.length ? `<div class="shop-items">${open.map(row).join('')}</div>` : '<p class="shop-empty">Inget som saknas just nu.</p>'}
       ${bought.length ? `
         <div class="shop-bought">
           <button class="shop-bought-toggle" type="button" data-shop="bought" data-topic="${t.id}" aria-expanded="${showBought}">${showBought ? '▾' : '▸'} Köpta (${bought.length})</button>
           ${showBought && parent ? `<button class="shop-clear" type="button" data-shop="clear" data-topic="${t.id}">Rensa</button>` : ''}
         </div>
-        ${showBought ? `<div class="shop-items">${bought.map(itemRow).join('')}</div>` : ''}` : ''}
+        ${showBought ? `<div class="shop-items">${bought.map(row).join('')}</div>` : ''}` : ''}
       ${shopEditing && parent ? `<button class="shop-deltopic" type="button" data-shop="deltopic" data-topic="${t.id}">🗑 Ta bort listan</button>` : ''}
     </div>`;
 }
 
-function itemRow(i){
+function itemRow(i, keepable){
   // items inherit their owner from the category, so a row is just the need itself
   const canDelete = i.created_by === me.id || isParent();
-  // A parent can tap an item to save a copy in the locked gift list; nothing on the item changes.
-  const title = isParent()
+  // In the wish list a parent can tap an item to save a copy in the locked gift list; nothing on
+  // the item changes. Everywhere else (and for kids) the name is plain text.
+  const title = keepable
     ? `<button class="shop-item-title" type="button" data-shop="keep" data-item="${i.id}">${escapeHtml(i.title)}</button>`
     : `<span class="shop-item-title">${escapeHtml(i.title)}</span>`;
   return `<div class="shop-item${i.bought ? ' bought' : ''}">
@@ -115,6 +173,15 @@ function onShoppingClick(e){
     renderShopping();
   }
   else if(act === 'edit'){ shopEditing = !shopEditing; renderShopping(); }
+  else if(act === 'order'){
+    shopReorder = !shopReorder;
+    shopEditing = false;
+    renderShopping();
+    const btn = $('shoppingBoard').querySelector('[data-shop="order"]');
+    if(btn) btn.focus();
+  }
+  else if(act === 'up')   moveTopic(topic, -1);
+  else if(act === 'down') moveTopic(topic, 1);
   else if(act === 'bought'){ shopShowBought[topic] = !shopShowBought[topic]; renderShopping(); }
   else if(act === 'clear')    clearBought(topic);
   else if(act === 'deltopic') deleteTopic(topic);
@@ -190,9 +257,13 @@ async function saveTopic(){
   const title = $('shopTopicTitle').value.trim();
   if(!title){ toast('warn', 'Skriv ett namn'); return; }
   const owner_id = $('shopTopicOwner').value || null;   // null = shared/family
+  const row = { title, emoji: editingTopicEmoji, owner_id, created_by: me.id };
+  // A new list goes last in the chosen order (only once the sort column exists).
+  const topics = state.shopTopics || [];
+  if(topics.some(t => 'sort' in t)) row.sort = topics.reduce((m, t) => Math.max(m, t.sort ?? -1), -1) + 1;
   try{
     const { data, error } = await sb.from('shopping_topics')
-      .insert({ title, emoji: editingTopicEmoji, owner_id, created_by: me.id })
+      .insert(row)
       .select('id').single();
     if(error) throw error;
     // let the assigned person know they have a new list to fill in (shared lists don't notify)

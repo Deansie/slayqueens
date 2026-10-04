@@ -4,8 +4,8 @@
 // 4 seconds and enters a code (chosen in the app the first time; only its hash is stored, in the
 // parents-only gift_settings row). Inside: this Christmas's presents per kid, each kid folded
 // into one row with the count and total, a price and a Köpt tick per present. A parent can tap
-// an item in Inköp to save a copy here (openKeepDialog); the item in Inköp is left untouched, so
-// the kids see no sign of it. The list locks again as soon as you leave it or the app goes to
+// a wish in the Inköp list named "Önskelista till jul…" to save a copy here (openKeepDialog);
+// the wish is left untouched, so the kids see no sign of it. No other list offers this. The list locks again as soon as you leave it or the app goes to
 // the background. RLS keeps the tables parents-only regardless of the code.
 
 const GIFT_HOLD_MS = 4000;
@@ -168,7 +168,7 @@ function renderGifts(){
         <span>köpt ${fmtMoney(giftSum(all.filter(g => g.bought)))}</span>
       </div>
       <div class="gf-kids">${kidsHtml || '<p class="gf-empty">Inga barn i familjen än.</p>'}</div>
-      <p class="gf-tip">Tips: tryck på något i Inköp för att spara undan det hit. Det syns inte för barnen.</p>
+      <p class="gf-tip">Tips: tryck på en önskan i Önskelista till jul (Inköp) för att spara undan den hit. Det syns inte för barnen.</p>
     </div>`;
   if(typing){ const el = $(typing.id); if(el){ el.value = typing.value; el.focus(); } }
 }
@@ -264,9 +264,17 @@ function guessGiftKid(title){
   return { title: clean || title, kidId: hits[0].id };
 }
 
+// The one Inköp list presents can be saved from: the kids' wish list, matched by how its name
+// starts, whatever comes after ("Önskelista till jul 🎅", "Önskelista till jul 2026"…).
+const WISH_LIST_PREFIX = 'önskelista till jul';
+function isWishList(topic){
+  return !!topic && String(topic.title || '').normalize('NFC').trim().toLowerCase().startsWith(WISH_LIST_PREFIX);
+}
+
 function openKeepDialog(itemId){
   const it = (state.shopItems || []).find(x => x.id === itemId);
   if(!it || !isParent()) return;
+  if(!isWishList((state.shopTopics || []).find(t => t.id === it.topic_id))) return;   // only from the wish list
   const guess = guessGiftKid(it.title);
   openGiftDialog({ mode: 'keep', title: guess.title, kidId: guess.kidId, price: null });
 }

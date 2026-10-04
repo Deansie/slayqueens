@@ -80,6 +80,22 @@ button.shop-item-title{ cursor:pointer; }
   color:var(--danger); font-weight:700; font-size:.85rem; padding:4px 0;
 }
 
+/* Parents: "↕ Ändra ordning" — every list gets ↑ / ↓ instead of opening */
+.shop-order{
+  display:block; margin:10px 2px 0 auto; border:0; background:transparent; cursor:pointer;
+  color:var(--accent-ink); font-weight:700; font-size:.85rem; padding:4px 2px;
+}
+.shop-acc.is-reorder .shop-row{ cursor:default; padding-block:9px; }
+.shop-acc.is-reorder .shop-row:hover .shop-row-title{ color:inherit; }
+.shop-move{ margin-left:auto; display:flex; gap:6px; flex:0 0 auto; }
+.shop-move-btn{
+  width:34px; height:34px; padding:0; border-radius:50%; cursor:pointer;
+  display:grid; place-items:center; font-size:1rem; line-height:1;
+  border:1px solid var(--border); background:var(--card-2); color:var(--text);
+}
+.shop-move-btn:hover:not(:disabled){ border-color:var(--gold-line); color:var(--accent-ink); }
+.shop-move-btn:disabled{ opacity:.35; cursor:default; }
+
 /* Category-icon picker in the "Ny kategori" dialog */
 .shop-emoji-picks{ display:flex; flex-wrap:wrap; gap:7px; }
 .shop-emoji-pick{

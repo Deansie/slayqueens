@@ -91,7 +91,10 @@ async function loadMealWishes(){
 async function loadShopTopics(){
   const { data, error } = await sb.from('shopping_topics').select('*').order('created_at');
   if(error){ console.warn('loadShopTopics', error); return; }
-  state.shopTopics = data || [];
+  // The order parents chose ("↕ Ändra ordning"); lists without a place keep oldest-first, last.
+  // Sorted here rather than in the query so it also works before the sort column exists.
+  const place = t => (t.sort == null ? Infinity : t.sort);
+  state.shopTopics = (data || []).slice().sort((a, b) => place(a) - place(b));
 }
 
 async function loadShopItems(){

@@ -44,7 +44,8 @@ whoever it's for, so a kid only sees the categories assigned to them (plus share
 in what they need there; parents see everyone's — handy with several kids. The page is a compact
 list with one row per category (how many things are left) and one category open at a time: type
 a thing and press Enter to add it, tick it off when bought (bought things fold away under
-*Köpta*), and tap *Redigera* to delete. **Städschema** is a recurring weekly cleaning schedule: parents pin chores to a
+*Köpta*), and tap *Redigera* to delete. Parents can put the lists in any order with
+*↕ Ändra ordning* (↑/↓ per list); everyone sees that order. **Städschema** is a recurring weekly cleaning schedule: parents pin chores to a
 weekday and the whole family ticks them off through the week. A progress bar and a nudge
 ("2 uppgifter släpar efter — ta dem idag") encourage keeping up so nothing piles up for the
 weekend, and it resets automatically every Monday.
@@ -104,8 +105,9 @@ Parents set it up; kids read it.
 sight because the kids sometimes use a parent's phone: there's no menu entry, and it opens from
 Inköp behind a 4-digit code that you choose in the app the first time (only its hash is stored).
 Presents are grouped per kid, folded into one row each with the count and total; each has an
-optional price and a Köpt tick. Tapping something in Inköp saves a copy here, and nothing about
-the original changes, so a wish list never gives a present away. The list locks again when you
+optional price and a Köpt tick. A parent tapping a wish in the Inköp list whose name starts with
+"Önskelista till jul" saves a copy here (no other list offers this), and nothing about the wish
+changes, so the wish list never gives a present away. The list locks again when you
 leave it or put the app away. Forgot the code? Run
 `update public.gift_settings set code_hash = null;` and choose a new one.
 
