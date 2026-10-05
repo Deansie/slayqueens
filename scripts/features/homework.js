@@ -105,13 +105,13 @@ function onHomeworkClick(e){
 
 // Tick / untick. Shown at once; reverted with a warning if the save fails.
 async function toggleHomework(id){
+  if(demoBlock()) return;
   const h = (state.homework || []).find(x => x.id === id);
   if(!h) return;
   const before = { done_at: h.done_at, done_by: h.done_by };
   h.done_at = h.done_at ? null : new Date().toISOString();
   h.done_by = h.done_at && me ? me.id : null;
   renderToday();
-  if(isDemo()) return;   // demo: the tick stays on this device only
   try{
     const { error } = await sb.from('homework').update({ done_at: h.done_at, done_by: h.done_by }).eq('id', id);
     if(error) throw error;
@@ -124,12 +124,12 @@ async function toggleHomework(id){
 }
 
 async function deleteHomework(id){
+  if(demoBlock()) return;
   const h = (state.homework || []).find(x => x.id === id);
   if(!h) return;
   if(!(await confirmDialog(`Ta bort läxan "${h.title}"?`))) return;
   state.homework = state.homework.filter(x => x.id !== id);
   renderToday();
-  if(isDemo()) return;
   try{
     const { error } = await sb.from('homework').delete().eq('id', id);
     if(error) throw error;
@@ -162,6 +162,7 @@ function dueChipLabel(key){
 }
 
 function openHomeworkDialog(){
+  if(demoBlock()) return;
   const list = homeworkKids();
   if(!list.length){ toast('warn', 'Det finns inga skolbarn att lägga läxor på'); return; }
   const pick = list.length === 1 ? list[0].id : (list.some(k => k.id === hwLastKid) ? hwLastKid : null);
@@ -218,13 +219,6 @@ function saveHomework(){
 }
 
 async function addHomework(row){
-  if(isDemo()){
-    // Demo: keep it on this device only, like the budget does; nothing is saved.
-    state.homework.push({ ...row, id: 'demo-' + Date.now(), done_at: null, done_by: null,
-      created_by: me.id, created_at: new Date().toISOString() });
-    renderToday();
-    return;
-  }
   try{
     const { error } = await sb.from('homework').insert({ ...row, created_by: me.id });
     if(error) throw error;

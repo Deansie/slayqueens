@@ -11,7 +11,8 @@
 const GIFT_HOLD_MS = 4000;
 let giftsUnlocked = false;
 let giftCodeHash = null;
-const giftsOpenKids = new Set();       // kid sections unfolded in the gift list
+let giftsOpenKid = null;               // the kid whose page is open (null = the overview)
+const giftsShowBought = {};            // kid id → bought presents unfolded
 let editingGift = null;                // { mode: 'keep' | 'edit', id?, fromWish? } while the dialog is open
 let pinBuffer = '', pinMode = 'enter', pinFirst = '';
 
@@ -111,75 +112,125 @@ function onPinKey(e){
 // ---- open / lock ----
 async function openGifts(){
   giftsUnlocked = true;
-  if(!isDemo()) await loadGifts();
+  giftsOpenKid = null;
+  await loadGifts();      // in the demo the stand-in client fails this, so the fixtures stay
   switchView('gifts');
   renderGifts();
 }
 // Forget everything the moment the list is left (or the app is hidden).
 function lockGifts(){
   giftsUnlocked = false;
-  state.gifts = isDemo() ? state.gifts : [];
-  giftsOpenKids.clear();
+  if(!isDemo()) state.gifts = [];
+  giftsOpenKid = null;
   const box = $('giftsBody');
   if(box) box.innerHTML = '';
 }
 
-// ---- the list ----
+// ---- the list: same two levels as Inköp — one row per kid, then that kid's page ----
+function giftsForKid(id){
+  return (state.gifts || []).filter(g => g.year === giftYear() && g.recipient_id === id)
+    .sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
+}
+
 function renderGifts(){
   const box = $('giftsBody');
   if(!box || !giftsUnlocked || currentView !== 'gifts') return;
-  const all = (state.gifts || []).filter(g => g.year === giftYear());
   const typing = document.activeElement && document.activeElement.dataset && document.activeElement.dataset.giftqa
     ? { id: document.activeElement.id, value: document.activeElement.value } : null;
-
-  const kidsHtml = giftKids().map(k => {
-    const mine = all.filter(g => g.recipient_id === k.id)
-      .sort((a, b) => (a.bought - b.bought) || String(a.created_at).localeCompare(String(b.created_at)));
-    const open = giftsOpenKids.has(k.id);
-    const total = giftSum(mine);
-    const meta = mine.length ? `${mine.length} st · ${total ? fmtMoney(total) : '–'}` : 'Inget än';
-    return `
-      <div class="gf-kid${open ? ' is-open' : ''}">
-        <button class="gf-kid-row" type="button" data-gift="kid" data-kid="${k.id}" aria-expanded="${open}">
-          ${avatarHtml(profileColor(k), k.name)}
-          <span class="gf-kid-name">${escapeHtml(capital(k.name))}</span>
-          <span class="gf-kid-meta">${escapeHtml(meta)}</span>
-          <span class="gf-caret" aria-hidden="true">›</span>
-        </button>
-        ${open ? `
-          <div class="gf-kid-body">
-            ${mine.map(giftRow).join('')}
-            <label class="sr-only" for="giftQa-${k.id}">Ny julklapp till ${escapeHtml(capital(k.name))}</label>
-            <input class="gf-qa" id="giftQa-${k.id}" data-giftqa="${k.id}" type="text" maxlength="80"
-              autocomplete="off" enterkeyhint="done" placeholder="Lägg till… (t.ex. Lego 449)">
-          </div>` : ''}
-      </div>`;
-  }).join('');
-
-  box.innerHTML = `
-    <div class="gifts">
-      <div class="gf-head">
-        <button class="gf-back" type="button" data-gift="back">‹ Inköp</button>
-        <h2 class="gf-title serif">Julklappar ${giftYear()}</h2>
-        <p class="gf-sub">🔒 Bara för er föräldrar. Låses när ni lämnar sidan.</p>
-      </div>
-      <div class="gf-total">
-        <span>Totalt <b>${fmtMoney(giftSum(all))}</b></span>
-        <span>köpt ${fmtMoney(giftSum(all.filter(g => g.bought)))}</span>
-      </div>
-      <div class="gf-kids">${kidsHtml || '<p class="gf-empty">Inga barn i familjen än.</p>'}</div>
-      <p class="gf-tip">Tips: tryck på en önskan i Önskelista till jul (Inköp) för att spara undan den hit. Det syns inte för barnen.</p>
-    </div>`;
+  const kid = giftsOpenKid && giftKids().find(k => k.id === giftsOpenKid);
+  box.innerHTML = kid ? giftKidPage(kid) : giftOverview();
   if(typing){ const el = $(typing.id); if(el){ el.value = typing.value; el.focus(); } }
 }
 
-function giftRow(g){
+function giftOverview(){
+  const all = (state.gifts || []).filter(g => g.year === giftYear());
+  const rows = giftKids().map(k => {
+    const mine = giftsForKid(k.id);
+    const total = giftSum(mine);
+    const left = mine.filter(g => !g.bought).length;
+    const meta = !mine.length ? 'Inget än'
+      : `${total ? fmtMoney(total) : ''}${total && left ? ' · ' : ''}${left ? `${left} kvar att köpa` : (total ? '' : 'Allt köpt')}`;
+    return `
+      <button class="shop-row" type="button" data-gift="kid" data-kid="${k.id}">
+        <span class="gf-av">${avatarHtml(profileColor(k), k.name)}</span>
+        <span class="shop-row-text"><span class="shop-row-title">${escapeHtml(capital(k.name))}</span></span>
+        <span class="shop-count${mine.length && !left ? ' is-clear' : ''}">${escapeHtml(meta)}</span>
+        <span class="shop-caret" aria-hidden="true">›</span>
+      </button>`;
+  }).join('');
   return `
-    <div class="gf-row${g.bought ? ' is-bought' : ''}">
-      <button class="gf-check" type="button" data-gift="tick" data-id="${g.id}" role="checkbox" aria-checked="${g.bought}" aria-label="Köpt: ${escapeHtml(g.title)}">${g.bought ? '✓' : ''}</button>
-      <button class="gf-name" type="button" data-gift="edit" data-id="${g.id}">${escapeHtml(g.title)}${g.from_wish ? '<span class="gf-wish">önskad</span>' : ''}</button>
-      <span class="gf-price">${g.price != null ? fmtMoney(g.price) : '–'}</span>
+    <div class="shop-page-head">
+      <button class="shop-back" type="button" data-gift="back">‹ Inköp</button>
+      <h2 class="shop-page-title serif"><span aria-hidden="true">🎁</span>Julklappar ${giftYear()}</h2>
+      <p class="shop-page-sub">🔒 Bara för er föräldrar · låses när ni lämnar sidan</p>
+    </div>
+    <div class="gf-total">
+      <span>Totalt <b>${fmtMoney(giftSum(all))}</b></span>
+      <span>köpt ${fmtMoney(giftSum(all.filter(g => g.bought)))}</span>
+    </div>
+    ${rows ? `<div class="shop-acc">${rows}</div>` : '<p class="shop-empty">Inga barn i familjen än.</p>'}
+    <p class="gf-tip">Tips: tryck på en önskan i Önskelista till jul (Inköp) och välj 🔒 Spara undan. Det syns inte för barnen.</p>`;
+}
+
+function giftKidPage(k){
+  const mine = giftsForKid(k.id);
+  const open = mine.filter(g => !g.bought), bought = mine.filter(g => g.bought);
+  const showBought = !!giftsShowBought[k.id];
+  const name = capital(k.name);
+  const total = giftSum(mine), paid = giftSum(bought);
+  const sub = mine.length
+    ? `${mine.length} st · ${fmtMoney(total)}${paid ? ` · köpt ${fmtMoney(paid)}` : ''}`
+    : 'Inget planerat än';
+  return `
+    <div class="shop-page-head">
+      <button class="shop-back" type="button" data-gift="overview">‹ Julklappar</button>
+      <h2 class="shop-page-title serif"><span class="gf-av lg">${avatarHtml(profileColor(k), k.name)}</span>${escapeHtml(name)}</h2>
+      <p class="shop-page-sub">${escapeHtml(sub)}</p>
+    </div>
+    <div class="shop-list">
+      ${open.length ? open.map(giftRow).join('') : `<p class="shop-empty">${mine.length ? 'Allt är köpt 🎉' : 'Skriv en julklapp nedan, gärna med pris.'}</p>`}
+      ${showBought ? bought.map(giftRow).join('') : ''}
+    </div>
+    ${bought.length ? `<div class="shop-meta">
+      <button class="shop-meta-btn" type="button" data-gift="bought" data-kid="${k.id}" aria-expanded="${showBought}">${showBought ? 'Dölj köpta' : `${bought.length} köpta`}</button>
+    </div>` : ''}
+    <div class="shop-addbar">
+      <label class="sr-only" for="giftQa-${k.id}">Ny julklapp till ${escapeHtml(name)}</label>
+      <input class="shop-qa" id="giftQa-${k.id}" data-giftqa="${k.id}" type="text" maxlength="80"
+        autocomplete="off" enterkeyhint="done" placeholder="Lägg till… (t.ex. Lego 449)">
+      <button class="shop-addbtn" type="button" data-gift="add" data-kid="${k.id}" aria-label="Lägg till">＋</button>
     </div>`;
+}
+
+function giftRow(g){
+  return `<div class="shop-item${g.bought ? ' bought' : ''}">
+      <button class="shop-check" type="button" data-gift="tick" data-id="${g.id}" role="checkbox" aria-checked="${g.bought}" aria-label="Köpt: ${escapeHtml(g.title)}">${g.bought ? '✓' : ''}</button>
+      <button class="shop-item-title" type="button" data-gift="item" data-id="${g.id}">${escapeHtml(g.title)}${g.from_wish ? '<span class="gf-wish">önskad</span>' : ''}</button>
+      <span class="gf-price">${g.price != null ? fmtMoney(g.price) : ''}</span>
+    </div>`;
+}
+
+// Tap a present: Köpt, Ändra (title / kid / price), Ta bort.
+function openGiftSheet(id){
+  const g = (state.gifts || []).find(x => x.id === id);
+  const k = g && state.profilesById[g.recipient_id];
+  if(!g) return;
+  openSheet(`
+    <div class="sheet-in">
+      <span class="sheet-grab" aria-hidden="true"></span>
+      <p class="sheet-who">🎁 ${k ? `${avatarHtml(profileColor(k), k.name)}${escapeHtml(capital(k.name))}` : ''}</p>
+      <h3 class="sheet-title">${escapeHtml(g.title)}</h3>
+      <p class="sheet-when">${g.price != null ? fmtMoney(g.price) : 'Inget pris'}${g.from_wish ? ' · från önskelistan' : ''}${g.bought ? ' · köpt' : ''}</p>
+      <div class="sheet-actions">
+        <button class="sheet-btn" type="button" data-sh="tick">${g.bought ? '↺ Inte köpt ändå' : '✓ Markera som köpt'}</button>
+        <button class="sheet-btn" type="button" data-sh="edit">✎ Ändra namn, pris eller barn</button>
+        <button class="sheet-btn danger" type="button" data-sh="del">Ta bort</button>
+      </div>
+    </div>`, (act) => {
+    if(act === 'tick') toggleGift(id);
+    else if(act === 'edit'){ if(!demoBlock()) openGiftDialog({ mode: 'edit', id: g.id, title: g.title, kidId: g.recipient_id, price: g.price }); }
+    else if(act === 'del') deleteGift(id);
+  });
 }
 
 function onGiftsClick(e){
@@ -187,16 +238,19 @@ function onGiftsClick(e){
   if(!b) return;
   const act = b.dataset.gift;
   if(act === 'back'){ switchView('todos'); setTodoTab('shopping'); }
-  else if(act === 'kid'){
-    const id = b.dataset.kid;
-    if(giftsOpenKids.has(id)) giftsOpenKids.delete(id); else giftsOpenKids.add(id);
+  else if(act === 'kid'){ giftsOpenKid = b.dataset.kid; renderGifts(); window.scrollTo(0, 0); }
+  else if(act === 'overview'){
+    const was = giftsOpenKid;
+    giftsOpenKid = null;
     renderGifts();
+    window.scrollTo(0, 0);
+    const row = $('giftsBody').querySelector(`[data-kid="${was}"]`);
+    if(row) row.focus({ preventScroll: true });
   }
+  else if(act === 'bought'){ giftsShowBought[b.dataset.kid] = !giftsShowBought[b.dataset.kid]; renderGifts(); }
   else if(act === 'tick') toggleGift(b.dataset.id);
-  else if(act === 'edit'){
-    const g = (state.gifts || []).find(x => x.id === b.dataset.id);
-    if(g) openGiftDialog({ mode: 'edit', id: g.id, title: g.title, kidId: g.recipient_id, price: g.price });
-  }
+  else if(act === 'item') openGiftSheet(b.dataset.id);
+  else if(act === 'add'){ const inp = $('giftQa-' + b.dataset.kid); if(inp) submitGiftQa(inp); }
 }
 
 // "Lego Duplo 299" → title "Lego Duplo", price 299
@@ -210,23 +264,29 @@ function onGiftsKey(e){
   const inp = e.target.closest('[data-giftqa]');
   if(!inp) return;
   e.preventDefault();
+  submitGiftQa(inp);
+}
+function submitGiftQa(inp){
+  if(demoBlock()) return;
   const raw = inp.value.trim();
-  if(!raw) return;
+  if(!raw){ inp.focus(); return; }
   inp.value = '';
   const { title, price } = parseGift(raw);
-  addGift({ recipient_id: inp.dataset.giftqa, title, price, from_wish: false }, true);
+  addGift({ recipient_id: inp.dataset.giftqa, title, price, from_wish: false }, true, inp, raw);
 }
 
-async function addGift(row, refocus){
+async function addGift(row, refocus, input, raw){
+  if(demoBlock()) return false;
   const full = { ...row, year: giftYear(), bought: false, created_by: me.id };
-  if(isDemo()){
-    state.gifts.push({ ...full, id: 'demo-' + Date.now() + Math.random(), created_at: new Date().toISOString() });
-  } else {
-    try{
-      const { error } = await sb.from('gifts').insert(full);
-      if(error) throw error;
-      if(giftsUnlocked) await loadGifts();
-    }catch(err){ console.warn('addGift', err); toast('warn', 'Kunde inte spara'); return false; }
+  try{
+    const { error } = await sb.from('gifts').insert(full);
+    if(error) throw error;
+    if(giftsUnlocked) await loadGifts();
+  }catch(err){
+    console.warn('addGift', err);
+    if(input && !input.value && raw) input.value = raw;   // give the text back so it can be retried
+    toast('warn', 'Kunde inte spara');
+    return false;
   }
   renderGifts();
   if(refocus){ const again = $('giftQa-' + row.recipient_id); if(again) again.focus(); }
@@ -234,11 +294,11 @@ async function addGift(row, refocus){
 }
 
 async function toggleGift(id){
+  if(demoBlock()) return;
   const g = (state.gifts || []).find(x => x.id === id);
   if(!g) return;
   g.bought = !g.bought;
   renderGifts();
-  if(isDemo()) return;
   try{
     const { error } = await sb.from('gifts').update({ bought: g.bought }).eq('id', id);
     if(error) throw error;
@@ -272,6 +332,7 @@ function isWishList(topic){
 }
 
 function openKeepDialog(itemId){
+  if(demoBlock()) return;
   const it = (state.shopItems || []).find(x => x.id === itemId);
   if(!it || !isParent()) return;
   if(!isWishList((state.shopTopics || []).find(t => t.id === it.topic_id))) return;   // only from the wish list
@@ -322,7 +383,6 @@ async function updateGift(id, fields){
   const before = { title: g.title, price: g.price, recipient_id: g.recipient_id };
   Object.assign(g, fields);
   renderGifts();
-  if(isDemo()) return;
   try{
     const { error } = await sb.from('gifts').update(fields).eq('id', id);
     if(error) throw error;
@@ -334,14 +394,13 @@ async function updateGift(id, fields){
   }
 }
 
-async function deleteGiftFromDialog(){
-  const g = editingGift && (state.gifts || []).find(x => x.id === editingGift.id);
-  $('giftDialog').close();
+async function deleteGift(id){
+  if(demoBlock()) return;
+  const g = (state.gifts || []).find(x => x.id === id);
   if(!g) return;
   if(!(await confirmDialog(`Ta bort "${g.title}"?`))) return;
   state.gifts = state.gifts.filter(x => x.id !== g.id);
   renderGifts();
-  if(isDemo()) return;
   try{
     const { error } = await sb.from('gifts').delete().eq('id', g.id);
     if(error) throw error;
@@ -351,4 +410,10 @@ async function deleteGiftFromDialog(){
     await loadGifts();
     renderGifts();
   }
+}
+// The dialog's own "Ta bort" (edit mode).
+function deleteGiftFromDialog(){
+  const id = editingGift && editingGift.id;
+  $('giftDialog').close();
+  if(id) deleteGift(id);
 }

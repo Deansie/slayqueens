@@ -65,10 +65,11 @@ async function enterApp(){
 }
 
 // Read-only showcase: load bundled fixtures into state and render, without ever touching
-// Supabase. Writes still route through sb (unauthenticated → denied) and surface the demo
-// toast; nothing can change the real database.
+// Supabase. `sb` is swapped for a stand-in (demoClient in supa.js) so not a single request
+// reaches the backend; adding/ticking/deleting is stopped with a "this is a demo" toast.
 function enterDemo(){
   session = null;
+  sb = demoClient();
   Object.assign(state, DEMO_DATA.state);
   state.profilesById = {};
   for(const p of state.profiles) state.profilesById[p.id] = p;

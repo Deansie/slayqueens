@@ -33,7 +33,6 @@ function renderCalendar(){
   renderNotisBar();
   renderWeekNav();
   const list = $('eventList');
-  list.innerHTML = '';
 
   const mon = mondayOfWeek(calWeekOffset);
   const days = [...Array(7)].map((_, i) => { const d = new Date(mon); d.setDate(d.getDate() + i); return d; });
@@ -44,31 +43,22 @@ function renderCalendar(){
     .sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at))
     .forEach(ev => { const k = dateKey(ev.starts_at); (byDay[k] = byDay[k] || []).push(ev); });
 
-  days.forEach((d, i) => list.appendChild(weekDay(d, i, byDay[dateKey(d)] || [])));
+  list.innerHTML = days.map(d => weekDay(d, byDay[dateKey(d)] || [])).join('');
 }
 
-// ‹ v.41 › with the week's dates; away from this week, a pill leads back to it.
+// ‹ Vecka 41  5–11 oktober ›  (away from this week a small "Idag" pill leads back)
 function renderWeekNav(){
   const box = $('calWeekNav');
   if(!box) return;
-  const n = calWeekOffset;
-  const mon = mondayOfWeek(n);
-  const label = n === 0 ? 'Den här veckan'
-    : n === -1 ? 'Förra veckan'
-    : n === 1  ? 'Nästa vecka'
-    : n < 0    ? `För ${-n} veckor sedan`
-    :            `Om ${n} veckor`;
+  const mon = mondayOfWeek(calWeekOffset);
   box.innerHTML = `
-    <div class="wk-nav-row">
-      <button class="wk-arrow" data-calweek="-1" type="button" aria-label="Föregående vecka">‹</button>
-      <div class="wk-mid">
-        <div class="wk-eyebrow${n === 0 ? ' is-now' : ''}">${label}</div>
-        <div class="wk-no serif">v.${isoWeek(mon)}</div>
-        <div class="wk-range">${escapeHtml(weekRangeLabel(mon))}</div>
-      </div>
-      <button class="wk-arrow" data-calweek="1" type="button" aria-label="Nästa vecka">›</button>
+    <button class="wk-arrow" data-calweek="-1" type="button" aria-label="Föregående vecka">‹</button>
+    <div class="wk-mid">
+      <span class="wk-title serif">Vecka ${isoWeek(mon)}</span>
+      <span class="wk-range">${escapeHtml(weekRangeLabel(mon))}</span>
+      ${calWeekOffset !== 0 ? '<button class="wk-today" data-calweek="today" type="button">Idag</button>' : ''}
     </div>
-    ${n !== 0 ? '<button class="wk-today" data-calweek="today" type="button">↺ Till idag</button>' : ''}`;
+    <button class="wk-arrow" data-calweek="1" type="button" aria-label="Nästa vecka">›</button>`;
 }
 
 function onWeekNavClick(e){
@@ -94,78 +84,49 @@ function weekOffsetOf(key){
   return Math.round((mon - mondayOfWeek(0)) / (7 * 86400000));
 }
 
-// One day of the week: the date on the left (Sundays and röda dagar in red, as in a paper
-// almanac), then that day's events, or a line that adds one when nothing is planned.
-function weekDay(d, idx, evs){
+// One day: a single header line (name · röd dag/lov · where people work), then one line per
+// event. A free day is one quiet line that adds an event on that date when tapped.
+function weekDay(d, evs){
   const key = dateKey(d), today = todayKey();
+  const rel = key === today ? 'Idag · ' : key === dateKey(new Date(Date.now() + 86400000)) ? 'Imorgon · ' : '';
+  const label = `${rel}${capital(WEEKDAYS[d.getDay()]).slice(0, 3)} ${d.getDate()} ${MONTHS[d.getMonth()]}`;
+  const full = `${capital(WEEKDAYS[d.getDay()])} ${d.getDate()} ${MONTHS_LONG[d.getMonth()]}`;
   const red = (typeof redDayName === 'function') ? redDayName(d) : null;
   const lov = (typeof closureName === 'function') ? closureName(d) : null;
-  const dayLabel = `${capital(WEEKDAYS[d.getDay()])} ${d.getDate()} ${MONTHS_LONG[d.getMonth()]}`;
-  const day = document.createElement('div');
-  day.className = 'wk-day'
-    + (key === today ? ' is-today' : key < today ? ' is-past' : '')
-    + (red || d.getDay() === 0 ? ' is-red' : '')
-    + (evs.length ? '' : ' is-empty');
-  day.setAttribute('role', 'group');
-  day.setAttribute('aria-label', dayLabel);
+  const note = red ? `<span class="cal-note">${escapeHtml(red)}</span>`
+    : lov ? `<span class="cal-note lov">${escapeHtml(lov)}</span>` : '';
 
-  // My own home/office marker sits under the date; other people's show as tags on the day.
+  let free = '';
+  if(!evs.length){
+    free = key < today
+      ? '<span class="cal-free" aria-hidden="true">—</span>'
+      : `<button class="cal-free" type="button" data-addday="${key}" aria-label="Ny händelse ${escapeHtml(full)}">Inget planerat</button>`;
+  }
+  const cls = 'cal-day' + (key === today ? ' is-today' : key < today ? ' is-past' : '')
+    + (red || d.getDay() === 0 ? ' is-red' : '');
+  return `<section class="${cls}" aria-label="${escapeHtml(full)}">
+      <div class="cal-day-h"><span class="cal-day-name">${escapeHtml(label)}</span>${note}${free}${workHtml(key, full)}</div>
+      ${evs.map(eventLine).join('')}
+    </section>`;
+}
+
+// Others' markers as a tiny avatar + icon; mine as an icon button parents can tap to change.
+function workHtml(key, full){
+  const others = (state.workDays || []).filter(w => w.date === key && !(me && w.profile_id === me.id))
+    .map(w => {
+      const p = state.profilesById[w.profile_id], place = WORK_PLACES[w.location];
+      if(!p || !place) return '';
+      return `<span class="cal-work-o" title="${escapeHtml(`${capital(p.name)} jobbar ${place.label}`)}">${avatarHtml(profileColor(p), p.name)}${place.icon}</span>`;
+    }).join('');
   const mine = me ? workOf(me.id, key) : null;
-  const others = (state.workDays || []).filter(w => w.date === key && !(me && w.profile_id === me.id));
-  const tags = (red ? `<span class="wk-tag red">${escapeHtml(red)}</span>` : '')
-    + (lov ? `<span class="wk-tag lov">${escapeHtml(lov)}</span>` : '')
-    + others.map(workTag).join('');
-  const date = `
-      <span class="wk-wd">${key === today ? 'Idag' : MEAL_WEEKDAYS[idx]}</span>
-      <span class="wk-num serif">${d.getDate()}</span>
-      ${mine ? `<span class="wk-work">${WORK_PLACES[mine].icon}</span>` : ''}`;
-  // Parents tap the date (today and later) to cycle their own marker: 🏠 → 🏢 → none.
-  const canMark = isParent() && key >= today;
-  const status = mine ? `du jobbar ${WORK_PLACES[mine].label}` : 'ingen arbetsplats vald';
-  day.innerHTML = `
-    ${canMark
-      ? `<button class="wk-date" type="button" aria-label="${dayLabel}: ${status}. Tryck för att ändra.">${date}</button>`
-      : `<div class="wk-date" aria-hidden="true">${date}</div>`}
-    <div class="wk-body">${tags ? `<div class="wk-tags">${tags}</div>` : ''}</div>`;
-  if(canMark) day.querySelector('.wk-date').onclick = () => cycleWorkDay(key);
-  const body = day.querySelector('.wk-body');
-  if(evs.length){
-    for(const ev of evs){
-      const row = eventRow(ev);
-      row.classList.add('in-week');
-      body.appendChild(row);
-    }
-  } else {
-    body.appendChild(emptyDay(d, key < today));
+  let mineHtml = '';
+  if(isParent() && key >= todayKey()){
+    mineHtml = `<button class="cal-work-me${mine ? '' : ' is-unset'}" type="button" data-work="${key}"
+      aria-label="${escapeHtml(full)}: ${mine ? `du jobbar ${WORK_PLACES[mine].label}` : 'ingen arbetsplats vald'}. Tryck för att ändra.">${WORK_PLACES[mine || 'home'].icon}</button>`;
+  } else if(mine){
+    mineHtml = `<span class="cal-work-me" title="Du jobbar ${WORK_PLACES[mine].label}">${WORK_PLACES[mine].icon}</span>`;
   }
-  return day;
-}
-
-// A day without events. Upcoming days get "Inget planerat +", which opens Ny händelse on that
-// date; past days just show a dash.
-function emptyDay(d, past){
-  if(past){
-    const dash = document.createElement('p');
-    dash.className = 'wk-empty';
-    dash.textContent = '—';
-    return dash;
-  }
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.className = 'wk-empty wk-add';
-  btn.innerHTML = '<span>Inget planerat</span><span class="wk-plus" aria-hidden="true">+</span>';
-  btn.setAttribute('aria-label', `Ny händelse ${WEEKDAYS[d.getDay()]} ${d.getDate()} ${MONTHS_LONG[d.getMonth()]}`);
-  btn.onclick = () => openEventDialog(null, dateKey(d));
-  return btn;
-}
-
-// Someone else's marker on a day, e.g. "🏠 Anna".
-function workTag(w){
-  const p = state.profilesById[w.profile_id];
-  const place = WORK_PLACES[w.location];
-  if(!p || !place) return '';
-  const name = capital(p.name);
-  return `<span class="wk-tag work" title="${escapeHtml(`${name} jobbar ${place.label}`)}">${place.icon} ${escapeHtml(name)}</span>`;
+  return (others || mineHtml) ? `<span class="cal-work">${others}${mineHtml}</span>` : '';
 }
 
 // Where someone works on `key`; for me, a tap that's still waiting to be saved wins.
@@ -177,7 +138,7 @@ function workOf(profileId, key){
 
 // Tap on a date: none → 🏠 hemma → 🏢 på kontoret → none. Shown at once, saved after a short pause.
 function cycleWorkDay(key){
-  if(!me) return;
+  if(!me || demoBlock()) return;
   const cur = workOf(me.id, key);
   pendingWork[key] = cur === null ? 'home' : cur === 'home' ? 'office' : null;
   const tap = workTaps[key] = (workTaps[key] || 0) + 1;
@@ -191,11 +152,7 @@ function cycleWorkDay(key){
 }
 
 async function saveWorkDay(key, location, tap){
-  if(isDemo()){
-    // Demo: keep the change on this device only, like the budget does; nothing is saved.
-    state.workDays = (state.workDays || []).filter(w => !(w.profile_id === me.id && w.date === key));
-    if(location) state.workDays.push({ profile_id: me.id, date: key, location });
-  } else {
+  {
     try{
       const { error } = location
         ? await sb.from('work_days').upsert({ profile_id: me.id, date: key, location }, { onConflict: 'profile_id,date' })
@@ -211,44 +168,60 @@ async function saveWorkDay(key, location, tap){
   renderCalendar();
 }
 
-function eventRow(ev){
-  const row = document.createElement('article');
-  const isToday = dateKey(ev.starts_at) === todayKey();
-  const ongoing = isToday && isOngoing(ev);
-  row.className = 'event' + (isToday ? ' is-today' : '') + (ongoing ? ' is-ongoing' : '');
+// One line per event: time · colour bar (whose it is) · title + a quiet second line · 💬 count.
+// Everything else (note, comments, edit, delete) is in the sheet that opens on tap.
+function eventLine(ev){
+  const owner = ownerLabel(ev);
+  const ongoing = dateKey(ev.starts_at) === todayKey() && isOngoing(ev);
+  const start = fmtTime(ev.starts_at);
+  const time = ev.all_day ? 'Heldag' : `${start}${ev.ends_at ? `<small>${fmtTime(ev.ends_at)}</small>` : ''}`;
+  const sub = (ongoing ? '<span class="now">Pågår</span> · ' : '') + escapeHtml([owner.name, ev.notes].filter(Boolean).join(' · '));
+  const n = chatCountFor('event', ev.id);
+  return `<button class="cal-ev" type="button" data-ev="${ev.id}" style="--c:${owner.color}">
+      <span class="cal-ev-t">${time}</span>
+      <span class="cal-ev-bar" aria-hidden="true"></span>
+      <span class="cal-ev-main"><span class="cal-ev-title">${ev.private ? '🔒 ' : ''}${escapeHtml(ev.title)}</span><span class="cal-ev-sub">${sub}</span></span>
+      ${n ? `<span class="cal-ev-n" aria-label="${n} kommentarer">💬 ${n}</span>` : '<span></span>'}
+    </button>`;
+}
+
+function onCalendarClick(e){
+  const b = e.target.closest('[data-ev],[data-addday],[data-work]');
+  if(!b) return;
+  if(b.dataset.work) return cycleWorkDay(b.dataset.work);
+  if(b.dataset.addday){ if(!demoBlock()) openEventDialog(null, b.dataset.addday); return; }
+  const ev = state.events.find(x => x.id === b.dataset.ev);
+  if(ev) openEventSheet(ev);
+}
+
+// Tap an event: everything about it, and what you can do (comments for all; edit/delete if yours).
+function openEventSheet(ev){
   const owner = ownerLabel(ev);
   const canEdit = (me && ev.created_by === me.id) || isParent();
-  const when = ev.all_day
-    ? 'Heldag'
-    : fmtTime(ev.starts_at) + (ev.ends_at ? '–' + fmtTime(ev.ends_at) : '');
-  row.innerHTML = `
-    <div class="ev-top">
-      <div class="ev-when">
-        <span class="ev-time">${escapeHtml(when)}</span>
-        ${ongoing ? '<span class="ev-live">Pågår</span>' : ''}
+  const when = ev.all_day ? 'Heldag' : fmtTime(ev.starts_at) + (ev.ends_at ? '–' + fmtTime(ev.ends_at) : '');
+  const d = new Date(ev.starts_at);
+  const msgs = messagesFor('event', ev.id);
+  const last = msgs[msgs.length - 1];
+  const lastBy = last && state.profilesById[last.created_by];
+  const lastText = last ? (last.body || '📷 Bild') : '';
+  openSheet(`
+    <div class="sheet-in">
+      <span class="sheet-grab" aria-hidden="true"></span>
+      <p class="sheet-who">${avatarHtml(owner.color, owner.name)}${escapeHtml(owner.name)}</p>
+      <h3 class="sheet-title">${ev.private ? '🔒 ' : ''}${escapeHtml(ev.title)}</h3>
+      <p class="sheet-when">${escapeHtml(capital(WEEKDAYS[d.getDay()]))} ${d.getDate()} ${MONTHS_LONG[d.getMonth()]} · ${escapeHtml(when)}</p>
+      ${ev.notes ? `<p class="sheet-notes">${escapeHtml(ev.notes)}</p>` : ''}
+      ${last ? `<p class="sheet-last">💬 ${msgs.length} · ${escapeHtml(lastBy ? capital(lastBy.name) + ': ' : '')}${escapeHtml(lastText)}</p>` : ''}
+      <div class="sheet-actions">
+        <button class="sheet-btn" type="button" data-sh="chat">💬 ${msgs.length ? 'Visa kommentarer' : 'Skriv en kommentar'}</button>
+        ${canEdit ? '<button class="sheet-btn" type="button" data-sh="edit">✎ Redigera</button>' : ''}
+        ${canEdit ? '<button class="sheet-btn danger" type="button" data-sh="del">Ta bort</button>' : ''}
       </div>
-      <div class="ev-top-end">
-        <span class="owner-chip">${avatarHtml(owner.color, owner.name)}<span class="oc-name">${escapeHtml(owner.name)}</span></span>
-        ${canEdit ? `
-        <details class="ev-menu">
-          <summary aria-label="Fler val">⋯</summary>
-          <div class="ev-menu-pop">
-            <button type="button" data-edit>✎ Redigera</button>
-            <button type="button" data-del class="danger">🗑 Ta bort</button>
-          </div>
-        </details>` : '<span class="ev-menu-spacer" aria-hidden="true"></span>'}
-      </div>
-    </div>
-    <h3 class="ev-title">${ev.private ? '🔒 ' : ''}${escapeHtml(ev.title)}</h3>
-    ${ev.notes ? `<p class="ev-notes">${escapeHtml(ev.notes)}</p>` : ''}
-    <div class="ev-foot">${chatButton('event', ev.id)}</div>`;
-  if(canEdit){
-    const menu = row.querySelector('.ev-menu');
-    const close = () => { if(menu) menu.open = false; };
-    row.querySelector('[data-edit]').onclick = () => { close(); openEventDialog(ev); };
-    row.querySelector('[data-del]').onclick  = () => { close(); deleteEvent(ev); };
-  }
-  return row;
+    </div>`, (act) => {
+    if(act === 'chat') openChat('event', ev.id, chatTitleFor('event', ev.id));
+    else if(act === 'edit') openEventDialog(ev);
+    else if(act === 'del') deleteEvent(ev);
+  });
 }
 
 function toggleTime(){

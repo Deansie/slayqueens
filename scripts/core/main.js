@@ -27,7 +27,7 @@ function currentFabAction(){
     return homeworkKids().length ? { label: 'Läxa', run: () => openHomeworkDialog() } : null;
   }
   if(currentView === 'todos'){
-    if(todoTab === 'shopping') return { label: 'Ny kategori',    run: () => openTopicDialog(),        parentOnly: true };
+    if(todoTab === 'shopping') return shopOpenTopic ? null : { label: 'Ny kategori', run: () => openTopicDialog(), parentOnly: true };   // not on a list page, where the add bar is
     if(todoTab === 'cleaning') return { label: 'Ny städuppgift', run: () => openCleaningDialog(null), parentOnly: true };
     return { label: 'Att göra', run: () => openTodoDialog() };
   }
@@ -65,6 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Floating add button
   $('fab').addEventListener('click', () => {
+    if(demoBlock()) return;   // the demo shows things, it doesn't add them
     const cfg = currentFabAction();
     if(cfg && cfg.run) cfg.run();
   });
@@ -95,6 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Calendar
   $('calWeekNav').addEventListener('click', onWeekNavClick);
+  $('eventList').addEventListener('click', onCalendarClick);
+  initSheet();
   $('eventForm').addEventListener('submit', (e) => {
     if(e.submitter && e.submitter.value === 'ok') saveEventFromDialog();
   });

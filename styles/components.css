@@ -92,105 +92,65 @@ textarea{ resize:vertical; }
 }
 .notis-x:hover{ background:color-mix(in srgb, var(--text) 9%, transparent); color:var(--text); }
 
-/* Week navigation (Kalender): ‹ v.41 › with the week's dates */
-.cal-weeknav{ display:flex; flex-direction:column; align-items:center; gap:10px; margin:2px 0 16px; }
-.wk-nav-row{ display:flex; align-items:center; justify-content:center; gap:16px; width:100%; }
-.wk-mid{ flex:0 1 200px; min-width:0; text-align:center; }
-.wk-eyebrow{
-  font-size:.72rem; font-weight:700; letter-spacing:.2em; text-transform:uppercase; color:var(--muted);
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-}
-.wk-eyebrow.is-now{ color:var(--accent-ink); }
-.wk-no{ font-size:2.1rem; line-height:1.05; margin-top:3px; }
-.wk-range{ font-size:.88rem; color:var(--muted); margin-top:2px; }
+/* ---- Kalender: a quiet week. One line per event; details open in a sheet (see sheet.css). ---- */
+.cal-weeknav{ display:flex; align-items:center; justify-content:space-between; gap:6px; margin:0 0 6px; }
+.wk-mid{ display:flex; align-items:baseline; justify-content:center; flex-wrap:wrap; gap:2px 9px; min-width:0; text-align:center; }
+.wk-title{ font-size:1.3rem; line-height:1.2; }
+.wk-range{ font-size:.86rem; color:var(--muted); }
 .wk-arrow{
-  width:38px; height:38px; flex:0 0 auto; border-radius:50%; cursor:pointer;
-  border:1px solid var(--border); background:var(--card); color:var(--text); font-size:1.2rem; line-height:1;
+  width:44px; height:44px; flex:0 0 auto; border:0; border-radius:50%; cursor:pointer;
+  background:transparent; color:var(--muted); font-size:1.4rem; line-height:1;
 }
-.wk-arrow:hover{ border-color:var(--gold-line); color:var(--accent-ink); }
+.wk-arrow:hover{ background:var(--card-2); color:var(--text); }
 .wk-today{
   cursor:pointer; border:1px solid var(--gold-line); background:var(--gold-soft); color:var(--accent-ink);
-  border-radius:var(--radius-pill); padding:5px 14px; font-size:.8rem; font-weight:700;
+  border-radius:var(--radius-pill); padding:2px 11px; font-size:.78rem; font-weight:700;
 }
 
-/* The week: one card with Monday–Sunday always shown (same rhythm as the matsedel's menu card) */
-.cal-week{
-  background:var(--card); border:1px solid var(--border);
-  border-radius:var(--radius); padding:4px 14px; box-shadow:var(--shadow-sm);
+.cal-day{ padding:12px 0 4px; }
+.cal-day + .cal-day{ border-top:1px solid var(--border); }
+.cal-day-h{ display:flex; align-items:center; gap:8px; min-height:32px; }
+.cal-day-name{ font-size:.92rem; font-weight:700; white-space:nowrap; }
+.cal-day.is-today .cal-day-name{ color:var(--accent-ink); }
+.cal-day.is-past .cal-day-name{ color:var(--muted); }
+.cal-day.is-red .cal-day-name{ color:var(--danger); }
+.cal-day.is-today.is-red .cal-day-name{ color:var(--accent-ink); }
+.cal-note{ font-size:.8rem; font-weight:600; color:var(--danger); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+.cal-note.lov{ color:var(--accent-ink); }
+.cal-free{
+  flex:1 1 auto; min-width:0; text-align:left; border:0; background:transparent; cursor:pointer;
+  color:var(--faint); font-size:.86rem; font-style:italic; padding:6px 2px;
 }
-.wk-day{
-  display:grid; grid-template-columns:40px minmax(0, 1fr); gap:14px; align-items:start;
-  padding:14px 6px; border-top:1px solid var(--border); border-radius:12px;
+.cal-free:hover{ color:var(--accent-ink); }
+span.cal-free{ cursor:default; }
+.cal-work{ margin-left:auto; display:inline-flex; align-items:center; gap:6px; flex:0 0 auto; }
+.cal-work-o{ display:inline-flex; align-items:center; gap:3px; font-size:.78rem; }
+.cal-work-o .avatar{ width:17px; height:17px; font-size:.55rem; }
+.cal-work-me{
+  min-width:36px; height:36px; border:0; border-radius:10px; background:transparent;
+  font-size:1.05rem; line-height:1; display:grid; place-items:center;
 }
-.wk-day:first-child{ border-top:none; }
-.wk-day.is-empty{ align-items:center; }
-.wk-day.is-today{ background:linear-gradient(90deg, var(--gold-soft), transparent 72%); }
-.wk-date{ display:flex; flex-direction:column; align-items:center; gap:4px; padding-top:1px; }
-.wk-wd{ font-size:.68rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--faint); }
-.wk-num{ font-size:1.55rem; line-height:1; }
-.wk-day.is-red .wk-num{ color:var(--danger); }
-.wk-day.is-past .wk-num{ color:var(--muted); }
-.wk-day.is-today .wk-wd, .wk-day.is-today .wk-num{ color:var(--accent-ink); }
-.wk-body{ display:flex; flex-direction:column; min-width:0; }
-.wk-tags{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
-.wk-day.is-empty .wk-tags{ margin-bottom:6px; }
-.wk-tag{ font-size:.74rem; font-weight:700; border-radius:var(--radius-pill); padding:2px 9px; }
-.wk-tag.red{ color:var(--danger); background:var(--danger-soft); }
-.wk-tag.lov{ color:var(--accent-ink); background:var(--gold-soft); }
+button.cal-work-me{ cursor:pointer; }
+button.cal-work-me:hover{ background:var(--card-2); }
+.cal-work-me.is-unset{ opacity:.3; filter:grayscale(1); }
+.cal-day.is-past .cal-work-me{ opacity:.55; }
 
-/* Home/office: my own marker under the date (parents tap the date to change it), others' as tags */
-button.wk-date{
-  width:100%; padding:4px 0; margin:-4px 0; border:0; border-radius:10px;
-  background:none; color:inherit; cursor:pointer;
+.cal-ev{
+  display:grid; grid-template-columns:48px 3px minmax(0, 1fr) auto; align-items:center; column-gap:11px;
+  width:100%; text-align:left; border:0; background:transparent; color:var(--text); cursor:pointer;
+  padding:9px 6px; margin:0 -6px; border-radius:12px; width:calc(100% + 12px);
 }
-button.wk-date:hover{ background:color-mix(in srgb, var(--text) 6%, transparent); }
-.wk-work{ font-size:.95rem; line-height:1; margin-top:1px; }
-.wk-day.is-past .wk-work{ opacity:.55; }
-.wk-tag.work{ color:var(--muted); background:var(--card-2); font-weight:600; }
-
-/* Event card */
-.event{
-  display:flex; flex-direction:column; gap:9px;
-  background:var(--card); border:1px solid var(--border);
-  border-radius:var(--radius); padding:15px 16px; box-shadow:var(--shadow-sm);
-}
-.event.is-today{
-  background:var(--card-hi);
-  border-color:color-mix(in srgb, var(--gold) 42%, var(--border));
-  box-shadow:0 0 0 1px color-mix(in srgb, var(--gold) 20%, transparent), var(--shadow-sm);
-}
-.ev-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
-.ev-when{ display:flex; align-items:center; gap:11px; flex:0 0 auto; }
-/* right end of the time row: whose event it is, then the ⋯ menu last */
-.ev-top-end{ display:flex; align-items:center; gap:4px; min-width:0; margin-left:auto; }
-.ev-time{ font-size:.9rem; font-weight:700; color:var(--accent-ink); letter-spacing:.02em; font-variant-numeric:tabular-nums; }
-.ev-live{
-  display:inline-flex; align-items:center; gap:6px;
-  font-size:.72rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--gold);
-}
-.ev-live::before{
-  content:''; width:6px; height:6px; border-radius:50%; background:var(--gold); flex:0 0 auto;
-  animation:livepulse 1.9s ease-out infinite;
-}
-@keyframes livepulse{
-  0%{ box-shadow:0 0 0 0 color-mix(in srgb, var(--gold) 55%, transparent); }
-  70%{ box-shadow:0 0 0 7px transparent; }
-  100%{ box-shadow:0 0 0 0 transparent; }
-}
-.ev-title{ font-size:1.35rem; font-weight:700; letter-spacing:-.01em; line-height:1.2; }
-.ev-notes{ color:var(--muted); font-size:.92rem; margin-top:-1px; }
-.ev-foot{ display:flex; justify-content:flex-end; }   /* just the 💬 now */
-
-.owner-chip{
-  display:inline-flex; align-items:center; gap:7px; min-width:0;
-  font-size:.8rem; font-weight:600; color:var(--muted);
-  background:var(--card-2); border-radius:var(--radius-pill); padding:3px 12px 3px 4px;
-}
-.oc-name{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }   /* long names shorten, the time never does */
-/* On the time row every name pill gets the same width (fits "Familjen"), and cards without a ⋯ menu
-   keep its space, so avatars and names line up in one column down the week. */
-.ev-top-end .owner-chip{ width:6.6rem; flex:0 1 auto; }   /* a real width: flex-basis alone shrinks back to the name */
-.ev-menu-spacer{ flex:0 0 32px; }
+.cal-ev:hover{ background:var(--card-2); }
+.cal-ev-t{ font-size:.82rem; font-weight:700; color:var(--muted); font-variant-numeric:tabular-nums; line-height:1.25; }
+.cal-ev-t small{ display:block; font-size:.74rem; font-weight:600; color:var(--faint); }
+.cal-ev-bar{ align-self:stretch; border-radius:2px; background:var(--c, var(--faint)); }
+.cal-ev-main{ min-width:0; display:flex; flex-direction:column; gap:1px; }
+.cal-ev-title{ font-size:1.02rem; font-weight:650; line-height:1.25; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cal-ev-sub{ font-size:.82rem; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cal-ev-sub .now{ color:var(--accent-ink); font-weight:700; }
+.cal-ev-n{ font-size:.8rem; font-weight:600; color:var(--faint); white-space:nowrap; font-variant-numeric:tabular-nums; }
+.cal-day.is-past .cal-ev-title{ color:var(--muted); }
+.cal-day.is-today .cal-ev-t{ color:var(--accent-ink); }
 
 /* Kebab menu on a card (native <details>) */
 .ev-menu{ position:relative; flex:0 0 auto; }
@@ -221,28 +181,6 @@ button.wk-date:hover{ background:color-mix(in srgb, var(--text) 6%, transparent)
 .ev-chat:hover{ background:var(--card-2); color:var(--text); }
 .ev-chat svg{ width:17px; height:17px; }
 .ev-chat .n{ font-variant-numeric:tabular-nums; }
-
-/* An event inside the week: the regular card without its frame */
-.event.in-week, .event.in-week.is-today{
-  background:none; border:0; border-radius:0; box-shadow:none; padding:0; gap:7px;
-}
-.event.in-week + .event.in-week{ border-top:1px dashed var(--border); margin-top:12px; padding-top:12px; }
-.event.in-week .ev-title{ font-size:1.15rem; }
-.wk-day.is-past .ev-time{ color:var(--muted); }
-.wk-day.is-past .ev-title{ color:color-mix(in srgb, var(--text) 72%, var(--muted)); }
-
-/* A day with nothing planned */
-.wk-empty{ margin:0; color:var(--faint); font-style:italic; }
-.wk-add{
-  display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%;
-  background:none; border:0; padding:2px 0; cursor:pointer; text-align:left;
-}
-.wk-plus{
-  flex:0 0 auto; width:28px; height:28px; border-radius:50%; display:grid; place-items:center;
-  font-style:normal; font-size:1.05rem; line-height:1; color:var(--muted); border:1px dashed var(--border-strong);
-}
-.wk-add:hover{ color:var(--muted); }
-.wk-add:hover .wk-plus{ border-color:var(--gold-line); color:var(--accent-ink); }
 
 /* Empty / placeholder states */
 .placeholder{

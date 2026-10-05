@@ -29,59 +29,25 @@
 .pin-pad button:active{ background:var(--gold-soft); }
 .pin-pad .pin-ghost{ border-color:transparent; background:transparent; font-size:.9rem; color:var(--muted); }
 
-/* ---- the list ---- */
-.gifts{ display:flex; flex-direction:column; gap:12px; }
-.gf-head{ display:flex; flex-direction:column; gap:3px; }
-.gf-back{
-  align-self:flex-start; border:0; background:transparent; cursor:pointer; padding:2px 0;
-  color:var(--accent-ink); font-weight:700; font-size:.92rem;
-}
-.gf-title{ font-size:1.9rem; line-height:1.1; margin-top:4px; }
-.gf-sub{ color:var(--muted); font-size:.85rem; }
+/* ---- the list: built from the Inköp pieces (shopping.css), plus these ---- */
 .gf-total{
-  display:flex; justify-content:space-between; align-items:baseline; gap:10px;
+  display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:12px;
   background:var(--card-2); border-radius:var(--radius-sm); padding:10px 14px;
   color:var(--muted); font-size:.92rem; font-variant-numeric:tabular-nums;
 }
 .gf-total b{ color:var(--text); font-size:1.1rem; }
-.gf-kids{
-  background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
-  box-shadow:var(--shadow-sm); overflow:hidden;
-}
-.gf-kid + .gf-kid{ border-top:1px solid var(--border); }
-.gf-kid-row{
-  display:flex; align-items:center; gap:10px; width:100%; text-align:left; cursor:pointer;
-  border:0; background:transparent; color:var(--text); padding:13px 14px; font:inherit;
-}
-.gf-kid.is-open .gf-kid-row{ background:var(--gold-soft); }
-.gf-kid-name{ font-weight:700; }
-.gf-kid-meta{ margin-left:auto; color:var(--muted); font-size:.88rem; font-weight:600; font-variant-numeric:tabular-nums; }
-.gf-caret{ flex:0 0 auto; color:var(--faint); font-size:1.1rem; transition:transform .15s; }
-.gf-kid.is-open .gf-caret{ transform:rotate(90deg); }
-.gf-kid-body{ border-top:1px solid var(--border); padding:6px 14px 12px; }
-.gf-row{ display:flex; align-items:center; gap:11px; padding:8px 1px; }
-.gf-row + .gf-row{ border-top:1px solid var(--border); }
-.gf-check{
-  width:21px; height:21px; flex:0 0 auto; cursor:pointer;
-  border:2px solid var(--border-strong); background:var(--card-2);
-  border-radius:6px; display:grid; place-items:center; font-size:.72rem; color:#fff;
-}
-.gf-row.is-bought .gf-check{ background:var(--success); border-color:var(--success); }
-.gf-name{
-  flex:1; min-width:0; text-align:left; cursor:pointer; padding:0; border:0; background:transparent;
-  color:var(--text); font:inherit; font-weight:500; word-break:break-word;
-}
-.gf-row.is-bought .gf-name{ color:var(--muted); }
+.gf-av{ flex:0 0 auto; width:26px; display:grid; place-items:center; }
+.gf-av .avatar{ width:24px; height:24px; font-size:.7rem; }
+.gf-av.lg{ width:auto; }
+.gf-av.lg .avatar{ width:34px; height:34px; font-size:.95rem; }
+.gf-price{ flex:0 0 auto; color:var(--muted); font-weight:700; font-size:.92rem; font-variant-numeric:tabular-nums; }
+.shop-item.bought .gf-price{ color:var(--faint); }
 .gf-wish{
-  margin-left:7px; padding:1px 7px; border-radius:var(--radius-pill); vertical-align:1px;
+  margin-left:8px; padding:1px 7px; border-radius:var(--radius-pill); vertical-align:2px;
   background:var(--gold-soft); color:var(--accent-ink); font-size:.68rem; font-weight:700;
 }
-.gf-price{ flex:0 0 auto; color:var(--muted); font-weight:700; font-size:.9rem; font-variant-numeric:tabular-nums; }
-.gf-qa{ margin-top:8px; }
-.gf-empty{ color:var(--muted); padding:14px; }
-.gf-tip{ color:var(--muted); font-size:.82rem; }
+.gf-tip{ color:var(--muted); font-size:.84rem; margin:14px 2px 0; }
 
 @media (prefers-reduced-motion: reduce){
   .pin-dots.shake{ animation:none; }
-  .gf-caret{ transition:none; }
 }

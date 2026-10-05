@@ -18,9 +18,6 @@
   .tab .tico{ width:22px; height:22px; }
   .fab{ padding:12px 16px 12px 14px; font-size:.9rem; }
   .me-name{ max-width:88px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  /* give the week's events more width on narrow phones */
-  .cal-week{ padding:2px 10px; }
-  .wk-day{ grid-template-columns:34px minmax(0, 1fr); gap:10px; padding:12px 4px; }
 }
 
 @media (max-width:480px){

@@ -19,16 +19,16 @@ an **Imorgon** heads-up: tomorrow's weather (high/low) and events. It's not in t
 the date in the header from anywhere to come back to it.
 
 **Kalender.** The family's shared calendar, shown one week at a time like the Matsedel: ‹ › flip
-to earlier or later weeks (*Till idag* jumps back), and every day Monday–Sunday is always listed
-with that day's events inside it. Sundays and röda dagar are red, lov and studiedagar from Skola
-are labelled, past days are toned down, and an empty upcoming day can be tapped to add an event
-on it. A parent taps a date to mark where they work that day (🏠 hemma → 🏢 på kontoret → nothing);
-their own marker shows under the date, and everyone else sees it as a small tag on the day. Each
-event shows whose it is: a family member or the whole family. (An event can also carry a category,
-set in the event dialog; it shows on Dagens agenda.) Events can be timed
-or all-day, carry an optional note, and be marked **private** (hidden from the other kids,
-still visible to parents). An event happening right now shows a *Pågår* badge. The header
-shows today's date, a count of today's and tomorrow's events, and the local weather.
+to earlier or later weeks (*Idag* jumps back) and all seven days, Monday–Sunday, are always listed.
+Each event is a single quiet line: time, a thin bar in the colour of whose it is, the title, and
+who/the note underneath (*Pågår* while it's happening, 💬 only when there are comments). Tap an
+event for a sheet with everything: the note, the latest comment, and Kommentarer / Redigera /
+Ta bort (parents, or whoever added it). Events can be timed or all-day, carry a note, and be marked
+**private** (hidden from the other kids, still visible to parents). Sundays and röda dagar are red,
+lov and studiedagar from Skola are labelled, past days are toned down, and a free upcoming day is a
+single "Inget planerat" line you tap to add an event on it. A parent taps the small 🏠/🏢 on a day to
+mark where they work (hemma → kontoret → nothing); everyone sees the others' markers next to the
+date. The header shows today's date, a count of today's and tomorrow's events, and the weather.
 
 **Möten.** A private list of a parent's recurring or one-off meetings — for someone who works
 from home with a work calendar the family can't see. When anyone adds a calendar event that
@@ -41,11 +41,10 @@ the top of the page. The **to-do list** has a shared family checklist anyone can
 each person's own private to-dos. **Inköp** is a shopping-needs board: parents create categories
 ("Kläder", "Skolsaker"…) and assign each to a person or leave it shared. A category is private to
 whoever it's for, so a kid only sees the categories assigned to them (plus shared ones) and fills
-in what they need there; parents see everyone's — handy with several kids. The page is a compact
-list with one row per category (how many things are left) and one category open at a time: type
-a thing and press Enter to add it, tick it off when bought (bought things fold away under
-*Köpta*), and tap *Redigera* to delete. Parents can put the lists in any order with
-*↕ Ändra ordning* (↑/↓ per list); everyone sees that order. **Städschema** is a recurring weekly cleaning schedule: parents pin chores to a
+in what they need there; parents see everyone's — handy with several kids. Inköp is two levels so it stays short: an overview with one quiet row per list (who it's for and how
+many things are left), and a list page that opens on tap with big round ticks and an add bar at the
+bottom: type a thing and press Enter. Bought things fold into *n köpta*; tap a thing's name for a
+sheet (Köpt, Ta bort). Parents can put the lists in any order with *↕ Ändra ordning*. **Städschema** is a recurring weekly cleaning schedule: parents pin chores to a
 weekday and the whole family ticks them off through the week. A progress bar and a nudge
 ("2 uppgifter släpar efter — ta dem idag") encourage keeping up so nothing piles up for the
 weekend, and it resets automatically every Monday.

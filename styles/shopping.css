@@ -1,100 +1,101 @@
 /* ============================================================
-   Shopping board ("Inköp") — inside "Att göra". An accordion: one
-   compact row per category (icon, name, whose, how many left), one
-   open at a time. An open list has a type-and-Enter field, compact
-   rows, bought items folded under "Köpta", and ✕ only in "Redigera".
+   Shopping board ("Inköp") — inside "Att göra". Two levels: an
+   overview with one quiet row per list, and a list page with round
+   ticks and an add bar at the bottom. Details live in a sheet.
    ============================================================ */
 
+/* ---- overview ---- */
 .shop-acc{
   background:var(--card); border:1px solid var(--border);
   border-radius:var(--radius); box-shadow:var(--shadow-sm); overflow:hidden;
 }
 .shop-row{
-  display:flex; align-items:center; gap:10px; width:100%; text-align:left; cursor:pointer;
+  display:flex; align-items:center; gap:12px; width:100%; min-height:56px; text-align:left; cursor:pointer;
   border:0; border-top:1px solid var(--border); background:transparent; color:var(--text);
-  padding:13px 14px; font:inherit;
+  padding:12px 16px; font:inherit;
 }
 .shop-acc > .shop-row:first-child{ border-top:0; }
-.shop-row:hover .shop-row-title{ color:var(--accent-ink); }
-.shop-row[aria-expanded="true"]{ background:var(--gold-soft); }
-.shop-emoji{ font-size:1.15rem; line-height:1; flex:0 0 auto; }
-.shop-row-title{
-  flex:0 1 auto; min-width:0; font-weight:700; font-size:1rem;
-  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-}
-.shop-owner{
-  display:inline-flex; align-items:center; gap:5px; flex:0 1 auto; min-width:0;
-  font-size:.78rem; font-weight:600; color:var(--muted); white-space:nowrap;
-}
-.shop-owner .avatar{ width:18px; height:18px; font-size:.58rem; }
-.shop-count{
-  margin-left:auto; flex:0 0 auto; min-width:1.6em; text-align:right;
-  font-weight:800; font-size:.92rem; color:var(--accent-ink); font-variant-numeric:tabular-nums;
-}
-.shop-count.is-clear{ color:var(--success); }
-.shop-caret{ flex:0 0 auto; color:var(--faint); font-size:1.1rem; line-height:1; transition:transform .15s; }
-.shop-row .shop-count + .shop-caret{ margin-left:0; }
-.shop-row .shop-owner + .shop-caret, .shop-row .shop-row-title + .shop-caret{ margin-left:auto; }
-.shop-row[aria-expanded="true"] .shop-caret{ transform:rotate(90deg); }
+button.shop-row:hover .shop-row-title{ color:var(--accent-ink); }
+.shop-emoji{ font-size:1.25rem; line-height:1; flex:0 0 auto; width:26px; text-align:center; }
+.shop-row-text{ flex:1 1 auto; min-width:0; display:flex; align-items:baseline; gap:8px; }
+.shop-row-title{ font-weight:650; font-size:1.02rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+.shop-owner{ font-size:.84rem; color:var(--muted); white-space:nowrap; }
+.shop-count{ flex:0 0 auto; font-size:.9rem; font-weight:700; color:var(--muted); font-variant-numeric:tabular-nums; }
+.shop-count.is-clear{ color:var(--success); font-weight:600; }
+.shop-caret{ flex:0 0 auto; color:var(--faint); font-size:1.15rem; line-height:1; margin-left:-4px; }
 
-/* the open list */
-.shop-body{ border-top:1px solid var(--border); padding:8px 14px 12px; }
-.shop-tools{ display:flex; align-items:center; justify-content:flex-end; gap:6px; margin-bottom:6px; }
-.shop-edit{
-  border:0; background:transparent; cursor:pointer; padding:4px 2px;
-  color:var(--accent-ink); font-weight:700; font-size:.85rem;
-}
-.shop-qa{ margin-bottom:4px; }
-.shop-items{ display:flex; flex-direction:column; }
-.shop-item{ display:flex; align-items:center; gap:11px; padding:8px 1px; }
-.shop-item + .shop-item{ border-top:1px solid var(--border); }
-.shop-check{
-  width:21px; height:21px; flex:0 0 auto; cursor:pointer;
-  border:2px solid var(--border-strong); background:var(--card-2);
-  border-radius:6px; display:grid; place-items:center; font-size:.72rem; color:#fff;
-}
-.shop-item.bought .shop-check{ background:var(--success); border-color:var(--success); }
-.shop-item-title{
-  flex:1; min-width:0; font-weight:500; word-break:break-word;
-  border:0; background:transparent; padding:0; text-align:left; color:var(--text); font:inherit;
-}
-button.shop-item-title{ cursor:pointer; }
-.shop-item.bought .shop-item-title{ text-decoration:line-through; color:var(--faint); }
-.shop-del{
-  flex:0 0 auto; width:28px; height:28px; border:0; border-radius:50%; cursor:pointer;
-  background:transparent; color:var(--danger); font-size:.8rem;
-}
-.shop-del:hover{ background:var(--danger-soft); }
-.shop-empty{ color:var(--muted); font-size:.9rem; padding:8px 1px; }
-.shop-bought{
-  display:flex; align-items:center; justify-content:space-between;
-  border-top:1px solid var(--border); margin-top:4px; padding:9px 1px 2px;
-}
-.shop-bought-toggle, .shop-clear{
-  border:0; background:transparent; cursor:pointer; padding:2px 0; font-weight:700; font-size:.85rem;
-}
-.shop-bought-toggle{ color:var(--muted); }
-.shop-clear{ color:var(--accent-ink); }
-.shop-deltopic{
-  display:block; margin:12px 0 0 auto; border:0; background:transparent; cursor:pointer;
-  color:var(--danger); font-weight:700; font-size:.85rem; padding:4px 0;
-}
-
-/* Parents: "↕ Ändra ordning" — every list gets ↑ / ↓ instead of opening */
+/* parents: "↕ Ändra ordning" — every list gets ↑ / ↓ instead of opening */
 .shop-order{
-  display:block; margin:10px 2px 0 auto; border:0; background:transparent; cursor:pointer;
-  color:var(--accent-ink); font-weight:700; font-size:.85rem; padding:4px 2px;
+  display:block; margin:12px 2px 0 auto; border:0; background:transparent; cursor:pointer;
+  color:var(--accent-ink); font-weight:700; font-size:.88rem; padding:8px 2px; min-height:40px;
 }
-.shop-acc.is-reorder .shop-row{ cursor:default; padding-block:9px; }
-.shop-acc.is-reorder .shop-row:hover .shop-row-title{ color:inherit; }
+.shop-acc.is-reorder .shop-row{ cursor:default; }
 .shop-move{ margin-left:auto; display:flex; gap:6px; flex:0 0 auto; }
 .shop-move-btn{
-  width:34px; height:34px; padding:0; border-radius:50%; cursor:pointer;
-  display:grid; place-items:center; font-size:1rem; line-height:1;
+  width:40px; height:40px; padding:0; border-radius:50%; cursor:pointer;
+  display:grid; place-items:center; font-size:1.05rem; line-height:1;
   border:1px solid var(--border); background:var(--card-2); color:var(--text);
 }
 .shop-move-btn:hover:not(:disabled){ border-color:var(--gold-line); color:var(--accent-ink); }
 .shop-move-btn:disabled{ opacity:.35; cursor:default; }
+
+/* ---- a list's page ---- */
+.shop-page-head{ display:flex; flex-direction:column; gap:2px; margin-bottom:12px; }
+.shop-back{
+  align-self:flex-start; border:0; background:transparent; cursor:pointer;
+  color:var(--accent-ink); font-weight:700; font-size:.95rem; padding:8px 8px 8px 0; min-height:40px;
+}
+.shop-page-title{ display:flex; align-items:center; gap:10px; font-size:1.9rem; line-height:1.15; overflow-wrap:anywhere; }
+.shop-page-sub{ color:var(--muted); font-size:.9rem; }
+
+.shop-list{
+  background:var(--card); border:1px solid var(--border);
+  border-radius:var(--radius); box-shadow:var(--shadow-sm); padding:4px 16px;
+}
+.shop-item{ display:flex; align-items:center; gap:14px; min-height:54px; }
+.shop-check{
+  width:26px; height:26px; flex:0 0 auto; cursor:pointer; padding:0;
+  border:2px solid var(--border-strong); background:transparent; color:#fff;
+  border-radius:50%; display:grid; place-items:center; font-size:.85rem; font-weight:800;
+}
+.shop-item.bought .shop-check{ background:var(--success); border-color:var(--success); }
+.shop-item-title{
+  flex:1; min-width:0; align-self:stretch; text-align:left; cursor:pointer;
+  border:0; background:transparent; color:var(--text); font:inherit; font-size:1.02rem;
+  padding:8px 0; word-break:break-word;
+}
+.shop-item.bought .shop-item-title{ text-decoration:line-through; color:var(--faint); }
+.shop-empty{ color:var(--muted); font-size:.95rem; padding:16px 0; }
+
+.shop-meta{ display:flex; flex-wrap:wrap; gap:2px 18px; margin:10px 2px 0; }
+.shop-meta-btn{
+  border:0; background:transparent; cursor:pointer; color:var(--muted);
+  font-weight:600; font-size:.88rem; padding:8px 0; min-height:40px;
+}
+.shop-meta-btn:hover{ color:var(--accent-ink); }
+.shop-meta-btn.danger{ margin-left:auto; color:var(--danger); }
+
+/* the add bar: fixed by the thumb, docked to the content column like the FAB */
+.shop-addbar{
+  position:fixed; z-index:21;
+  left:max(calc(14px + env(safe-area-inset-left)), calc(50% - var(--app-max) / 2 + 14px));
+  right:max(calc(14px + env(safe-area-inset-right)), calc(50% - var(--app-max) / 2 + 14px));
+  bottom:calc(var(--nav-h) + 14px + env(safe-area-inset-bottom));
+  display:flex; align-items:center; gap:8px;
+  background:var(--card); border:1px solid var(--border-strong); border-radius:var(--radius-pill);
+  box-shadow:var(--shadow); padding:5px 5px 5px 18px;
+}
+.shop-addbar:focus-within{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft), var(--shadow); }
+.shop-qa{
+  flex:1; min-width:0; border:0; background:transparent; box-shadow:none; border-radius:0;
+  padding:10px 0; font-size:1rem;
+}
+.shop-qa:focus{ border:0; box-shadow:none; }
+.shop-addbtn{
+  width:42px; height:42px; flex:0 0 auto; border:0; border-radius:50%; cursor:pointer;
+  background:linear-gradient(150deg, var(--gold), var(--accent-strong)); color:var(--on-accent);
+  font-size:1.2rem; font-weight:800; line-height:1;
+}
 
 /* Category-icon picker in the "Ny kategori" dialog */
 .shop-emoji-picks{ display:flex; flex-wrap:wrap; gap:7px; }
@@ -104,5 +105,3 @@ button.shop-item-title{ cursor:pointer; }
 }
 .shop-emoji-pick:hover{ border-color:var(--gold-line); }
 .shop-emoji-pick.on{ border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft); background:var(--gold-soft); }
-
-@media (prefers-reduced-motion: reduce){ .shop-caret{ transition:none; } }
