@@ -145,19 +145,17 @@ const DEMO_DATA = (function(){
     { id:'si14', topic_id:'st-jul', title:'Brainrot-klistermärken Nils', bought:false, created_by:P.nils, created_at:at(-3), bought_at:null, bought_by:null }
   ];
 
-  // Kalender: where the parents work (🏠 hemma / 🏢 på kontoret), this week and next. The demo
-  // user is Johan, so his show under the date and Anna's as tags.
+  // Kalender: where Johan (the demo user) works, 🏠 hemma / 🏢 på kontoret, this week and next.
+  // Only one person logs these, so the day shows just the icon.
   const workDays = [
     { id:'wd1',  profile_id:P.johan, date:week(0), location:'home' },
     { id:'wd2',  profile_id:P.johan, date:week(1), location:'office' },
     { id:'wd3',  profile_id:P.johan, date:week(2), location:'office' },
     { id:'wd4',  profile_id:P.johan, date:week(3), location:'home' },
     { id:'wd5',  profile_id:P.johan, date:week(4), location:'office' },
-    { id:'wd6',  profile_id:P.anna,  date:week(1), location:'home' },
-    { id:'wd7',  profile_id:P.anna,  date:week(3), location:'office' },
     { id:'wd8',  profile_id:P.johan, date:week(7), location:'home' },
     { id:'wd9',  profile_id:P.johan, date:week(8), location:'office' },
-    { id:'wd10', profile_id:P.anna,  date:week(9), location:'home' }
+    { id:'wd10', profile_id:P.johan, date:week(9), location:'home' }
   ];
 
   // Läxor (in the Skola card on Dagens agenda): one late, one done today, the rest coming up.

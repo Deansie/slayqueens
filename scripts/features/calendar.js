@@ -118,23 +118,23 @@ function weekDay(d, evs){
     </section>`;
 }
 
-// Others' markers as a tiny avatar + icon; mine as an icon button parents can tap to change.
+// Home/office is one person's thing (in practice one parent), so a day shows just the icon, no
+// name. Whoever has logged days is "the worker" and gets the tap-to-change toggle on today and
+// later; everyone else only sees the icon. Until anyone has logged a day, every parent gets it.
+function workerId(){
+  const w = (state.workDays || []).find(x => x.profile_id);
+  return w ? w.profile_id : null;
+}
 function workHtml(key, full){
-  const others = (state.workDays || []).filter(w => w.date === key && !(me && w.profile_id === me.id))
-    .map(w => {
-      const p = state.profilesById[w.profile_id], place = WORK_PLACES[w.location];
-      if(!p || !place) return '';
-      return `<span class="cal-work-o" title="${escapeHtml(`${capital(p.name)} jobbar ${place.label}`)}">${avatarHtml(profileColor(p), p.name)}${place.icon}</span>`;
-    }).join('');
-  const mine = me ? workOf(me.id, key) : null;
-  let mineHtml = '';
-  if(isParent() && key >= todayKey()){
-    mineHtml = `<button class="cal-work-me${mine ? '' : ' is-unset'}" type="button" data-work="${key}"
-      aria-label="${escapeHtml(full)}: ${mine ? `du jobbar ${WORK_PLACES[mine].label}` : 'ingen arbetsplats vald'}. Tryck för att ändra.">${WORK_PLACES[mine || 'home'].icon}</button>`;
-  } else if(mine){
-    mineHtml = `<span class="cal-work-me" title="Du jobbar ${WORK_PLACES[mine].label}">${WORK_PLACES[mine].icon}</span>`;
+  const worker = workerId();
+  const mineToggle = isParent() && me && (!worker || worker === me.id);
+  const who = mineToggle ? me.id : worker;
+  const place = who ? workOf(who, key) : null;
+  if(mineToggle && key >= todayKey()){
+    return `<span class="cal-work"><button class="cal-work-me${place ? '' : ' is-unset'}" type="button" data-work="${key}"
+      aria-label="${escapeHtml(full)}: ${place ? `jobbar ${WORK_PLACES[place].label}` : 'ingen arbetsplats vald'}. Tryck för att ändra.">${WORK_PLACES[place || 'home'].icon}</button></span>`;
   }
-  return (others || mineHtml) ? `<span class="cal-work">${others}${mineHtml}</span>` : '';
+  return place ? `<span class="cal-work"><span class="cal-work-me" title="Jobbar ${WORK_PLACES[place].label}">${WORK_PLACES[place].icon}</span></span>` : '';
 }
 
 // Where someone works on `key`; for me, a tap that's still waiting to be saved wins.
@@ -176,18 +176,21 @@ async function saveWorkDay(key, location, tap){
   renderCalendar();
 }
 
-// One short line per event: start time · whose (a small avatar) · title · 💬 count. The end time,
-// the note and the comments wait in the sheet that opens on tap. An ongoing event's time is gold.
+// One card per event, hanging off the timeline: time range (+ 💬 n) and whose it is on the top
+// row, the title big underneath. The note and comments wait in the sheet that opens on tap.
+// The event that's on right now gets a gold edge.
 function eventLine(ev){
   const owner = ownerLabel(ev);
   const ongoing = dateKey(ev.starts_at) === todayKey() && isOngoing(ev);
-  const time = ev.all_day ? 'Heldag' : fmtTime(ev.starts_at);
+  const time = ev.all_day ? 'Heldag' : fmtTime(ev.starts_at) + (ev.ends_at ? '–' + fmtTime(ev.ends_at) : '');
   const n = chatCountFor('event', ev.id);
   return `<button class="cal-ev${ongoing ? ' is-now' : ''}" type="button" data-ev="${ev.id}"
       aria-label="${escapeHtml(`${time}, ${ev.title}, ${owner.name}${ongoing ? ', pågår' : ''}${n ? `, ${n} kommentarer` : ''}`)}">
-      <span class="cal-ev-t">${time}</span>
-      <span class="cal-ev-title">${avatarHtml(owner.color, owner.name)}<span class="cal-ev-txt">${ev.private ? '🔒 ' : ''}${escapeHtml(ev.title)}</span></span>
-      ${n ? `<span class="cal-ev-n" aria-hidden="true">💬 ${n}</span>` : ''}
+      <span class="cal-ev-top" aria-hidden="true">
+        <span class="cal-ev-t">${time}</span>${n ? `<span class="cal-ev-n">💬 ${n}</span>` : ''}
+        <span class="cal-ev-who">${avatarHtml(owner.color, owner.name)}${escapeHtml(owner.name)}</span>
+      </span>
+      <span class="cal-ev-title" aria-hidden="true">${ev.private ? '🔒 ' : ''}${escapeHtml(ev.title)}</span>
     </button>`;
 }
 
@@ -200,9 +203,9 @@ function onCalendarClick(e){
   if(ev) openEventSheet(ev);
 }
 
-// Tap an event: everything about it, calmly laid out — whose it is, the title, when (with a gold
-// "Pågår" while it's on), the note, the latest comment — then what you can do: comments for all,
-// edit/delete (quieter, side by side) if it's yours or you're a parent.
+// Tap an event: a calm card in the middle of the screen — whose it is, the title, one line for when (a gold "Pågår" while
+// it's on), the note if there is one, then one quiet row of actions: comments for everyone,
+// edit/delete if it's yours or you're a parent.
 function openEventSheet(ev){
   const owner = ownerLabel(ev);
   const canEdit = (me && ev.created_by === me.id) || isParent();
@@ -212,28 +215,18 @@ function openEventSheet(ev){
   const name = relDayName(d);
   const day = name === capital(WEEKDAYS[d.getDay()])
     ? `${name} ${d.getDate()} ${MONTHS_LONG[d.getMonth()]}`
-    : `${name}, ${WEEKDAYS[d.getDay()]} ${d.getDate()} ${MONTHS_LONG[d.getMonth()]}`;
-  const msgs = messagesFor('event', ev.id);
-  const last = msgs[msgs.length - 1];
-  const lastBy = last && state.profilesById[last.created_by];
-  const lastText = last ? (last.body || '📷 Bild') : '';
+    : `${name}, ${d.getDate()} ${MONTHS_LONG[d.getMonth()]}`;
+  const n = messagesFor('event', ev.id).length;
   openSheet(`
-    <div class="sheet-in evs" style="--c:${owner.color}">
-      <span class="sheet-grab" aria-hidden="true"></span>
+    <div class="sheet-in evs">
       <p class="sheet-who">${avatarHtml(owner.color, owner.name)}${escapeHtml(owner.name)}${ev.private ? '<span class="evs-private">🔒 Privat</span>' : ''}</p>
       <h3 class="sheet-title">${escapeHtml(ev.title)}</h3>
-      <dl class="evs-facts">
-        <div><dt>Dag</dt><dd>${escapeHtml(day)}</dd></div>
-        <div><dt>Tid</dt><dd>${escapeHtml(time)}${ongoing ? '<span class="evs-now">Pågår</span>' : ''}</dd></div>
-      </dl>
+      <p class="evs-when">${escapeHtml(day)} · ${escapeHtml(time)}${ongoing ? '<span class="evs-now">Pågår</span>' : ''}</p>
       ${ev.notes ? `<p class="evs-notes">${escapeHtml(ev.notes)}</p>` : ''}
-      ${last ? `<p class="sheet-last">💬 ${escapeHtml(lastBy ? capital(lastBy.name) + ': ' : '')}${escapeHtml(lastText)}</p>` : ''}
-      <div class="sheet-actions">
-        <button class="sheet-btn gold" type="button" data-sh="chat">💬 ${msgs.length ? `Kommentarer (${msgs.length})` : 'Skriv en kommentar'}</button>
-        ${canEdit ? `<div class="evs-more">
-          <button class="sheet-btn" type="button" data-sh="edit">Redigera</button>
-          <button class="sheet-btn danger" type="button" data-sh="del">Ta bort</button>
-        </div>` : ''}
+      <div class="evs-actions">
+        <button class="evs-btn" type="button" data-sh="chat">💬 ${n ? `Kommentarer · ${n}` : 'Kommentera'}</button>
+        ${canEdit ? `<button class="evs-btn" type="button" data-sh="edit">Redigera</button>
+        <button class="evs-btn danger" type="button" data-sh="del">Ta bort</button>` : ''}
       </div>
     </div>`, (act) => {
     if(act === 'chat') openChat('event', ev.id, chatTitleFor('event', ev.id));

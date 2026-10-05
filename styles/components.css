@@ -141,8 +141,6 @@ textarea{ resize:vertical; }
 }
 .cal-free:hover{ color:var(--accent-ink); }
 .cal-work{ margin-left:auto; display:inline-flex; align-items:center; gap:6px; flex:0 0 auto; }
-.cal-work-o{ display:inline-flex; align-items:center; gap:3px; font-size:.78rem; }
-.cal-work-o .avatar{ width:17px; height:17px; font-size:.55rem; }
 .cal-work-me{
   min-width:36px; height:36px; border:0; border-radius:10px; background:transparent;
   font-size:1.05rem; line-height:1; display:grid; place-items:center;
@@ -152,21 +150,27 @@ button.cal-work-me:hover{ background:var(--card-2); }
 .cal-work-me.is-unset{ opacity:.3; filter:grayscale(1); }
 .cal-day.is-past .cal-work-me{ opacity:.55; }
 
-/* One short line per event: time · avatar + title · 💬 n. Details open in the sheet. */
+/* One card per event: time (+ 💬 n) and owner on top, the title big underneath. */
 .cal-ev{
-  display:grid; grid-template-columns:46px minmax(0, 1fr) auto; align-items:center; column-gap:10px;
-  text-align:left; border:0; background:transparent; color:var(--text); cursor:pointer;
-  padding:8px 6px; margin:0 -6px; border-radius:12px; width:calc(100% + 12px);
+  display:flex; flex-direction:column; gap:5px; width:100%; margin-top:8px; padding:13px 15px;
+  text-align:left; cursor:pointer; color:var(--text);
+  background:var(--card); border:1px solid var(--border); border-radius:var(--radius-sm); box-shadow:var(--shadow-sm);
 }
-.cal-ev:hover{ background:var(--card-2); }
-.cal-ev-t{ font-size:.82rem; font-weight:700; color:var(--muted); font-variant-numeric:tabular-nums; }
+.cal-ev:hover{ border-color:var(--border-strong); }
+.cal-ev.is-now{ border-color:var(--gold-line); box-shadow:0 0 0 1.5px var(--gold-line), var(--shadow-sm); }
+.cal-ev-top{ display:flex; align-items:center; gap:10px; min-width:0; }
+.cal-ev-t{ font-size:.84rem; font-weight:700; color:var(--muted); font-variant-numeric:tabular-nums; white-space:nowrap; }
 .cal-ev.is-now .cal-ev-t{ color:var(--accent-ink); }
-.cal-ev-title{ display:flex; align-items:center; gap:8px; min-width:0; font-size:1rem; font-weight:600; line-height:1.3; }
-.cal-ev-title .avatar{ flex:0 0 auto; width:18px; height:18px; font-size:.56rem; }
-.cal-ev-txt{ min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.cal-ev-n{ font-size:.78rem; font-weight:600; color:var(--faint); white-space:nowrap; font-variant-numeric:tabular-nums; }
+.cal-ev-n{ font-size:.8rem; font-weight:600; color:var(--faint); white-space:nowrap; font-variant-numeric:tabular-nums; }
+.cal-ev-who{
+  margin-left:auto; display:inline-flex; align-items:center; gap:6px; min-width:0;
+  font-size:.84rem; font-weight:600; color:var(--muted); white-space:nowrap;
+}
+.cal-ev-who .avatar{ flex:0 0 auto; width:20px; height:20px; font-size:.6rem; }
+.cal-ev-title{ font-size:1.12rem; font-weight:650; line-height:1.3; overflow-wrap:anywhere; }
+.cal-day.is-past .cal-ev{ background:transparent; box-shadow:none; }
 .cal-day.is-past .cal-ev-title{ color:var(--muted); }
-.cal-day.is-past .cal-ev-title .avatar{ opacity:.6; }
+.cal-day.is-past .cal-ev-who .avatar{ opacity:.6; }
 
 /* Kebab menu on a card (native <details>) */
 .ev-menu{ position:relative; flex:0 0 auto; }

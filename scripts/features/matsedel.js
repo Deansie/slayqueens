@@ -7,6 +7,13 @@
 let mealWeekOffset = 0;      // 0 = current week, ±1 = neighbouring weeks
 let editingMealDate = null;  // 'YYYY-MM-DD' being edited in the meal dialog
 
+// Matsedel always opens on this week.
+function resetMatsedelWeek(){
+  if(mealWeekOffset === 0) return;
+  mealWeekOffset = 0;
+  renderMatsedel();
+}
+
 function currentWeekDays(){
   const mon = mondayOfWeek(mealWeekOffset);
   return [...Array(7)].map((_, i) => { const d = new Date(mon); d.setDate(d.getDate() + i); return d; });

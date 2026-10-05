@@ -1,5 +1,5 @@
 'use strict';
-// A bottom sheet for "what do you want to do with this?": tap an event or a shopping item and
+// A details card (centred on screen) for "what do you want to do with this?": tap an event or a shopping item and
 // its details + actions open here instead of every row carrying its own buttons. One shared
 // <dialog id="sheetDialog">. Any element with data-sh="name" closes the sheet and calls the
 // handler given to openSheet(html, handler) as handler(name, element).

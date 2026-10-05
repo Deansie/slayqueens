@@ -178,7 +178,9 @@ document.addEventListener('DOMContentLoaded', () => {
   $('giftKidPicks').addEventListener('click', onGiftKidPick);
   $('todoSeg').addEventListener('click', (e) => {
     const b = e.target.closest('[data-todotab]');
-    if(b) setTodoTab(b.dataset.todotab);
+    if(!b) return;
+    if(b.dataset.todotab === 'shopping') resetShopping();   // Inköp opens on its overview
+    setTodoTab(b.dataset.todotab);
   });
   setTodoTab(todoTab);   // reflect the remembered sub-tab (panes + active segment)
 
@@ -288,11 +290,20 @@ function switchView(view){
     v.classList.toggle('active', on);
     v.hidden = !on;
   });
+  resetViewToStart(view);
   updateFab();
   if(view === 'budget' && window.Budget) Budget.load();
-  if(view === 'calendar' && from !== 'calendar') resetCalendarWeek();   // Kalender opens on this week
   if(from === 'gifts' && view !== 'gifts') lockGifts();                  // leaving the gift list locks it
   window.scrollTo(0, 0);
+}
+
+// Every page opens on its start: Kalender and Matsedel on this week, Inköp on the overview of
+// lists. Runs on every switch, so tapping the tab you're already on also takes you back to the
+// start. (The Julklappar list and the school-menu dialog already start fresh each time they open.)
+function resetViewToStart(view){
+  if(view === 'calendar') resetCalendarWeek();
+  else if(view === 'matsedel' && typeof resetMatsedelWeek === 'function') resetMatsedelWeek();
+  else if(view === 'todos' && typeof resetShopping === 'function') resetShopping();
 }
 
 function updateFab(){

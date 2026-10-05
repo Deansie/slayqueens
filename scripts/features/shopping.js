@@ -183,7 +183,6 @@ function openItemSheet(id){
   const owner = ownerOf(t);
   openSheet(`
     <div class="sheet-in">
-      <span class="sheet-grab" aria-hidden="true"></span>
       <p class="sheet-who"><span aria-hidden="true">${escapeHtml(t.emoji || '🛒')}</span>${escapeHtml(t.title)}${owner ? ` · ${escapeHtml(capital(owner.name))}` : ''}</p>
       <h3 class="sheet-title">${escapeHtml(it.title)}</h3>
       <div class="sheet-actions">
@@ -196,6 +195,14 @@ function openItemSheet(id){
     else if(act === 'del') deleteShopItem(id);
     else if(act === 'keep' && typeof openKeepDialog === 'function') openKeepDialog(id);
   });
+}
+
+// Inköp always opens on the overview (the lists), not on the list you were in last time.
+function resetShopping(){
+  if(!shopOpenTopic && !shopReorder) return;
+  shopOpenTopic = null;
+  shopReorder = false;
+  renderShopping();
 }
 
 function openTopicPage(id){

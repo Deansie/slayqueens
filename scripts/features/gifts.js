@@ -217,7 +217,6 @@ function openGiftSheet(id){
   if(!g) return;
   openSheet(`
     <div class="sheet-in">
-      <span class="sheet-grab" aria-hidden="true"></span>
       <p class="sheet-who">🎁 ${k ? `${avatarHtml(profileColor(k), k.name)}${escapeHtml(capital(k.name))}` : ''}</p>
       <h3 class="sheet-title">${escapeHtml(g.title)}</h3>
       <p class="sheet-when">${g.price != null ? fmtMoney(g.price) : 'Inget pris'}${g.from_wish ? ' · från önskelistan' : ''}${g.bought ? ' · köpt' : ''}</p>
