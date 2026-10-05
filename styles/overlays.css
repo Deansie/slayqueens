@@ -85,4 +85,28 @@ dialog.sheet{
 .sheet-btn:hover{ border-color:var(--gold-line); }
 .sheet-btn.gold{ color:var(--accent-ink); background:var(--gold-soft); border-color:var(--gold-line); }
 .sheet-btn.danger{ color:var(--danger); }
+
+/* The event sheet: when, as two calm label/value rows; the note set apart in the owner's colour;
+   edit/delete side by side under the comments button. */
+.evs .sheet-title{ margin-bottom:4px; }
+.evs-private{ margin-left:auto; font-size:.78rem; font-weight:600; color:var(--muted); }
+.evs-facts{ margin:0; display:flex; flex-direction:column; border-top:1px solid var(--border); }
+.evs-facts > div{ display:flex; align-items:baseline; gap:14px; padding:10px 2px; border-bottom:1px solid var(--border); }
+.evs-facts dt{
+  width:3.2rem; flex:0 0 auto; font-size:.7rem; font-weight:700; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--faint);
+}
+.evs-facts dd{ margin:0; font-size:1rem; font-variant-numeric:tabular-nums; }
+.evs-now{
+  margin-left:9px; padding:1px 9px; border-radius:var(--radius-pill); vertical-align:1px;
+  background:var(--gold-soft); color:var(--accent-ink); font-size:.74rem; font-weight:700;
+}
+.evs-notes{
+  margin-top:6px; padding:2px 0 2px 12px; border-left:3px solid var(--c, var(--border-strong));
+  font-size:1rem; line-height:1.5; white-space:pre-wrap; overflow-wrap:anywhere;
+}
+.evs .sheet-last{ margin-top:4px; }
+.evs .sheet-actions{ margin-top:12px; }
+.evs-more{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.evs-more .sheet-btn{ text-align:center; background:transparent; }
 @media (prefers-reduced-motion: reduce){ dialog.sheet{ animation:none; } }

@@ -84,29 +84,37 @@ function weekOffsetOf(key){
   return Math.round((mon - mondayOfWeek(0)) / (7 * 86400000));
 }
 
-// One day: a single header line (name · röd dag/lov · where people work), then one line per
-// event. A free day is one quiet line that adds an event on that date when tapped.
+// "Idag", "Imorgon" or the weekday — the timeline's day names and the event sheet share it.
+function relDayName(d){
+  const key = dateKey(d);
+  if(key === todayKey()) return 'Idag';
+  if(key === dateKey(new Date(Date.now() + 86400000))) return 'Imorgon';
+  return capital(WEEKDAYS[d.getDay()]);
+}
+
+// One day on the timeline (the line and its dots are drawn in CSS): the day's name and date,
+// röd dag/lov, where people work, then one short line per event. A coming free day is a quiet
+// "Inget planerat" that adds an event on that date; a past free day shows nothing.
 function weekDay(d, evs){
   const key = dateKey(d), today = todayKey();
-  const rel = key === today ? 'Idag · ' : key === dateKey(new Date(Date.now() + 86400000)) ? 'Imorgon · ' : '';
-  const label = `${rel}${capital(WEEKDAYS[d.getDay()]).slice(0, 3)} ${d.getDate()} ${MONTHS[d.getMonth()]}`;
+  const name = relDayName(d);
+  const date = name === capital(WEEKDAYS[d.getDay()])
+    ? `${d.getDate()} ${MONTHS[d.getMonth()]}`
+    : `${WEEKDAYS[d.getDay()].slice(0, 3)} ${d.getDate()} ${MONTHS[d.getMonth()]}`;
   const full = `${capital(WEEKDAYS[d.getDay()])} ${d.getDate()} ${MONTHS_LONG[d.getMonth()]}`;
   const red = (typeof redDayName === 'function') ? redDayName(d) : null;
   const lov = (typeof closureName === 'function') ? closureName(d) : null;
   const note = red ? `<span class="cal-note">${escapeHtml(red)}</span>`
     : lov ? `<span class="cal-note lov">${escapeHtml(lov)}</span>` : '';
 
-  let free = '';
-  if(!evs.length){
-    free = key < today
-      ? '<span class="cal-free" aria-hidden="true">—</span>'
-      : `<button class="cal-free" type="button" data-addday="${key}" aria-label="Ny händelse ${escapeHtml(full)}">Inget planerat</button>`;
-  }
+  const body = evs.length ? evs.map(eventLine).join('')
+    : key < today ? ''
+    : `<button class="cal-free" type="button" data-addday="${key}" aria-label="Ny händelse ${escapeHtml(full)}">Inget planerat</button>`;
   const cls = 'cal-day' + (key === today ? ' is-today' : key < today ? ' is-past' : '')
     + (red || d.getDay() === 0 ? ' is-red' : '');
   return `<section class="${cls}" aria-label="${escapeHtml(full)}">
-      <div class="cal-day-h"><span class="cal-day-name">${escapeHtml(label)}</span>${note}${free}${workHtml(key, full)}</div>
-      ${evs.map(eventLine).join('')}
+      <div class="cal-day-h"><span class="cal-day-label"><span class="cal-day-name serif">${escapeHtml(name)}</span><span class="cal-day-date">${escapeHtml(date)}</span></span>${note}${workHtml(key, full)}</div>
+      ${body}
     </section>`;
 }
 
@@ -168,20 +176,18 @@ async function saveWorkDay(key, location, tap){
   renderCalendar();
 }
 
-// One line per event: time · colour bar (whose it is) · title + a quiet second line · 💬 count.
-// Everything else (note, comments, edit, delete) is in the sheet that opens on tap.
+// One short line per event: start time · whose (a small avatar) · title · 💬 count. The end time,
+// the note and the comments wait in the sheet that opens on tap. An ongoing event's time is gold.
 function eventLine(ev){
   const owner = ownerLabel(ev);
   const ongoing = dateKey(ev.starts_at) === todayKey() && isOngoing(ev);
-  const start = fmtTime(ev.starts_at);
-  const time = ev.all_day ? 'Heldag' : `${start}${ev.ends_at ? `<small>${fmtTime(ev.ends_at)}</small>` : ''}`;
-  const sub = (ongoing ? '<span class="now">Pågår</span> · ' : '') + escapeHtml([owner.name, ev.notes].filter(Boolean).join(' · '));
+  const time = ev.all_day ? 'Heldag' : fmtTime(ev.starts_at);
   const n = chatCountFor('event', ev.id);
-  return `<button class="cal-ev" type="button" data-ev="${ev.id}" style="--c:${owner.color}">
+  return `<button class="cal-ev${ongoing ? ' is-now' : ''}" type="button" data-ev="${ev.id}"
+      aria-label="${escapeHtml(`${time}, ${ev.title}, ${owner.name}${ongoing ? ', pågår' : ''}${n ? `, ${n} kommentarer` : ''}`)}">
       <span class="cal-ev-t">${time}</span>
-      <span class="cal-ev-bar" aria-hidden="true"></span>
-      <span class="cal-ev-main"><span class="cal-ev-title">${ev.private ? '🔒 ' : ''}${escapeHtml(ev.title)}</span><span class="cal-ev-sub">${sub}</span></span>
-      ${n ? `<span class="cal-ev-n" aria-label="${n} kommentarer">💬 ${n}</span>` : '<span></span>'}
+      <span class="cal-ev-title">${avatarHtml(owner.color, owner.name)}<span class="cal-ev-txt">${ev.private ? '🔒 ' : ''}${escapeHtml(ev.title)}</span></span>
+      ${n ? `<span class="cal-ev-n" aria-hidden="true">💬 ${n}</span>` : ''}
     </button>`;
 }
 
@@ -194,28 +200,40 @@ function onCalendarClick(e){
   if(ev) openEventSheet(ev);
 }
 
-// Tap an event: everything about it, and what you can do (comments for all; edit/delete if yours).
+// Tap an event: everything about it, calmly laid out — whose it is, the title, when (with a gold
+// "Pågår" while it's on), the note, the latest comment — then what you can do: comments for all,
+// edit/delete (quieter, side by side) if it's yours or you're a parent.
 function openEventSheet(ev){
   const owner = ownerLabel(ev);
   const canEdit = (me && ev.created_by === me.id) || isParent();
-  const when = ev.all_day ? 'Heldag' : fmtTime(ev.starts_at) + (ev.ends_at ? '–' + fmtTime(ev.ends_at) : '');
+  const ongoing = dateKey(ev.starts_at) === todayKey() && isOngoing(ev);
+  const time = ev.all_day ? 'Heldag' : fmtTime(ev.starts_at) + (ev.ends_at ? '–' + fmtTime(ev.ends_at) : '');
   const d = new Date(ev.starts_at);
+  const name = relDayName(d);
+  const day = name === capital(WEEKDAYS[d.getDay()])
+    ? `${name} ${d.getDate()} ${MONTHS_LONG[d.getMonth()]}`
+    : `${name}, ${WEEKDAYS[d.getDay()]} ${d.getDate()} ${MONTHS_LONG[d.getMonth()]}`;
   const msgs = messagesFor('event', ev.id);
   const last = msgs[msgs.length - 1];
   const lastBy = last && state.profilesById[last.created_by];
   const lastText = last ? (last.body || '📷 Bild') : '';
   openSheet(`
-    <div class="sheet-in">
+    <div class="sheet-in evs" style="--c:${owner.color}">
       <span class="sheet-grab" aria-hidden="true"></span>
-      <p class="sheet-who">${avatarHtml(owner.color, owner.name)}${escapeHtml(owner.name)}</p>
-      <h3 class="sheet-title">${ev.private ? '🔒 ' : ''}${escapeHtml(ev.title)}</h3>
-      <p class="sheet-when">${escapeHtml(capital(WEEKDAYS[d.getDay()]))} ${d.getDate()} ${MONTHS_LONG[d.getMonth()]} · ${escapeHtml(when)}</p>
-      ${ev.notes ? `<p class="sheet-notes">${escapeHtml(ev.notes)}</p>` : ''}
-      ${last ? `<p class="sheet-last">💬 ${msgs.length} · ${escapeHtml(lastBy ? capital(lastBy.name) + ': ' : '')}${escapeHtml(lastText)}</p>` : ''}
+      <p class="sheet-who">${avatarHtml(owner.color, owner.name)}${escapeHtml(owner.name)}${ev.private ? '<span class="evs-private">🔒 Privat</span>' : ''}</p>
+      <h3 class="sheet-title">${escapeHtml(ev.title)}</h3>
+      <dl class="evs-facts">
+        <div><dt>Dag</dt><dd>${escapeHtml(day)}</dd></div>
+        <div><dt>Tid</dt><dd>${escapeHtml(time)}${ongoing ? '<span class="evs-now">Pågår</span>' : ''}</dd></div>
+      </dl>
+      ${ev.notes ? `<p class="evs-notes">${escapeHtml(ev.notes)}</p>` : ''}
+      ${last ? `<p class="sheet-last">💬 ${escapeHtml(lastBy ? capital(lastBy.name) + ': ' : '')}${escapeHtml(lastText)}</p>` : ''}
       <div class="sheet-actions">
-        <button class="sheet-btn" type="button" data-sh="chat">💬 ${msgs.length ? 'Visa kommentarer' : 'Skriv en kommentar'}</button>
-        ${canEdit ? '<button class="sheet-btn" type="button" data-sh="edit">✎ Redigera</button>' : ''}
-        ${canEdit ? '<button class="sheet-btn danger" type="button" data-sh="del">Ta bort</button>' : ''}
+        <button class="sheet-btn gold" type="button" data-sh="chat">💬 ${msgs.length ? `Kommentarer (${msgs.length})` : 'Skriv en kommentar'}</button>
+        ${canEdit ? `<div class="evs-more">
+          <button class="sheet-btn" type="button" data-sh="edit">Redigera</button>
+          <button class="sheet-btn danger" type="button" data-sh="del">Ta bort</button>
+        </div>` : ''}
       </div>
     </div>`, (act) => {
     if(act === 'chat') openChat('event', ev.id, chatTitleFor('event', ev.id));
