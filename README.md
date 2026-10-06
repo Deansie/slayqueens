@@ -408,4 +408,4 @@ the front end (the anon key ships in the browser by design); it's:
 
 ## Credits
 
-Created by Deansie. Co-authored with Claude (Anthropic).
+Created by Deansie. Co-authored with Claude (Anthropic)
